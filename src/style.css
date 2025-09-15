@@ -1,0 +1,49 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Lora:ital,wght@0,400..700;1,400..700&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --font-lora: Lora, Georgia, "Times New Roman", serif;
+  --font-inter: Inter, -apple-system, "Segoe UI", Roboto, "Helvetica",
+    sans-serif;
+}
+
+@layer components {
+  .btn {
+    background-color: var(--color-black);
+    color: var(--color-white);
+    padding: --spacing(2) --spacing(3.5);
+    border-radius: calc(infinity * 1px);
+    cursor: pointer;
+    font-size: var(--text-sm);
+  }
+}
+
+@keyframes bounce-in {
+  from {
+    opacity: 0;
+    transform: scale(0.75);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes bounce-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.75);
+  }
+}
+
+::view-transition-old(modal) {
+  animation: bounce-out 0.3s;
+}
+
+::view-transition-new(modal) {
+  animation: bounce-in 0.3s;
+}

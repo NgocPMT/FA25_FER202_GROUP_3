@@ -1,0 +1,25 @@
+.home-grid {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-rows: auto 1fr;
+}
+
+.navbar {
+  grid-column: 1 / span 3;
+  grid-row: 1 / 2;
+}
+
+.sidebar {
+  grid-column: 1 / 2;
+  grid-row: 2 / 3;
+}
+
+.side-navbar {
+  grid-column: 3 / 4;
+  grid-row: 2 / 3;
+}
+
+main {
+  grid-column: 2 / 3;
+  grid-row: 2 / 3;
+}

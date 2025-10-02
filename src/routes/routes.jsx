@@ -3,6 +3,8 @@ import Home from "./Home";
 import ErrorPage from "./ErrorPage";
 import SignUp from "./SignUp";
 import SignIn from "./SignIn";
+import HomeDashboard from "./HomeDashboard";
+import UsernameInputPage from "./UsernameInputPage";
 
 const routes = [
   {
@@ -22,6 +24,14 @@ const routes = [
             element: <SignIn />,
           },
         ],
+      },
+      {
+        path: "/home",
+        element: <HomeDashboard />,
+      },
+      {
+        path: "/username-input",
+        element: <UsernameInputPage />,
       },
     ],
   },

@@ -47,20 +47,6 @@ const Navbar = () => {
           <div className="w-8 h-8 rounded-full bg-amber-400 flex items-center justify-center text-white font-bold cursor-pointer">
             A
           </div>
-
-          {/* Auth buttons */}
-          <Link
-            to="/sign-in"
-            className="hidden sm:inline text-sm text-gray-700 hover:underline"
-          >
-            Sign in
-          </Link>
-          <Link
-            to="/sign-up"
-            className="text-sm px-3 py-1 bg-black text-white rounded-full hover:opacity-80 transition"
-          >
-            Get started
-          </Link>
         </div>
       </div>
     </nav>

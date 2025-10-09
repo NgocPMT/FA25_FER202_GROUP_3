@@ -12,41 +12,35 @@ import {
   BsBarChartFill,
   BsPeople,
   BsFillPeopleFill,
-  BsPlusCircle,
 } from "react-icons/bs";
-
 import { FiPlus } from "react-icons/fi";
 
-const MenuItem = ({ icon, iconFill, label, href, active, onClick }) => {
+const MenuItem = ({ icon, activeIcon, label, href, active, onClick }) => {
   return (
     <li
       onClick={onClick}
-      className="relative group flex items-center gap-4 pl-4 pr-3 py-2 rounded-md cursor-pointer hover:bg-gray-100 border border-gray-200"
+      className="relative group flex items-center gap-4 pl-4 pr-3 py-2 rounded-md cursor-pointer hover:bg-gray-100 transition-all"
     >
       <span
-        className={`absolute top-0 -left-4 h-full w-0.5 rounded-r ${
-          active ? "bg-gray-800" : "bg-transparent group-hover:bg-gray-800"
+        className={`absolute top-0 -left-3.5 h-full w-0.5 rounded-r transition-colors ${
+          active ? "bg-gray-800" : "bg-transparent"
         }`}
       ></span>
 
       <span
-        className={`group-hover:hidden ${active ? "hidden" : ""} text-gray-600`}
-      >
-        {icon}
-      </span>
-
-      <span
-        className={`hidden group-hover:inline ${
-          active ? "inline text-black" : ""
+        className={`text-xl transition-colors ${
+          active ? "text-gray-900" : "text-gray-500 group-hover:text-gray-800"
         }`}
       >
-        {iconFill}
+        {active ? activeIcon : icon}
       </span>
 
       <a
         href={href}
-        className={`flex-1 ${
-          active ? "font-bold text-black" : "group-hover:font-bold"
+        className={`flex-1 transition-colors duration-150 ${
+          active
+            ? "text-gray-900 font-medium"
+            : "text-gray-500 group-hover:text-gray-800"
         }`}
       >
         {label}
@@ -63,7 +57,7 @@ const SideNavbar = () => {
       <ul className="space-y-3">
         <MenuItem
           icon={<BsHouse />}
-          iconFill={<BsHouseFill />}
+          activeIcon={<BsHouseFill />}
           label="Home"
           href="#"
           active={activeItem === "Home"}
@@ -71,7 +65,7 @@ const SideNavbar = () => {
         />
         <MenuItem
           icon={<BsBookmark />}
-          iconFill={<BsBookmarkFill />}
+          activeIcon={<BsBookmarkFill />}
           label="Library"
           href="#"
           active={activeItem === "Library"}
@@ -79,7 +73,7 @@ const SideNavbar = () => {
         />
         <MenuItem
           icon={<BsPerson />}
-          iconFill={<BsPersonFill />}
+          activeIcon={<BsPersonFill />}
           label="Profile"
           href="#"
           active={activeItem === "Profile"}
@@ -87,7 +81,7 @@ const SideNavbar = () => {
         />
         <MenuItem
           icon={<BsFileText />}
-          iconFill={<BsFileTextFill />}
+          activeIcon={<BsFileTextFill />}
           label="Stories"
           href="#"
           active={activeItem === "Stories"}
@@ -95,7 +89,7 @@ const SideNavbar = () => {
         />
         <MenuItem
           icon={<BsBarChart />}
-          iconFill={<BsBarChartFill />}
+          activeIcon={<BsBarChartFill />}
           label="Stats"
           href="#"
           active={activeItem === "Stats"}
@@ -108,7 +102,7 @@ const SideNavbar = () => {
       <ul className="space-y-3">
         <MenuItem
           icon={<BsPeople />}
-          iconFill={<BsFillPeopleFill />}
+          activeIcon={<BsFillPeopleFill />}
           label="Following"
           href="#"
           active={activeItem === "Following"}

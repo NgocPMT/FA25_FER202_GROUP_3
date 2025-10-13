@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { Menu, Bell, Pen, Search, X } from "lucide-react";
+import { Link } from "react-router";
 
 const Navbar = () => {
   const [showSearch, setShowSearch] = useState(false);
@@ -47,7 +47,11 @@ const Navbar = () => {
             className="p-2 rounded-full hover:bg-gray-100 [@media(min-width:727px)]:hidden"
             onClick={() => setShowSearch(!showSearch)}
           >
-            {showSearch ? <X className="w-5 h-5" /> : <Search className="w-5 h-5" />}
+            {showSearch ? (
+              <X className="w-5 h-5" />
+            ) : (
+              <Search className="w-5 h-5" />
+            )}
           </button>
 
           <div className="w-8 h-8 rounded-full bg-amber-400 flex items-center justify-center text-white font-bold cursor-pointer flex-shrink-0 overflow-hidden">

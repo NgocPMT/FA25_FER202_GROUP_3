@@ -1,3 +1,4 @@
+import Articles from "../components/Articles";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import SideNavbar from "../components/SideNavbar";
@@ -15,11 +16,7 @@ const HomeDashboard = () => {
       </div>
 
       <main className="pt-16 ml-60 mr-96 p-6">
-        <h1 className="text-2xl font-semibold mb-4">For you</h1>
-        <div className="space-y-4">
-          <div className="border p-4 rounded-lg shadow-sm">Article 1</div>
-          <div className="border p-4 rounded-lg shadow-sm">Article 2</div>
-        </div>
+        <Articles />
       </main>
 
       <div className="fixed top-14 right-0 h-[calc(100%-56px)] w-96 bg-blue-300 border-l p-4">

@@ -19,7 +19,7 @@ const HomeDashboard = () => {
         <Articles />
       </main>
 
-      <div className="fixed top-14 right-0 h-[calc(100%-56px)] w-96 bg-blue-300 border-l p-4">
+      <div className="fixed top-14 right-0 h-[calc(100%-56px)] w-96 p-4">
         <Sidebar />
       </div>
     </div>

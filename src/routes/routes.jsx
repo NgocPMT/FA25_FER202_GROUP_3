@@ -5,6 +5,11 @@ import SignUp from "./SignUp";
 import SignIn from "./SignIn";
 import HomeDashboard from "./HomeDashboard";
 import UsernameInputPage from "./UsernameInputPage";
+import Profile from "./Profile";
+import Stat from "./Stat";
+import StatStories from "../components/StatStories";
+import StatAudience from "../components/StatAudience";
+import Notifications from "./Notification";
 
 const routes = [
   {
@@ -32,6 +37,28 @@ const routes = [
       {
         path: "/username-input",
         element: <UsernameInputPage />,
+      },
+      {
+        path: "/profile",
+        element: <Profile />,
+      },
+      {
+        path: "/stat",
+        element: <Stat />,
+        children: [
+          {
+            index: true,
+            element: <StatStories />,
+          },
+          {
+            path: "audience",
+            element: <StatAudience />,
+          },
+        ],
+      },
+      {
+        path: "/notification",
+        element: <Notifications />,
       },
     ],
   },

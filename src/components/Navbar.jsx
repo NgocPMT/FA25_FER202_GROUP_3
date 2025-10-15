@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Menu, Bell, Pen, Search, X } from "lucide-react";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 
-const Navbar = () => {
+const Navbar = ({ onToggleSideNav }) => {
   const [showSearch, setShowSearch] = useState(false);
 
   return (
@@ -11,7 +11,10 @@ const Navbar = () => {
       <div className="flex items-center justify-between flex-wrap px-4 py-3 w-full min-w-0">
         {/* LEFT */}
         <div className="flex items-center gap-3 flex-shrink-0 min-w-0">
-          <button className="p-2 rounded-full hover:bg-gray-100">
+          <button
+            className="p-2 rounded-full hover:bg-gray-100 cursor-pointer"
+            onClick={onToggleSideNav}
+          >
             <Menu className="w-6 h-6" />
           </button>
 

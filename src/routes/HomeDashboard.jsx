@@ -5,6 +5,7 @@ import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import SideNavbar from "../components/SideNavbar";
 import Notification from "./Notification";
+import Articles from "../components/Articles";
 import "../css/HomeDashboard.css";
 
 const HomeDashboard = () => {
@@ -46,6 +47,10 @@ const HomeDashboard = () => {
         className={`fixed top-14 left-0 h-[calc(100%-56px)] w-60 border-r border-gray-200 bg-white p-4 overflow-y-auto z-50
         transform transition-all duration-300 ease-in-out
         ${showSideNav ? "translate-x-0 opacity-100" : "-translate-x-full opacity-0 pointer-events-none"}`}
+        ${showSideNav
+            ? "translate-x-0 opacity-100"
+            : "-translate-x-full opacity-0 pointer-events-none"
+          }`}
       >
         <SideNavbar />
       </div>
@@ -69,6 +74,12 @@ const HomeDashboard = () => {
         ) : (
           <Notification />
         )}
+        className={`pt-16 ${!isMobile && showSideNav ? "ml-60" : ""
+          } mr-96 p-6 transition-all duration-300 relative z-10`}
+      >
+        <div className="space-y-4">
+          <Articles />
+        </div>
       </main>
 
       {/* Sidebar phải */}

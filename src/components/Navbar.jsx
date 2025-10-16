@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Menu, Bell, Pen, Search, X } from "lucide-react";
 import { Link } from "react-router-dom";
 
-const Navbar = ({ onToggleSideNav }) => {
+const Navbar = ({ onToggleSideNav, onBellClick, bellActive  }) => {
   const [showSearch, setShowSearch] = useState(false);
 
   return (
@@ -19,7 +19,7 @@ const Navbar = ({ onToggleSideNav }) => {
           </button>
 
           <Link
-            to="/"
+            to="/home"
             className="font-lora font-bold text-2xl text-gray-900 truncate"
           >
             Easium
@@ -42,28 +42,30 @@ const Navbar = ({ onToggleSideNav }) => {
             <span>Write</span>
           </button>
 
-          <button className="hidden [@media(min-width:727px)]:block p-2 rounded-full hover:bg-gray-100">
-            <Bell className="w-5 h-5" />
+          {/* 🔔 Nút Bell */}
+           <button
+            className="hidden [@media(min-width:727px)]:block p-2 rounded-full hover:bg-gray-100"
+            onClick={onBellClick} // toggle notification
+          >
+            <Bell className={`w-5 h-5 ${bellActive ? "text-amber-500" : ""}`} />
           </button>
 
+          {/* 🔍 Mobile search */}
           <button
             className="p-2 rounded-full hover:bg-gray-100 [@media(min-width:727px)]:hidden"
             onClick={() => setShowSearch(!showSearch)}
           >
-            {showSearch ? (
-              <X className="w-5 h-5" />
-            ) : (
-              <Search className="w-5 h-5" />
-            )}
+            {showSearch ? <X className="w-5 h-5" /> : <Search className="w-5 h-5" />}
           </button>
 
+          {/* Avatar */}
           <div className="w-8 h-8 rounded-full bg-amber-400 flex items-center justify-center text-white font-bold cursor-pointer flex-shrink-0 overflow-hidden">
             A
           </div>
         </div>
       </div>
 
-      {/* Thanh search trượt xuống khi showSearch = true (chỉ hiện khi <727px) */}
+      {/* Search bar trượt xuống khi showSearch = true */}
       <div
         className={`overflow-hidden transition-all duration-300 ease-in-out border-t [@media(min-width:727px)]:hidden ${
           showSearch ? "max-h-20 opacity-100" : "max-h-0 opacity-0"

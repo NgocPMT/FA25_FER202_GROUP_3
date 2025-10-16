@@ -1,13 +1,17 @@
+// HomeDashboard.js
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import SideNavbar from "../components/SideNavbar";
+import Notification from "./Notification";
 import Articles from "../components/Articles";
 import "../css/HomeDashboard.css";
 
 const HomeDashboard = () => {
   const [showSideNav, setShowSideNav] = useState(window.innerWidth >= 1024);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+  const [showNotification, setShowNotification] = useState(false)
 
   useEffect(() => {
     const handleResize = () => {
@@ -15,7 +19,6 @@ const HomeDashboard = () => {
       setIsMobile(mobile);
       setShowSideNav(!mobile);
     };
-
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
@@ -24,9 +27,13 @@ const HomeDashboard = () => {
   return (
     <div className="home-grid min-h-lvh relative">
       <div className="fixed top-0 left-0 right-0 h-14 z-60">
-        <Navbar onToggleSideNav={() => setShowSideNav((v) => !v)} />
+        <Navbar
+          onToggleSideNav={() => setShowSideNav((v) => !v)}
+          onBellClick={() => setShowNotification((v) => !v)}
+          bellActive={showNotification} />
       </div>
 
+      {/* Overlay cho mobile */}
       {isMobile && (
         <div
           className={`fixed inset-0 bg-black/10 z-40 transition-opacity duration-300 ease-in-out lg:hidden
@@ -35,9 +42,11 @@ const HomeDashboard = () => {
         />
       )}
 
+      {/* Sidebar trái */}
       <div
         className={`fixed top-14 left-0 h-[calc(100%-56px)] w-60 border-r border-gray-200 bg-white p-4 overflow-y-auto z-50
         transform transition-all duration-300 ease-in-out
+        ${showSideNav ? "translate-x-0 opacity-100" : "-translate-x-full opacity-0 pointer-events-none"}`}
         ${showSideNav
             ? "translate-x-0 opacity-100"
             : "-translate-x-full opacity-0 pointer-events-none"
@@ -46,7 +55,25 @@ const HomeDashboard = () => {
         <SideNavbar />
       </div>
 
+      {/* Nội dung chính */}
       <main
+        className={`pt-16 transition-all duration-300 relative z-10
+    ${showNotification ? "ml-60 mr-96" : !isMobile && showSideNav ? "ml-60 mr-96" : "ml-0 mr-0"}
+    p-6
+    ${showNotification ? "overflow-y-auto max-h-[calc(100vh-56px)]" : ""}`}
+      >
+
+        {!showNotification ? (
+          <>
+            <h1 className="text-2xl font-semibold mb-4">For you</h1>
+            <div className="space-y-4">
+              <div className="border p-4 rounded-lg shadow-sm">Article 1</div>
+              <div className="border p-4 rounded-lg shadow-sm">Article 2</div>
+            </div>
+          </>
+        ) : (
+          <Notification />
+        )}
         className={`pt-16 ${!isMobile && showSideNav ? "ml-60" : ""
           } mr-96 p-6 transition-all duration-300 relative z-10`}
       >
@@ -55,7 +82,8 @@ const HomeDashboard = () => {
         </div>
       </main>
 
-      <div className="fixed top-14 right-0 h-[calc(100%-56px)] w-96  p-4 z-20">
+      {/* Sidebar phải */}
+      <div className="fixed top-14 right-0 h-[calc(100%-56px)] w-96 p-4 z-20">
         <Sidebar />
       </div>
     </div>

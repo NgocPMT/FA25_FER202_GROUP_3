@@ -57,7 +57,7 @@ const routes = [
         ],
       },
       {
-        path: "/notification",
+        path: "/notifications",
         element: <Notifications />,
       },
     ],

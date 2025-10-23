@@ -37,9 +37,8 @@ const HomeDashboard = () => {
       {/* Overlay for mobile */}
       {isMobile && (
         <div
-          className={`fixed inset-0 bg-black/10 z-40 transition-opacity duration-300 ease-in-out lg:hidden ${
-            showSideNav ? "opacity-100 visible" : "opacity-0 invisible"
-          }`}
+          className={`fixed inset-0 bg-black/10 z-40 transition-opacity duration-300 ease-in-out lg:hidden ${showSideNav ? "opacity-100 visible" : "opacity-0 invisible"
+            }`}
           onClick={() => setShowSideNav(false)}
         />
       )}
@@ -47,11 +46,10 @@ const HomeDashboard = () => {
       {/* Left Sidebar */}
       <div
         className={`fixed top-14 left-0 h-[calc(100%-56px)] w-60 border-r border-gray-200 bg-white p-4 overflow-y-auto z-50
-        transform transition-all duration-300 ease-in-out ${
-          showSideNav
+        transform transition-all duration-300 ease-in-out ${showSideNav
             ? "translate-x-0 opacity-100"
             : "-translate-x-full opacity-0 pointer-events-none"
-        }`}
+          }`}
       >
         <SideNavbar />
       </div>
@@ -59,13 +57,12 @@ const HomeDashboard = () => {
       {/* Main Content */}
       <main
         className={`pt-16 transition-all duration-300 relative z-10 p-6
-        ${
-          showNotification
+        ${showNotification
             ? "ml-60 mr-96 overflow-y-auto max-h-[calc(100vh-56px)]"
             : !isMobile && showSideNav
-            ? "ml-60 mr-96"
-            : "ml-0 mr-0"
-        }`}
+              ? "ml-60 mr-96"
+              : "ml-0 mr-0"
+          }`}
       >
         {!showNotification ? (
           <>
@@ -79,9 +76,15 @@ const HomeDashboard = () => {
       </main>
 
       {/* Right Sidebar */}
-      <div className="fixed top-14 right-0 h-[calc(100%-56px)] w-96 p-4 z-20">
-        <Sidebar />
-      </div>
+      {isMobile ? (
+        <div className="mt-6 w-full bg-white border-t border-gray-200 p-4">
+          <Sidebar />
+        </div>
+      ) : (
+        <div className="fixed top-14 right-0 h-[calc(100%-56px)] w-96 p-4 z-20">
+          <Sidebar />
+        </div>
+      )}
     </div>
   );
 };

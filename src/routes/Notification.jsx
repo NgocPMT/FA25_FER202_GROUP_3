@@ -96,7 +96,7 @@ export default function Notification() {
       </div>
 
       {/* Notification List */}
-      <div className="overflow-y-auto  flex-1">
+      <div className="overflow-y-auto px-6 pb-6 flex-1">
         {filteredNotifications.map((n, index) => (
           <NotificationItem
             key={n.id}

@@ -3,12 +3,14 @@ import FormField from "./FormField";
 import { Link } from "react-router";
 import { FcGoogle } from "react-icons/fc";
 import { MdAccountCircle } from "react-icons/md";
+import { useNavigate } from "react-router";
 
 const SignInForm = () => {
   const [isAccount, setIsAccount] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [validationErrors, setValidationErrors] = useState([]);
+  const navigate = useNavigate();
 
   const handleUsernameInput = (e) => {
     setUsername(e.target.value);
@@ -57,7 +59,9 @@ const SignInForm = () => {
     if (data.errors) {
       console.log(data.errors);
     } else {
-      console.log(data);
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("userId", data.user.id);
+      navigate("/home");
     }
   };
 

@@ -168,11 +168,12 @@ export default function RightSidebar() {
                     Follow
                   </button>
                 ) : (
-                  <div className="relative" ref={(el) => (menuRefs.current[idx] = el)}>
+                  <div
+                    className="relative"
+                    ref={(el) => (menuRefs.current[idx] = el)}
+                  >
                     <button
-                      onClick={() =>
-                        setOpenMenu(openMenu === idx ? null : idx)
-                      }
+                      onClick={() => setOpenMenu(openMenu === idx ? null : idx)}
                       className="text-xs px-3 py-1 border rounded-full bg-black text-white flex items-center gap-1 hover:bg-gray-800 transition"
                     >
                       Following
@@ -195,9 +196,7 @@ export default function RightSidebar() {
 
                     {/* Dropdown menu */}
                     {openMenu === idx && (
-                      <div
-                        className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50 text-sm animate-fade-slide"
-                      >
+                      <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50 text-sm animate-fade-slide">
                         <ul>
                           <li
                             onClick={() => toggleEmailNoti(idx)}
@@ -244,13 +243,19 @@ export default function RightSidebar() {
           custom list that you can share.
         </p>
         <div className="mt-3 space-x-2 flex flex-wrap text-[11px]">
-          {["Help", "Status", "About", "Careers", "Press", "Privacy", "Terms"].map(
-            (link, idx) => (
-              <a key={idx} href="#" className="hover:underline">
-                {link}
-              </a>
-            )
-          )}
+          {[
+            "Help",
+            "Status",
+            "About",
+            "Careers",
+            "Press",
+            "Privacy",
+            "Terms",
+          ].map((link, idx) => (
+            <a key={idx} href="#" className="hover:underline">
+              {link}
+            </a>
+          ))}
         </div>
       </section>
     </aside>

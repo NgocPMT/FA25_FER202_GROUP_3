@@ -1,15 +1,21 @@
 import { useState } from "react";
 import { Menu, Bell, Pen, Search, X } from "lucide-react";
+import { RxAvatar } from "react-icons/rx";
 import { Link } from "react-router-dom";
+import useLogOut from "../hooks/useLogOut";
 
-const Navbar = ({ onToggleSideNav }) => {
+const Navbar = ({ onToggleSideNav, onBellClick, bellActive }) => {
   const [showSearch, setShowSearch] = useState(false);
+  const [isAvatarDropdownShow, setIsAvatarDropdownShow] = useState(false);
+  const logOut = useLogOut();
+
+  const toggleAvatarDropdownShow = () => {
+    setIsAvatarDropdownShow(!isAvatarDropdownShow);
+  };
 
   return (
     <nav className="sticky top-0 z-50 bg-white border-b shadow-sm">
-      {/* Thanh trên cùng */}
       <div className="flex items-center justify-between flex-wrap px-4 py-3 w-full min-w-0">
-        {/* LEFT */}
         <div className="flex items-center gap-3 flex-shrink-0 min-w-0">
           <button
             className="p-2 rounded-full hover:bg-gray-100 cursor-pointer"
@@ -19,7 +25,7 @@ const Navbar = ({ onToggleSideNav }) => {
           </button>
 
           <Link
-            to="/"
+            to="/home"
             className="font-lora font-bold text-2xl text-gray-900 truncate"
           >
             Easium
@@ -42,10 +48,15 @@ const Navbar = ({ onToggleSideNav }) => {
             <span>Write</span>
           </button>
 
-          <button className="hidden [@media(min-width:727px)]:block p-2 rounded-full hover:bg-gray-100">
-            <Bell className="w-5 h-5" />
+          {/* 🔔 Nút Bell */}
+          <button
+            className="hidden [@media(min-width:727px)]:block p-2 rounded-full hover:bg-gray-100"
+            onClick={onBellClick} // toggle notification
+          >
+            <Bell className={`w-5 h-5 ${bellActive ? "text-amber-500" : ""}`} />
           </button>
 
+          {/* 🔍 Mobile search */}
           <button
             className="p-2 rounded-full hover:bg-gray-100 [@media(min-width:727px)]:hidden"
             onClick={() => setShowSearch(!showSearch)}
@@ -57,13 +68,29 @@ const Navbar = ({ onToggleSideNav }) => {
             )}
           </button>
 
-          <div className="w-8 h-8 rounded-full bg-amber-400 flex items-center justify-center text-white font-bold cursor-pointer flex-shrink-0 overflow-hidden">
-            A
+          {/* Avatar */}
+          <div className="relative w-8 h-8 ">
+            <button
+              onClick={toggleAvatarDropdownShow}
+              className="w-full h-full rounded-full flex items-center justify-center text-white font-bold cursor-pointer flex-shrink-0 overflow-hidden"
+            >
+              <RxAvatar className="w-full h-full text-black" />
+            </button>
+            {isAvatarDropdownShow && (
+              <div className="bg-white top-10 right-0 absolute w-fit">
+                <button
+                  onClick={logOut}
+                  className="cursor-pointer hover:bg-gray-400 p-1 whitespace-nowrap"
+                >
+                  Log out
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Thanh search trượt xuống khi showSearch = true (chỉ hiện khi <727px) */}
+      {/* Search bar trượt xuống khi showSearch = true */}
       <div
         className={`overflow-hidden transition-all duration-300 ease-in-out border-t [@media(min-width:727px)]:hidden ${
           showSearch ? "max-h-20 opacity-100" : "max-h-0 opacity-0"

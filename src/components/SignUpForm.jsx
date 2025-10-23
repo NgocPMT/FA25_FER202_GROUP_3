@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { MdAccountCircle } from "react-icons/md";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import FormField from "./FormField";
 
 const SignUpForm = () => {
@@ -11,6 +11,7 @@ const SignUpForm = () => {
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
   const [validationErrors, setValidationErrors] = useState([]);
   const [isAccount, setIsAccount] = useState(false);
+  const navigate = useNavigate();
 
   const handleUsernameInput = (e) => {
     setUsername(e.target.value);
@@ -87,7 +88,7 @@ const SignUpForm = () => {
     if (data.errors) {
       console.log(data.errors);
     } else {
-      console.log(data.message);
+      navigate("/sign-in");
     }
   };
 

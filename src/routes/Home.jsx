@@ -1,7 +1,10 @@
-import { Link, Outlet } from "react-router";
+import { Link, Navigate, Outlet } from "react-router";
 
 const Home = () => {
-  return (
+  const token = localStorage.getItem("token");
+  return token ? (
+    <Navigate to="/home" />
+  ) : (
     <>
       <div className="grid grid-rows-[auto_1fr_auto] min-h-lvh w-full text-black bg-amber-50">
         <header className="bg-amber-50">

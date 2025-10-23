@@ -43,20 +43,24 @@ export default function Notification() {
 
   const [filter, setFilter] = useState("all");
 
-  // Khi bấm "Mark all as read"
   const markAllAsRead = () => {
     const updated = notifications.map((n) => ({ ...n, read: true }));
     setNotifications(updated);
   };
 
-  // Lọc theo tab
   const filteredNotifications =
     filter === "all"
       ? notifications
       : notifications.filter((n) => n.type === "response");
 
   return (
-    <div className="w-full bg-white border rounded-lg shadow-sm">
+    <div
+      className="w-full min-h-screen bg-white border rounded-lg shadow-sm 
+                 flex flex-col overflow-hidden 
+                 fixed lg:static top-[64px] left-0 right-0 z-40 
+                 lg:w-full lg:max-w-[100%] transition-all duration-300"
+    >
+      {/* Header */}
       <div className="flex justify-between items-center px-6 pt-6">
         <h1 className="text-2xl font-bold text-gray-900">Notifications</h1>
         <button
@@ -67,6 +71,7 @@ export default function Notification() {
         </button>
       </div>
 
+      {/* Tabs */}
       <div className="flex border-b mt-4 text-sm font-medium">
         <button
           className={`px-6 py-3 border-b-2 ${
@@ -90,7 +95,8 @@ export default function Notification() {
         </button>
       </div>
 
-      <div>
+      {/* Notification List */}
+      <div className="overflow-y-auto  flex-1">
         {filteredNotifications.map((n, index) => (
           <NotificationItem
             key={n.id}

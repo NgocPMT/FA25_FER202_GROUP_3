@@ -47,17 +47,24 @@ const HomeDashboard = () => {
       </div>
 
       <main
-        className={`pt-16 ${!isMobile && showSideNav ? "ml-60" : ""
-          } mr-96 p-6 transition-all duration-300 relative z-10`}
+        className={`pt-16 ${!isMobile && showSideNav ? "ml-60" : ""} ${!isMobile ? "mr-96" : ""
+          } p-6 transition-all duration-300 relative z-10`}
       >
         <div className="space-y-4">
           <Articles />
         </div>
-      </main>
 
-      <div className="fixed top-14 right-0 h-[calc(100%-56px)] w-96  p-4 z-20">
-        <Sidebar />
-      </div>
+        {/* Sidebar xử lý theo kích thước */}
+        {isMobile ? (
+          <div className="mt-6 w-full bg-white border-t border-gray-200 p-4">
+            <Sidebar />
+          </div>
+        ) : (
+          <div className="fixed top-14 right-0 h-[calc(100%-56px)] w-96 p-4 z-20">
+            <Sidebar />
+          </div>
+        )}
+      </main>
     </div>
   );
 };

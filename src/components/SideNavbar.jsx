@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router";
 import {
   BsHouse,
   BsHouseFill,
@@ -35,8 +36,8 @@ const MenuItem = ({ icon, activeIcon, label, href, active, onClick }) => {
         {active ? activeIcon : icon}
       </span>
 
-      <a
-        href={href}
+      <Link
+        to={href}
         className={`flex-1 transition-colors duration-150 ${
           active
             ? "text-gray-900 font-medium"
@@ -44,7 +45,7 @@ const MenuItem = ({ icon, activeIcon, label, href, active, onClick }) => {
         }`}
       >
         {label}
-      </a>
+      </Link>
     </li>
   );
 };
@@ -59,7 +60,7 @@ const SideNavbar = () => {
           icon={<BsHouse />}
           activeIcon={<BsHouseFill />}
           label="Home"
-          href="#"
+          href="/home"
           active={activeItem === "Home"}
           onClick={() => setActiveItem("Home")}
         />
@@ -67,7 +68,7 @@ const SideNavbar = () => {
           icon={<BsBookmark />}
           activeIcon={<BsBookmarkFill />}
           label="Library"
-          href="#"
+          href="/library"
           active={activeItem === "Library"}
           onClick={() => setActiveItem("Library")}
         />
@@ -75,7 +76,7 @@ const SideNavbar = () => {
           icon={<BsPerson />}
           activeIcon={<BsPersonFill />}
           label="Profile"
-          href="#"
+          href="/profile"
           active={activeItem === "Profile"}
           onClick={() => setActiveItem("Profile")}
         />
@@ -83,7 +84,7 @@ const SideNavbar = () => {
           icon={<BsFileText />}
           activeIcon={<BsFileTextFill />}
           label="Stories"
-          href="#"
+          href="/stories"
           active={activeItem === "Stories"}
           onClick={() => setActiveItem("Stories")}
         />
@@ -91,7 +92,7 @@ const SideNavbar = () => {
           icon={<BsBarChart />}
           activeIcon={<BsBarChartFill />}
           label="Stats"
-          href="#"
+          href="/stat"
           active={activeItem === "Stats"}
           onClick={() => setActiveItem("Stats")}
         />

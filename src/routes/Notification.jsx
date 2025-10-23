@@ -55,7 +55,7 @@ export default function Notification() {
 
   return (
     <div
-      className="w-full min-h-screen bg-white border rounded-lg shadow-sm 
+      className="w-full min-h-screen bg-white
                  flex flex-col overflow-hidden 
                  fixed lg:static top-[64px] left-0 right-0 z-40 
                  lg:w-full lg:max-w-[100%] transition-all duration-300"

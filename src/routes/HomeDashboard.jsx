@@ -54,37 +54,40 @@ const HomeDashboard = () => {
         <SideNavbar />
       </div>
 
-      {/* Main Content */}
-      <main
-        className={`pt-16 transition-all duration-300 relative z-10 p-6
-        ${showNotification
-            ? "ml-60 mr-96 overflow-y-auto max-h-[calc(100vh-56px)]"
-            : !isMobile && showSideNav
-              ? "ml-60 mr-96"
-              : "ml-0 mr-0"
+      {/* Main + Right rail trong cùng container */}
+      <div
+        className={`pt-16 transition-all duration-300 relative z-10
+    ${
+          // có/không SideNavbar bên trái
+          !isMobile && showSideNav ? "ml-60" : "ml-[150px]" // ← dịch trái nhẹ khi ẩn SideNavbar
           }`}
       >
-        {!showNotification ? (
-          <>
-            <div className="space-y-4">
-              <Articles />
-            </div>
-          </>
-        ) : (
-          <Notification />
-        )}
-      </main>
+        <div className="flex">
+          {/* MAIN */}
+          <main className="flex-1 p-6">
+            {showNotification ? (
+              <Notification />
+            ) : (
+              <div className="space-y-4">
+                <Articles />
+              </div>
+            )}
+          </main>
 
-      {/* Right Sidebar */}
-      {isMobile ? (
-        <div className="mt-6 w-full bg-white border-t border-gray-200 p-4">
-          <Sidebar />
+          {/* RIGHT SIDEBAR (sticky, đi theo layout) */}
+          {!isMobile && (
+            <aside
+              className={`w-96 shrink-0 p-4 border-l border-gray-200
+          sticky top-14 transition-all duration-300
+          ${showSideNav ? "mr-0" : "mr-[120px]" /* đẩy trái nhẹ khi ẩn SideNavbar */}
+        `}
+            >
+              <Sidebar />
+            </aside>
+          )}
         </div>
-      ) : (
-        <div className="fixed top-14 right-0 h-[calc(100%-56px)] w-96 p-4 z-20">
-          <Sidebar />
-        </div>
-      )}
+      </div>
+
     </div>
   );
 };

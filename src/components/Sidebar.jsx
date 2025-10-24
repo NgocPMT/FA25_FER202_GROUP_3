@@ -89,7 +89,7 @@ export default function RightSidebar() {
   };
 
   return (
-    <aside className="hidden lg:block w-80 shrink-0 p-4 border-l border-gray-200">
+    <aside className="hidden lg:block w-80 shrink-0 p-4">
       {/* STAFF PICKS */}
       <section className="mb-8">
         <h2 className="text-sm font-semibold mb-4">Staff Picks</h2>

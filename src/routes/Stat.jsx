@@ -9,8 +9,8 @@ export default function Stat() {
   return (
     <div>
       {/* Main */}
-      <div className="pt-16 transition-all duration-300 relative z-10 pb-10">
-        <div className="px-8 w-full max-w-none mt-15 mb-6">
+      <div className="md:pt-16 transition-all duration-300 relative z-10 pb-10">
+        <div className="md:px-8 w-full max-w-none mt-15 mb-6">
           <h1 className="text-5xl font-semibold mt-15 mb-10">Stats</h1>
 
           {/* Tabs */}

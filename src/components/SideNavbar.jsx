@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import MenuItem from "./MenuItem";
 import {
   BsHouse,
   BsHouseFill,
@@ -15,43 +15,11 @@ import {
   BsFillPeopleFill,
 } from "react-icons/bs";
 import { FiPlus } from "react-icons/fi";
-
-const MenuItem = ({ icon, activeIcon, label, href, active, onClick }) => {
-  return (
-    <li
-      onClick={onClick}
-      className="relative group flex items-center gap-4 pl-4 pr-3 py-2 rounded-md cursor-pointer hover:bg-gray-100 transition-all"
-    >
-      <span
-        className={`absolute top-0 -left-3.5 h-full w-0.5 rounded-r transition-colors ${
-          active ? "bg-gray-800" : "bg-transparent"
-        }`}
-      ></span>
-
-      <span
-        className={`text-xl transition-colors ${
-          active ? "text-gray-900" : "text-gray-500 group-hover:text-gray-800"
-        }`}
-      >
-        {active ? activeIcon : icon}
-      </span>
-
-      <Link
-        to={href}
-        className={`flex-1 transition-colors duration-150 ${
-          active
-            ? "text-gray-900 font-medium"
-            : "text-gray-500 group-hover:text-gray-800"
-        }`}
-      >
-        {label}
-      </Link>
-    </li>
-  );
-};
+import { useLocation } from "react-router";
 
 const SideNavbar = () => {
-  const [activeItem, setActiveItem] = useState("Home");
+  const location = useLocation();
+  const path = location.pathname;
 
   return (
     <div>
@@ -61,40 +29,35 @@ const SideNavbar = () => {
           activeIcon={<BsHouseFill />}
           label="Home"
           href="/home"
-          active={activeItem === "Home"}
-          onClick={() => setActiveItem("Home")}
+          active={path === "/home"}
         />
         <MenuItem
           icon={<BsBookmark />}
           activeIcon={<BsBookmarkFill />}
           label="Library"
           href="/library"
-          active={activeItem === "Library"}
-          onClick={() => setActiveItem("Library")}
+          active={path === "/library"}
         />
         <MenuItem
           icon={<BsPerson />}
           activeIcon={<BsPersonFill />}
           label="Profile"
           href="/profile"
-          active={activeItem === "Profile"}
-          onClick={() => setActiveItem("Profile")}
+          active={path === "/profile"}
         />
         <MenuItem
           icon={<BsFileText />}
           activeIcon={<BsFileTextFill />}
           label="Stories"
           href="/stories"
-          active={activeItem === "Stories"}
-          onClick={() => setActiveItem("Stories")}
+          active={path === "/stories"}
         />
         <MenuItem
           icon={<BsBarChart />}
           activeIcon={<BsBarChartFill />}
           label="Stats"
           href="/stat"
-          active={activeItem === "Stats"}
-          onClick={() => setActiveItem("Stats")}
+          active={path === "/stat"}
         />
       </ul>
 
@@ -106,8 +69,7 @@ const SideNavbar = () => {
           activeIcon={<BsFillPeopleFill />}
           label="Following"
           href="#"
-          active={activeItem === "Following"}
-          onClick={() => setActiveItem("Following")}
+          active={path === "/following"}
         />
 
         <li className="suggest-box flex items-start gap-4 px-3">

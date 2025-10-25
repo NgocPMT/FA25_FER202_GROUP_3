@@ -1,13 +1,16 @@
 import { useState } from "react";
 import { Menu, Bell, Pen, Search, X } from "lucide-react";
 import { RxAvatar } from "react-icons/rx";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import useLogOut from "../hooks/useLogOut";
 
-const Navbar = ({ onToggleSideNav, onBellClick, bellActive }) => {
+const Navbar = ({ onToggleSideNav }) => {
   const [showSearch, setShowSearch] = useState(false);
   const [isAvatarDropdownShow, setIsAvatarDropdownShow] = useState(false);
   const logOut = useLogOut();
+
+  const location = useLocation();
+  const bellActive = location.pathname === "/notifications";
 
   const toggleAvatarDropdownShow = () => {
     setIsAvatarDropdownShow(!isAvatarDropdownShow);
@@ -32,7 +35,6 @@ const Navbar = ({ onToggleSideNav, onBellClick, bellActive }) => {
           </Link>
         </div>
 
-        {/* CENTER (search input khi >=727px) */}
         <div className="hidden [@media(min-width:727px)]:flex justify-center flex-1 min-w-0 px-4">
           <input
             type="text"
@@ -41,22 +43,19 @@ const Navbar = ({ onToggleSideNav, onBellClick, bellActive }) => {
           />
         </div>
 
-        {/* RIGHT */}
         <div className="flex items-center gap-2 flex-shrink-0 min-w-0">
           <button className="hidden [@media(min-width:727px)]:flex items-center gap-1 px-3 py-1 border rounded-full text-sm hover:bg-gray-100">
             <Pen className="w-4 h-4" />
             <span>Write</span>
           </button>
 
-          {/* 🔔 Nút Bell */}
-          <button
+          <Link
+            to="/notifications"
             className="hidden [@media(min-width:727px)]:block p-2 rounded-full hover:bg-gray-100"
-            onClick={onBellClick} // toggle notification
           >
             <Bell className={`w-5 h-5 ${bellActive ? "text-amber-500" : ""}`} />
-          </button>
+          </Link>
 
-          {/* 🔍 Mobile search */}
           <button
             className="p-2 rounded-full hover:bg-gray-100 [@media(min-width:727px)]:hidden"
             onClick={() => setShowSearch(!showSearch)}
@@ -68,7 +67,6 @@ const Navbar = ({ onToggleSideNav, onBellClick, bellActive }) => {
             )}
           </button>
 
-          {/* Avatar */}
           <div className="relative w-8 h-8 ">
             <button
               onClick={toggleAvatarDropdownShow}
@@ -90,7 +88,6 @@ const Navbar = ({ onToggleSideNav, onBellClick, bellActive }) => {
         </div>
       </div>
 
-      {/* Search bar trượt xuống khi showSearch = true */}
       <div
         className={`overflow-hidden transition-all duration-300 ease-in-out border-t [@media(min-width:727px)]:hidden ${
           showSearch ? "max-h-20 opacity-100" : "max-h-0 opacity-0"

@@ -13,23 +13,23 @@ import Notifications from "./Notification";
 
 const routes = [
   {
+    path: "/",
+    element: <Home />,
+    children: [
+      {
+        path: "sign-up",
+        element: <SignUp />,
+      },
+      {
+        path: "sign-in",
+        element: <SignIn />,
+      },
+    ],
+  },
+  {
     element: <Layout />,
     errorElement: <ErrorPage />,
     children: [
-      {
-        path: "/",
-        element: <Home />,
-        children: [
-          {
-            path: "sign-up",
-            element: <SignUp />,
-          },
-          {
-            path: "sign-in",
-            element: <SignIn />,
-          },
-        ],
-      },
       {
         path: "/home",
         element: <HomeDashboard />,

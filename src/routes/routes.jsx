@@ -10,6 +10,7 @@ import Stat from "./Stat";
 import StatStories from "../components/StatStories";
 import StatAudience from "../components/StatAudience";
 import Notifications from "./Notification";
+import Write from "./Write";
 
 const routes = [
   {
@@ -25,6 +26,10 @@ const routes = [
         element: <SignIn />,
       },
     ],
+  },
+  {
+    path: "/write",
+    element: <Write />,
   },
   {
     element: <Layout />,

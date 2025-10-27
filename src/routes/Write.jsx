@@ -36,7 +36,11 @@ const Write = () => {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ title, content, coverImageUrl }),
+      body: JSON.stringify({
+        title,
+        content: JSON.stringify(content),
+        coverImageUrl,
+      }),
     });
 
     if (!response.ok) {
@@ -58,7 +62,7 @@ const Write = () => {
         return node.attrs.src;
       }
       if (node.content) {
-        const nested = extractFirstImageFromTiptapJSON(node);
+        const nested = extractFirstImageURL(node);
         if (nested) return nested;
       }
     }

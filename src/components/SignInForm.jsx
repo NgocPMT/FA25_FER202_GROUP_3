@@ -56,8 +56,8 @@ const SignInForm = () => {
       }),
     });
     const data = await res.json();
-    if (data.errors) {
-      console.log(data.errors);
+    if (data.message) {
+      console.log(data.message);
     } else {
       localStorage.setItem("token", data.token);
       localStorage.setItem("userId", data.user.id);

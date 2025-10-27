@@ -1,13 +1,15 @@
 import { SimpleEditor } from "@/components/tiptap-templates/simple/simple-editor";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import useLogOut from "@/hooks/useLogOut";
 import { RxAvatar } from "react-icons/rx";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 const Write = () => {
   const [isAvatarDropdownShow, setIsAvatarDropdownShow] = useState(false);
   const [title, setTitle] = useState("");
   const logOut = useLogOut();
+  const editorRef = useRef(null);
+  const navigate = useNavigate();
 
   const toggleAvatarDropdownShow = () => {
     setIsAvatarDropdownShow(!isAvatarDropdownShow);
@@ -17,6 +19,53 @@ const Write = () => {
     setTitle(e.target.value);
   };
 
+  const handlePublish = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    const content = editorRef.current?.getContent();
+    const coverImageUrl = extractFirstImageURL(content);
+
+    if (!title || !content) {
+      alert("Title or content is missing");
+      return;
+    }
+
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/posts`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ title, content, coverImageUrl }),
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      alert("Error: " + err.error);
+      return;
+    }
+
+    const data = await response.json();
+    console.log("Post saved:", data);
+    navigate("/home");
+  };
+
+  const extractFirstImageURL = (jsonContent) => {
+    if (!jsonContent || !jsonContent.content) return null;
+
+    for (const node of jsonContent.content) {
+      if (node.type === "image" && node.attrs?.src) {
+        return node.attrs.src;
+      }
+      if (node.content) {
+        const nested = extractFirstImageFromTiptapJSON(node);
+        if (nested) return nested;
+      }
+    }
+
+    return null;
+  };
+
   return (
     <div>
       <nav className="flex justify-between max-w-5xl py-2 px-4 md:mx-auto mb-5">
@@ -24,10 +73,13 @@ const Write = () => {
           Easium
         </Link>
         <div className="flex items-center gap-4">
-          <button className="bg-green-700 text-white px-3 py-1 rounded-full text-sm cursor-pointer hover:bg-green-800">
+          <button
+            onClick={handlePublish}
+            className="bg-green-700 text-white px-3 py-1 rounded-full text-sm cursor-pointer hover:bg-green-800"
+          >
             Publish
           </button>
-          <div className="relative w-8 h-8 ">
+          <div className="relative w-8 h-8">
             <button
               onClick={toggleAvatarDropdownShow}
               className="w-full h-full rounded-full flex items-center justify-center text-white font-bold cursor-pointer flex-shrink-0 overflow-hidden"
@@ -35,7 +87,7 @@ const Write = () => {
               <RxAvatar className="w-full h-full text-black" />
             </button>
             {isAvatarDropdownShow && (
-              <div className="bg-white top-10 right-0 absolute w-fit">
+              <div className="bg-white top-10 right-0 absolute w-fit z-50">
                 <button
                   onClick={logOut}
                   className="cursor-pointer hover:bg-gray-400 p-1 whitespace-nowrap"
@@ -47,7 +99,12 @@ const Write = () => {
           </div>
         </div>
       </nav>
-      <SimpleEditor title={title} onTitleChange={handleTittleChange} />
+
+      <SimpleEditor
+        ref={editorRef}
+        title={title}
+        onTitleChange={handleTittleChange}
+      />
     </div>
   );
 };

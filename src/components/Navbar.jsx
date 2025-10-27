@@ -44,10 +44,13 @@ const Navbar = ({ onToggleSideNav }) => {
         </div>
 
         <div className="flex items-center gap-2 flex-shrink-0 min-w-0">
-          <button className="hidden [@media(min-width:727px)]:flex items-center gap-1 px-3 py-1 border rounded-full text-sm hover:bg-gray-100">
+          <Link
+            to="/write"
+            className="hidden [@media(min-width:727px)]:flex items-center gap-1 px-3 py-1 border rounded-full text-sm hover:bg-gray-100"
+          >
             <Pen className="w-4 h-4" />
             <span>Write</span>
-          </button>
+          </Link>
 
           <Link
             to="/notifications"

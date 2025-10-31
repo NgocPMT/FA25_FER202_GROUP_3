@@ -1,10 +1,54 @@
+import { useEffect, useState } from "react";
 import { Link, Navigate, Outlet } from "react-router";
+import Loader from "@/components/Loader";
+import { useLoader } from "@/context/LoaderContext";
 
 const Home = () => {
+  const [isValidToken, setIsValidToken] = useState(null); // null = loading
+  const { showLoader, hideLoader } = useLoader();
   const token = localStorage.getItem("token");
-  return token ? (
-    <Navigate to="/home" />
-  ) : (
+
+  useEffect(() => {
+    const validateToken = async () => {
+      if (!token) {
+        setIsValidToken(false);
+        return;
+      }
+
+      try {
+        showLoader();
+        const res = await fetch(
+          `${import.meta.env.VITE_API_URL}/validate-token`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const data = await res.json();
+
+        if (data.valid) {
+          setIsValidToken(true);
+        } else {
+          setIsValidToken(false);
+          localStorage.removeItem("token");
+        }
+      } catch (error) {
+        console.error("Error validating token:", error);
+        setIsValidToken(false);
+      } finally {
+        hideLoader();
+      }
+    };
+
+    validateToken();
+  }, [token]);
+
+  if (token && isValidToken) return <Navigate to="/home" />;
+
+  return (
     <>
       <div className="grid grid-rows-[auto_1fr_auto] min-h-lvh w-full text-black bg-amber-50">
         <header className="bg-amber-50">

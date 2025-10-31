@@ -1,16 +1,57 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Menu, Bell, Pen, Search, X } from "lucide-react";
 import { RxAvatar } from "react-icons/rx";
 import { Link, useLocation } from "react-router-dom";
 import useLogOut from "../hooks/useLogOut";
+import { useLoader } from "@/context/LoaderContext";
 
 const Navbar = ({ onToggleSideNav }) => {
   const [showSearch, setShowSearch] = useState(false);
   const [isAvatarDropdownShow, setIsAvatarDropdownShow] = useState(false);
+  const [isValidToken, setIsValidToken] = useState(null); // null = loading
+  const { showLoader, hideLoader } = useLoader();
+  const token = localStorage.getItem("token");
   const logOut = useLogOut();
-
   const location = useLocation();
   const bellActive = location.pathname === "/notifications";
+
+  useEffect(() => {
+    const validateToken = async () => {
+      if (!token) {
+        setIsValidToken(false);
+        return;
+      }
+
+      try {
+        showLoader();
+        const res = await fetch(
+          `${import.meta.env.VITE_API_URL}/validate-token`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const data = await res.json();
+
+        if (data.valid) {
+          setIsValidToken(true);
+        } else {
+          setIsValidToken(false);
+          localStorage.removeItem("token");
+        }
+      } catch (error) {
+        console.error("Error validating token:", error);
+        setIsValidToken(false);
+      } finally {
+        hideLoader();
+      }
+    };
+
+    validateToken();
+  }, [token]);
 
   const toggleAvatarDropdownShow = () => {
     setIsAvatarDropdownShow(!isAvatarDropdownShow);
@@ -43,52 +84,58 @@ const Navbar = ({ onToggleSideNav }) => {
           />
         </div>
 
-        <div className="flex items-center gap-2 flex-shrink-0 min-w-0">
-          <Link
-            to="/write"
-            className="hidden [@media(min-width:727px)]:flex items-center gap-1 px-3 py-1 border rounded-full text-sm hover:bg-gray-100"
-          >
-            <Pen className="w-4 h-4" />
-            <span>Write</span>
-          </Link>
-
-          <Link
-            to="/notifications"
-            className="hidden [@media(min-width:727px)]:block p-2 rounded-full hover:bg-gray-100"
-          >
-            <Bell className={`w-5 h-5 ${bellActive ? "text-amber-500" : ""}`} />
-          </Link>
-
-          <button
-            className="p-2 rounded-full hover:bg-gray-100 [@media(min-width:727px)]:hidden"
-            onClick={() => setShowSearch(!showSearch)}
-          >
-            {showSearch ? (
-              <X className="w-5 h-5" />
-            ) : (
-              <Search className="w-5 h-5" />
-            )}
-          </button>
-
-          <div className="relative w-8 h-8 ">
-            <button
-              onClick={toggleAvatarDropdownShow}
-              className="w-full h-full rounded-full flex items-center justify-center text-white font-bold cursor-pointer flex-shrink-0 overflow-hidden"
+        {token || isValidToken ? (
+          <div className="flex items-center gap-2 flex-shrink-0 min-w-0">
+            <Link
+              to="/write"
+              className="hidden [@media(min-width:727px)]:flex items-center gap-1 px-3 py-1 border rounded-full text-sm hover:bg-gray-100"
             >
-              <RxAvatar className="w-full h-full text-black" />
+              <Pen className="w-4 h-4" />
+              <span>Write</span>
+            </Link>
+
+            <Link
+              to="/notifications"
+              className="hidden [@media(min-width:727px)]:block p-2 rounded-full hover:bg-gray-100"
+            >
+              <Bell
+                className={`w-5 h-5 ${bellActive ? "text-amber-500" : ""}`}
+              />
+            </Link>
+
+            <button
+              className="p-2 rounded-full hover:bg-gray-100 [@media(min-width:727px)]:hidden"
+              onClick={() => setShowSearch(!showSearch)}
+            >
+              {showSearch ? (
+                <X className="w-5 h-5" />
+              ) : (
+                <Search className="w-5 h-5" />
+              )}
             </button>
-            {isAvatarDropdownShow && (
-              <div className="bg-white top-10 right-0 absolute w-fit">
-                <button
-                  onClick={logOut}
-                  className="cursor-pointer hover:bg-gray-400 p-1 whitespace-nowrap"
-                >
-                  Log out
-                </button>
-              </div>
-            )}
+
+            <div className="relative w-8 h-8 ">
+              <button
+                onClick={toggleAvatarDropdownShow}
+                className="w-full h-full rounded-full flex items-center justify-center text-white font-bold cursor-pointer flex-shrink-0 overflow-hidden"
+              >
+                <RxAvatar className="w-full h-full text-black" />
+              </button>
+              {isAvatarDropdownShow && (
+                <div className="bg-white top-10 right-0 absolute w-fit">
+                  <button
+                    onClick={logOut}
+                    className="cursor-pointer hover:bg-gray-400 p-1 whitespace-nowrap"
+                  >
+                    Log out
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div></div>
+        )}
       </div>
 
       <div

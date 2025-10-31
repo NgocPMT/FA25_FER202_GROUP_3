@@ -11,6 +11,7 @@ import StatStories from "../components/StatStories";
 import StatAudience from "../components/StatAudience";
 import Notifications from "./Notification";
 import Write from "./Write";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 const routes = [
   {
@@ -29,7 +30,11 @@ const routes = [
   },
   {
     path: "/write",
-    element: <Write />,
+    element: (
+      <ProtectedRoute>
+        <Write />
+      </ProtectedRoute>
+    ),
   },
   {
     element: <Layout />,
@@ -41,15 +46,27 @@ const routes = [
       },
       {
         path: "/username-input",
-        element: <UsernameInputPage />,
+        element: (
+          <ProtectedRoute>
+            <UsernameInputPage />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "/profile",
-        element: <Profile />,
+        element: (
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "/stat",
-        element: <Stat />,
+        element: (
+          <ProtectedRoute>
+            <Stat />
+          </ProtectedRoute>
+        ),
         children: [
           {
             index: true,
@@ -63,7 +80,11 @@ const routes = [
       },
       {
         path: "/notifications",
-        element: <Notifications />,
+        element: (
+          <ProtectedRoute>
+            <Notifications />
+          </ProtectedRoute>
+        ),
       },
     ],
   },

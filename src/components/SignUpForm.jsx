@@ -3,6 +3,7 @@ import { FcGoogle } from "react-icons/fc";
 import { MdAccountCircle } from "react-icons/md";
 import { Link, useNavigate } from "react-router";
 import FormField from "./FormField";
+import { useLoader } from "@/context/LoaderContext";
 
 const SignUpForm = () => {
   const [username, setUsername] = useState("");
@@ -12,6 +13,7 @@ const SignUpForm = () => {
   const [validationErrors, setValidationErrors] = useState([]);
   const [isAccount, setIsAccount] = useState(false);
   const navigate = useNavigate();
+  const { showLoader, hideLoader } = useLoader();
 
   const handleUsernameInput = (e) => {
     setUsername(e.target.value);
@@ -72,23 +74,30 @@ const SignUpForm = () => {
     handleFormValidation();
     const isValid = validationErrors.filter((error) => !!error).length === 0;
     if (!isValid) return;
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/register`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        username,
-        email,
-        password,
-        passwordConfirmation,
-      }),
-    });
-    const data = await res.json();
-    if (data.errors) {
-      console.log(data.errors);
-    } else {
-      navigate("/sign-in");
+    try {
+      showLoader();
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username,
+          email,
+          password,
+          passwordConfirmation,
+        }),
+      });
+      const data = await res.json();
+      if (data.errors) {
+        console.log(data.errors);
+      } else {
+        navigate("/sign-in");
+      }
+    } catch (err) {
+      console.log(err);
+    } finally {
+      hideLoader();
     }
   };
 

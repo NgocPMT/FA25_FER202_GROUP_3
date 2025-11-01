@@ -4,7 +4,6 @@ import { Link } from "react-router";
 import { FcGoogle } from "react-icons/fc";
 import { MdAccountCircle } from "react-icons/md";
 import { useNavigate } from "react-router";
-import Loader from "./Loader";
 import { useLoader } from "@/context/LoaderContext";
 
 const SignInForm = () => {
@@ -61,10 +60,11 @@ const SignInForm = () => {
         }),
       });
       const data = await res.json();
-      if (data.message) {
-      } else {
+      if (data.token) {
         localStorage.setItem("token", data.token);
         navigate("/home");
+      } else {
+        console.log(data);
       }
     } catch (err) {
       console.log(err);

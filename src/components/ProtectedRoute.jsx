@@ -45,7 +45,7 @@ const ProtectedRoute = ({ children }) => {
     validateToken();
   }, [token]);
 
-  if (!token || !isValid) return <Navigate to="/" />;
+  if (!token || isValid === false) return <Navigate to="/" />;
 
   return <>{children}</>;
 };

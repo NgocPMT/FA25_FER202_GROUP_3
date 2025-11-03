@@ -62,6 +62,7 @@ const SignInForm = () => {
       const data = await res.json();
       if (data.token) {
         localStorage.setItem("token", data.token);
+        localStorage.setItem("username", data.username);
         navigate("/home");
       } else {
         console.log(data);

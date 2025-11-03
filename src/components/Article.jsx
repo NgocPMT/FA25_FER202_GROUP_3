@@ -28,7 +28,6 @@ const extractTextRecursively = (node) => {
 
 const getPreviewText = (content, maxLength = 60) => {
   if (!content) return "...";
-  // Lấy toàn bộ text (nhưng bạn có thể dừng sớm nếu muốn)
   const fullText = extractTextRecursively(content).replace(/\s+/g, " ").trim();
   if (!fullText) return "...";
   return fullText.length > maxLength ? fullText.slice(0, maxLength) + "..." : fullText;

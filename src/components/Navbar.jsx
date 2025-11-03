@@ -104,12 +104,14 @@ const Navbar = ({ onToggleSideNav }) => {
               <span>Write</span>
             </Link>
 
-            <button
-              onClick={handleBellClick}
+            <Link
+              to="/notifications"
               className="hidden [@media(min-width:727px)]:block p-2 rounded-full hover:bg-gray-100"
             >
-              <Bell className={`w-5 h-5 ${bellActive ? "text-amber-500" : ""}`} />
-            </button>
+              <Bell
+                className={`w-5 h-5 ${bellActive ? "text-amber-500" : ""}`}
+              />
+            </Link>
 
             <button
               className="p-2 rounded-full hover:bg-gray-100 [@media(min-width:727px)]:hidden"

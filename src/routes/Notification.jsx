@@ -99,7 +99,7 @@ export default function Notification() {
             ))
           ) : (
             <p className="text-center text-gray-500 mt-6">
-              No notification
+              No notifications
             </p>
           )}
         </div>

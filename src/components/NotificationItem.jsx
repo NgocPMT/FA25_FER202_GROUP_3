@@ -19,7 +19,7 @@ export default function NotificationItem({
 
       <img
         src={avatar}
-        alt="avatar"
+        alt="avata"
         className="w-10 h-10 rounded-full object-cover flex-shrink-0"
       />
       <div className="flex-1 min-w-0">

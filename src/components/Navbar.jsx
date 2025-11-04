@@ -43,13 +43,16 @@ const Navbar = ({ onToggleSideNav }) => {
             },
           }
         );
+        if (!res.ok) {
+          const data = await res.json();
+          console.log(data);
+          return;
+        }
 
         const data = await res.json();
 
-        if (data.valid) {
-          setIsValidToken(true);
-        } else {
-          setIsValidToken(false);
+        setIsValidToken(data.valid);
+        if (data.valid === false) {
           localStorage.removeItem("token");
         }
       } catch (error) {

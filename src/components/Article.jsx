@@ -1,38 +1,86 @@
-// nhan
+// Nhan
 import React from "react";
 import { BsStarFill, BsChat, BsBookmark, BsThreeDots } from "react-icons/bs";
 
 export default function Article({ data }) {
-  const { author, title, description, date, stats, image } = data;
+  const {
+    title,
+    content,
+    createdAt,
+    coverImageUrl,
+    user,
+    PostReaction,
+    comments,
+  } = data;
+
+  const postReactions = PostReaction?.length || 0;
+  const postComments = comments?.length || 0
+
+
+  const extractTextRecursively = (node) => {
+    if (!node) return "";
+
+    // Nếu là text node
+    if (typeof node.text === "string") return node.text;
+
+    // Nếu có con, duyệt con
+    if (Array.isArray(node.content)) {
+      return node.content.map(extractTextRecursively).join(" ");
+    }
+
+    return "";
+  };
+
+  const getPreviewText = (content, maxLength = 60) => {
+    if (!content) return "...";
+    const fullText = extractTextRecursively(content).replace(/\s+/g, " ").trim();
+    if (!fullText) return "...";
+    return fullText.length > maxLength ? fullText.slice(0, maxLength) + "..." : fullText;
+  };
+
 
   return (
     <div className="flex justify-between items-start border-b border-gray-200 pb-6">
+
       {/* Left */}
       <div className="flex-1 pr-4">
-        <p className="text-sm text-gray-600 mb-1">{author}</p>
+        <p className="text-sm text-gray-600 mb-1">
+          {user?.username ?? "Unknown Author"}
+        </p>
+
         <h2 className="text-xl font-semibold mb-1 hover:underline cursor-pointer">
           {title}
         </h2>
-        <p className="text-gray-600 mb-3">{description}</p>
+
+        <p className="text-gray-600 mb-3 line-clamp-2">
+          {getPreviewText(content)}
+        </p>
+
         <div className="flex items-center gap-4 text-sm text-gray-500">
-          <span>{date}</span>
+          <span>{new Date(createdAt).toLocaleDateString("vi-VN")}</span>
+
+          {/* stats */}
           <span className="flex items-center gap-1">
-            <BsStarFill className="text-yellow-500" /> {stats.likes}
+            <BsStarFill className="text-yellow-500" />
+            {postReactions}
           </span>
           <span className="flex items-center gap-1">
-            <BsChat /> {stats.comments}
+            <BsChat /> {postComments}
           </span>
+
           <BsBookmark className="ml-auto cursor-pointer hover:text-black" />
           <BsThreeDots className="cursor-pointer hover:text-black" />
         </div>
       </div>
 
       {/* Right */}
-      <img
-        src={image}
-        alt={title}
-        className="w-36 h-24 object-cover rounded-md"
-      />
+      {coverImageUrl && (
+        <img
+          src={coverImageUrl}
+          alt={title}
+          className="w-36 h-24 object-cover rounded-md"
+        />
+      )}
     </div>
   );
 }

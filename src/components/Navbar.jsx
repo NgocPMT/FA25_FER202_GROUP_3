@@ -16,15 +16,6 @@ const Navbar = ({ onToggleSideNav }) => {
   const navigate = useNavigate();
   const bellActive = location.pathname === "/notifications";
 
-  const handleBellClick = () => {
-    if (location.pathname === "/notifications") {
-      navigate(-1);
-    } else {
-      navigate("/notifications");
-    }
-  };
-
-
   useEffect(() => {
     const validateToken = async () => {
       if (!token) {

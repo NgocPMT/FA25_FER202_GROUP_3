@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Menu, Bell, Pen, Search, X } from "lucide-react";
 import { RxAvatar } from "react-icons/rx";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import useLogOut from "../hooks/useLogOut";
 import { useLoader } from "@/context/LoaderContext";
 
@@ -13,7 +13,17 @@ const Navbar = ({ onToggleSideNav }) => {
   const token = localStorage.getItem("token");
   const logOut = useLogOut();
   const location = useLocation();
+  const navigate = useNavigate();
   const bellActive = location.pathname === "/notifications";
+
+  const handleBellClick = () => {
+    if (location.pathname === "/notifications") {
+      navigate(-1);
+    } else {
+      navigate("/notifications");
+    }
+  };
+
 
   useEffect(() => {
     const validateToken = async () => {
@@ -142,9 +152,8 @@ const Navbar = ({ onToggleSideNav }) => {
       </div>
 
       <div
-        className={`overflow-hidden transition-all duration-300 ease-in-out border-t [@media(min-width:727px)]:hidden ${
-          showSearch ? "max-h-20 opacity-100" : "max-h-0 opacity-0"
-        }`}
+        className={`overflow-hidden transition-all duration-300 ease-in-out border-t [@media(min-width:727px)]:hidden ${showSearch ? "max-h-20 opacity-100" : "max-h-0 opacity-0"
+          }`}
       >
         {showSearch && (
           <div className="px-4 py-3 bg-white">

@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link, Navigate, Outlet } from "react-router";
-import Loader from "@/components/Loader";
 import { useLoader } from "@/context/LoaderContext";
 
 const Home = () => {
@@ -26,15 +25,18 @@ const Home = () => {
             },
           }
         );
+        if (!res.ok) {
+          const data = await res.json();
+          setIsValidToken(false);
+          localStorage.removeItem("token");
+          console.log(data);
+        }
 
         const data = await res.json();
 
-        if (data.valid) {
-          setIsValidToken(true);
-        } else {
-          setIsValidToken(false);
-          localStorage.removeItem("token");
-        }
+        setIsValidToken(data.valid);
+
+        if (data.valid === false) localStorage.removeItem("token");
       } catch (error) {
         console.error("Error validating token:", error);
         setIsValidToken(false);
@@ -46,7 +48,7 @@ const Home = () => {
     validateToken();
   }, [token]);
 
-  if (token && isValidToken) return <Navigate to="/home" />;
+  if (token && isValidToken === true) return <Navigate to="/home" />;
 
   return (
     <>

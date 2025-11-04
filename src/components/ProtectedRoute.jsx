@@ -1,6 +1,6 @@
 import { useLoader } from "@/context/LoaderContext";
 import { useEffect, useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 
 const ProtectedRoute = ({ children }) => {
   const [isValid, setIsValid] = useState(null); // null = loading
@@ -25,15 +25,15 @@ const ProtectedRoute = ({ children }) => {
             },
           }
         );
+        if (!res.ok) {
+          const data = await res.json();
+          console.log(data);
+          return;
+        }
 
         const data = await res.json();
-
-        if (data.valid) {
-          setIsValid(true);
-        } else {
-          setIsValid(false);
-          localStorage.removeItem("token");
-        }
+        setIsValid(data.valid);
+        if (data.valid === false) localStorage.removeItem("token");
       } catch (error) {
         console.error("Error validating token:", error);
         setIsValid(false);

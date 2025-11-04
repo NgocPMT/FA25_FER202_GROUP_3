@@ -8,35 +8,40 @@ export default function Article({ data }) {
     content,
     createdAt,
     coverImageUrl,
-    user
+    user,
+    PostReaction,
+    comments,
   } = data;
 
+  const postReactions = PostReaction?.length || 0;
+  const postComments = comments?.length || 0
 
-const extractTextRecursively = (node) => {
-  if (!node) return "";
 
-  // Nếu là text node
-  if (typeof node.text === "string") return node.text;
+  const extractTextRecursively = (node) => {
+    if (!node) return "";
 
-  // Nếu có con, duyệt con
-  if (Array.isArray(node.content)) {
-    return node.content.map(extractTextRecursively).join(" ");
-  }
+    // Nếu là text node
+    if (typeof node.text === "string") return node.text;
 
-  return "";
-};
+    // Nếu có con, duyệt con
+    if (Array.isArray(node.content)) {
+      return node.content.map(extractTextRecursively).join(" ");
+    }
 
-const getPreviewText = (content, maxLength = 60) => {
-  if (!content) return "...";
-  const fullText = extractTextRecursively(content).replace(/\s+/g, " ").trim();
-  if (!fullText) return "...";
-  return fullText.length > maxLength ? fullText.slice(0, maxLength) + "..." : fullText;
-};
+    return "";
+  };
+
+  const getPreviewText = (content, maxLength = 60) => {
+    if (!content) return "...";
+    const fullText = extractTextRecursively(content).replace(/\s+/g, " ").trim();
+    if (!fullText) return "...";
+    return fullText.length > maxLength ? fullText.slice(0, maxLength) + "..." : fullText;
+  };
 
 
   return (
     <div className="flex justify-between items-start border-b border-gray-200 pb-6">
-    
+
       {/* Left */}
       <div className="flex-1 pr-4">
         <p className="text-sm text-gray-600 mb-1">
@@ -54,13 +59,13 @@ const getPreviewText = (content, maxLength = 60) => {
         <div className="flex items-center gap-4 text-sm text-gray-500">
           <span>{new Date(createdAt).toLocaleDateString("vi-VN")}</span>
 
-          {/* Fake stats */}
+          {/* stats */}
           <span className="flex items-center gap-1">
-            <BsStarFill className="text-yellow-500" /> 
-            {Math.floor(Math.random() * 1000)}
+            <BsStarFill className="text-yellow-500" />
+            {postReactions}
           </span>
           <span className="flex items-center gap-1">
-            <BsChat /> {Math.floor(Math.random() * 50)}
+            <BsChat /> {postComments}
           </span>
 
           <BsBookmark className="ml-auto cursor-pointer hover:text-black" />

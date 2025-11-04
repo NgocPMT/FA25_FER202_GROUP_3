@@ -1,5 +1,6 @@
 import React from "react";
 import { BsStarFill, BsChat, BsBookmark, BsThreeDots } from "react-icons/bs";
+import { Link } from "react-router-dom";
 
 export default function Article({ data }) {
   const {
@@ -10,6 +11,7 @@ export default function Article({ data }) {
     user,
     PostReaction,
     comments,
+    slug
   } = data;
 
   const postReactions = PostReaction?.length || 0;
@@ -46,11 +48,11 @@ export default function Article({ data }) {
         <p className="text-sm text-gray-600 mb-1">
           {user?.username ?? "Unknown Author"}
         </p>
-
-        <h2 className="text-xl font-semibold mb-1 hover:underline cursor-pointer">
-          {title}
-        </h2>
-
+        <Link to={`/@${user.username}/${slug}`}>
+          <h2 className="text-xl font-semibold mb-1 hover:underline cursor-pointer">
+            {title}
+          </h2>
+        </Link>
         <p className="text-gray-600 mb-3 line-clamp-2">
           {getPreviewText(content)}
         </p>

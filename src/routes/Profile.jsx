@@ -1,5 +1,4 @@
 import { RxAvatar } from "react-icons/rx";
-import { supabase } from "../supabaseClient";
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 

@@ -1,4 +1,3 @@
-// Nhan
 import React from "react";
 import { BsStarFill, BsChat, BsBookmark, BsThreeDots } from "react-icons/bs";
 

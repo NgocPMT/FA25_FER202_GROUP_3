@@ -48,7 +48,7 @@ export default function RightSidebar() {
               new Date(b.createdAt).getTime() -
               new Date(a.createdAt).getTime()
           )
-          .slice(0, 3``); 
+          .slice(0, 3); 
 
         setLatestPosts(sorted);
       } catch (err) {

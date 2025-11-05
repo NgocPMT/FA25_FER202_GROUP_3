@@ -11,38 +11,82 @@ import {
 } from "recharts";
 
 export default function StoryChartStat({
-  data,
-  title = "Statistics of article views and reads",
+  data = [],
+  title = "Statistics of article views and reactions",
 }) {
+  const hasData = Array.isArray(data) && data.length > 0;
+
   return (
     <div className="relative w-full h-[400px] overflow-visible">
       <h3 className="text-lg font-semibold text-gray-700 mb-3 text-center">
         {title}
       </h3>
 
-      <ResponsiveContainer width="100%" height="90%">
-        <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-          <XAxis dataKey="date" />
-          <YAxis />
-          <Tooltip />
-          <Legend align="right" wrapperStyle={{ paddingBottom: 10 }} />
-          <Line
-            type="monotone"
-            dataKey="views"
-            stroke="#7fbbcbff"
-            strokeWidth={2}
-            name="Views"
-          />
-          <Line
-            type="monotone"
-            dataKey="reads"
-            stroke="#82ca9d"
-            strokeWidth={2}
-            name="Reads"
-          />
-        </LineChart>
-      </ResponsiveContainer>
+      {!hasData ? (
+        <div className="flex items-center justify-center w-full h-[400px] text-gray-400 text-sm italic border border-dashed border-gray-300 rounded-xl">
+          No data available
+        </div>
+      ) : (
+        <ResponsiveContainer width="100%" height={400}>
+          <LineChart
+            data={data}
+            margin={{ top: 10, right: 30, left: 0, bottom: 10 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <XAxis
+              dataKey="date"
+              tickFormatter={(timestamp) =>
+                new Date(timestamp).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                })
+              }
+              tick={{ fontSize: 12 }}
+              stroke="#6b7280"
+            />
+            <YAxis
+              allowDecimals={false}
+              tick={{ fontSize: 12 }}
+              stroke="#6b7280"
+            />
+            <Tooltip
+              formatter={(value, name) => {
+                if (name === "views") return [value, "Views"];
+                if (name === "reactions") return [value, "Reactions"];
+                return [value, name];
+              }}
+              labelFormatter={(timestamp) =>
+                new Date(timestamp).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })
+              }
+            />
+            <Legend align="right" verticalAlign="bottom" />
+            //views
+            <Line
+              type="monotone"
+              dataKey="views"
+              stroke="#7fbbcbff"
+              strokeWidth={2}
+              dot={{ r: 3 }}
+              activeDot={{ r: 5 }}
+              name="Views"
+            />
+            //reactions
+            <Line
+              type="monotone"
+              dataKey="reactions"
+              stroke="#82ca9d"
+              strokeWidth={2}
+              dot={{ r: 3 }}
+              activeDot={{ r: 5 }}
+              name="Reactions"
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      )}
     </div>
   );
 }

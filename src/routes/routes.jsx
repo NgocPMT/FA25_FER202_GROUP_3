@@ -11,6 +11,7 @@ import StatStories from "../components/StatStories";
 import StatAudience from "../components/StatAudience";
 import Notifications from "./Notification";
 import Write from "./Write";
+import StoriesPage from "./StoriesPage";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 const routes = [
@@ -83,6 +84,15 @@ const routes = [
         element: (
           <ProtectedRoute>
             <Notifications />
+          </ProtectedRoute>
+        ),
+      },
+      
+      {
+        path: "/stories",
+        element: (
+          <ProtectedRoute>
+            <StoriesPage />
           </ProtectedRoute>
         ),
       },

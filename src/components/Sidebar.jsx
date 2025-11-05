@@ -1,27 +1,5 @@
-import React, { useState, useRef, useEffect } from "react";
-
-// 🧠 Dữ liệu mẫu
-const staffPicks = [
-  {
-    author: "Christopher P Jones",
-    title: "What Looking At Paintings Means to Me",
-    date: "Sep 25",
-    avatar: "https://i.pravatar.cc/24?img=1",
-  },
-  {
-    author: "Dan Plumlee",
-    title: "America’s Collective Inheritance May Be Slipping Away",
-    date: "May 31",
-    avatar: "https://i.pravatar.cc/24?img=2",
-  },
-  {
-    author: "Fabrizia Ausiello",
-    title: "The design of shallow thinking",
-    date: "Sep 1",
-    avatar: "https://i.pravatar.cc/24?img=3",
-  },
-];
-
+import React, { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 const topics = [
   "Writing",
   "Cryptocurrency",
@@ -51,12 +29,37 @@ const suggestions = [
 ];
 
 export default function RightSidebar() {
+  const [latestPosts, setLatestPosts] = useState([]);
   const [following, setFollowing] = useState(suggestions.map(() => false));
   const [emailNoti, setEmailNoti] = useState(suggestions.map(() => true));
   const [openMenu, setOpenMenu] = useState(null);
   const menuRefs = useRef([]);
 
-  // Đóng menu khi click ra ngoài
+  // ✅ Lấy bài viết mới nhất cho phần Staff Picks
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/posts?page=1&limit=100&search=`);
+        const data = await res.json();
+
+        const sorted = data
+          .sort(
+            (a, b) =>
+              new Date(b.createdAt).getTime() -
+              new Date(a.createdAt).getTime()
+          )
+          .slice(0, 3); 
+
+        setLatestPosts(sorted);
+      } catch (err) {
+        console.error("❌ Error fetching posts:", err);
+      }
+    };
+
+    fetchPosts();
+  }, []);
+
+  // ✅ Đóng menu khi click ra ngoài
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
@@ -90,27 +93,37 @@ export default function RightSidebar() {
 
   return (
     <aside className="hidden lg:block w-80 shrink-0 p-4">
-      {/* STAFF PICKS */}
+      {/* STAFF PICKS (dữ liệu từ API) */}
       <section className="mb-8">
-        <h2 className="text-sm font-semibold mb-4">Staff Picks</h2>
-        <ul className="space-y-5">
-          {staffPicks.map((item, idx) => (
-            <li key={idx}>
-              <div className="flex items-center gap-2 mb-1">
-                <img
-                  src={item.avatar}
-                  alt={item.author}
-                  className="w-5 h-5 rounded-full"
-                />
-                <p className="text-xs text-gray-700">{item.author}</p>
-              </div>
-              <h3 className="text-sm font-medium hover:underline cursor-pointer leading-snug">
-                {item.title}
-              </h3>
-              <p className="text-xs text-gray-500 mt-1">⭐ {item.date}</p>
-            </li>
-          ))}
-        </ul>
+        <h2 className="text-sm font-semibold mb-4">New Post</h2>
+
+        {latestPosts.length === 0 ? (
+          <p className="text-xs text-gray-500">No posts available.</p>
+        ) : (
+          <ul className="space-y-5">
+            {latestPosts.map((post, idx) => (
+              <li key={idx}>
+                <div className="flex items-center gap-2 mb-1">
+                  <img
+                    src={post.user.avatar || "https://i.pravatar.cc/24?img=1"}
+                    alt={post.user.username}
+                    className="w-5 h-5 rounded-full"
+                  />
+                  <p className="text-xs text-gray-700">
+                    {post.user.username}
+                  </p>
+                </div>
+                <Link to={`/@${post.user.username}/${post.slug}`} className="text-sm font-medium hover:underline cursor-pointer leading-snug">
+                  {post.title}
+                </Link>
+                <p className="text-xs text-gray-500 mt-1">
+                  ⭐ {new Date(post.createdAt).toLocaleDateString("vi-VN")}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+
         <p className="text-xs text-green-700 mt-3 hover:underline cursor-pointer">
           See the full list
         </p>
@@ -178,9 +191,8 @@ export default function RightSidebar() {
                     >
                       Following
                       <svg
-                        className={`w-3 h-3 transition-transform ${
-                          openMenu === idx ? "rotate-180" : ""
-                        }`}
+                        className={`w-3 h-3 transition-transform ${openMenu === idx ? "rotate-180" : ""
+                          }`}
                         fill="none"
                         stroke="currentColor"
                         strokeWidth="2"

@@ -1,63 +1,47 @@
 import React, { useState, useEffect, useRef } from "react";
+import axios from "axios";
 import DropdownSelectStat from "./DropdownSelectStat";
 import SummaryStatsStat from "./SummaryStatsStat";
 import StoryChartStat from "./StoryChartStat";
 import StoryListStat from "./StoryListStat";
 
-// keep your original data constant exactly
-const data = [
-  { date: "Oct 1", views: 20, reads: 15 },
-  { date: "Oct 2", views: 22, reads: 17 },
-  { date: "Oct 3", views: 25, reads: 18 },
-  { date: "Oct 4", views: 28, reads: 20 },
-  { date: "Oct 5", views: 30, reads: 18 },
-  { date: "Oct 6", views: 35, reads: 22 },
-  { date: "Oct 7", views: 40, reads: 25 },
-  { date: "Oct 8", views: 38, reads: 27 },
-  { date: "Oct 9", views: 42, reads: 30 },
-  { date: "Oct 10", views: 25, reads: 12 },
-  { date: "Oct 11", views: 45, reads: 33 },
-  { date: "Oct 12", views: 50, reads: 35 },
-  { date: "Oct 13", views: 48, reads: 34 },
-  { date: "Oct 14", views: 52, reads: 38 },
-  { date: "Oct 15", views: 40, reads: 25 },
-  { date: "Oct 16", views: 55, reads: 42 },
-  { date: "Oct 17", views: 35, reads: 28 },
-  { date: "Oct 18", views: 58, reads: 44 },
-  { date: "Oct 19", views: 60, reads: 46 },
-  { date: "Oct 20", views: 62, reads: 48 },
-  { date: "Oct 21", views: 65, reads: 50 },
-  { date: "Oct 22", views: 70, reads: 52 },
-  { date: "Oct 23", views: 68, reads: 49 },
-  { date: "Oct 24", views: 72, reads: 55 },
-  { date: "Oct 25", views: 75, reads: 58 },
-  { date: "Oct 26", views: 78, reads: 60 },
-  { date: "Oct 27", views: 80, reads: 62 },
-  { date: "Oct 28", views: 83, reads: 64 },
-  { date: "Oct 29", views: 85, reads: 66 },
-  { date: "Oct 30", views: 88, reads: 68 },
-  { date: "Oct 31", views: 90, reads: 70 },
-];
-
 export default function StatStories() {
-  const [selectedPeriod, setSelectedPeriod] = useState("October 2025");
-  const [openMonth, setOpenMonth] = useState(false);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [chartData, setChartData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
+  const [stories, setStories] = useState([]);
+  const [followersCount, setFollowersCount] = useState(0);
+
+  const filterDataByDate = (startYMD, endYMD) => {
+    if (!chartData || chartData.length === 0) {
+      setFilteredData([]);
+      return;
+    }
+
+    const parseYMD = (ymd) => {
+      const [y, m, d] = ymd.split("-").map((v) => parseInt(v, 10));
+      return new Date(y, m - 1, d);
+    };
+
+    const start = parseYMD(startYMD);
+    const end = parseYMD(endYMD);
+
+    const filtered = chartData.filter((item) => {
+      const itemDate = parseYMD(item.date);
+      return itemDate >= start && itemDate <= end;
+    });
+
+    setFilteredData(filtered);
+  };
+
+  // Sort dropdown
   const [selectedSort, setSelectedSort] = useState("Latest");
   const [openSort, setOpenSort] = useState(false);
-  const [stories, setStories] = useState([]);
-  const [viewType, setViewType] = useState("Month");
-  const [openViewType, setOpenViewType] = useState(false);
-
-  const monthRef = useRef(null);
   const sortRef = useRef(null);
-  const viewTypeRef = useRef(null);
-  const [monthWidth, setMonthWidth] = useState(0);
   const [sortWidth, setSortWidth] = useState(0);
-  const [viewTypeWidth, setViewTypeWidth] = useState(0);
+  const [today, setToday] = useState(new Date());
 
-  const months = ["October 2025", "September 2025", "August 2025"];
-  const quarters = ["Q4 2025", "Q3 2025", "Q2 2025", "Q1 2025"];
-  const years = ["2025", "2024", "2023"];
   const sortOptions = [
     "Latest",
     "Oldest",
@@ -67,64 +51,183 @@ export default function StatStories() {
     "Least read",
   ];
 
-  useEffect(() => {
-    setStories([
-      {
-        id: 1,
-        title: "i love you",
-        readTime: "1 min read",
-        date: "Oct 18, 2025",
-        views: 0,
-        reads: 0,
-      },
-    ]);
-    // setStories([]);
-  }, []);
+  // total views/reactions/followers
+  const totalViews = filteredData.reduce(
+    (sum, item) => sum + (item.views || 0),
+    0
+  );
+  const totalReactions = filteredData.reduce(
+    (sum, item) => sum + (item.reactions || 0),
+    0
+  );
+  const summaryData = {
+    views: totalViews,
+    reactions: totalReactions,
+    followers: followersCount,
+  };
 
+  // Fetch followers
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (monthRef.current && !monthRef.current.contains(e.target))
-        setOpenMonth(false);
-      if (sortRef.current && !sortRef.current.contains(e.target))
-        setOpenSort(false);
-      if (viewTypeRef.current && !viewTypeRef.current.contains(e.target))
-        setOpenViewType(false);
+    const fetchFollowers = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_URL}/me/followers`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        if (Array.isArray(res.data)) {
+          setFollowersCount(res.data.length);
+        } else if (res.data.totalFollowers !== undefined) {
+          setFollowersCount(res.data.totalFollowers);
+        } else {
+          setFollowersCount(0);
+        }
+      } catch (err) {
+        console.error("Error fetching followers:", err);
+        setFollowersCount(0);
+      }
     };
 
+    fetchFollowers();
+  }, []);
+
+  // Sort stories
+  useEffect(() => {
+    if (stories.length === 0) return;
+    const sorted = [...stories];
+
+    switch (selectedSort) {
+      case "Latest":
+        sorted.sort((a, b) => new Date(b.date) - new Date(a.date));
+        break;
+      case "Oldest":
+        sorted.sort((a, b) => new Date(a.date) - new Date(b.date));
+        break;
+      case "Most viewed":
+        sorted.sort((a, b) => b.views - a.views);
+        break;
+      case "Least viewed":
+        sorted.sort((a, b) => a.views - b.views);
+        break;
+      case "Most read":
+        sorted.sort((a, b) => b.reads - a.reads);
+        break;
+      case "Least read":
+        sorted.sort((a, b) => a.reads - b.reads);
+        break;
+      default:
+        break;
+    }
+
+    setStories(sorted);
+  }, [selectedSort]);
+
+  // auto update day
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = new Date();
+      if (now.getDate() !== today.getDate()) setToday(now);
+    }, 60000);
+    return () => clearInterval(timer);
+  }, [today]);
+
+  // Fetch chart
+  useEffect(() => {
+    const fetchStatistics = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_URL}/me/statistics`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        const posts = res.data?.posts || [];
+
+        const aggregatedData = posts.reduce((acc, p) => {
+          const date = new Date(p.createdAt).toISOString().split("T")[0];
+          const existing = acc.find((d) => d.date === date);
+          const views = p.PostView ? p.PostView.length : 0;
+          const reactions = p.PostReaction ? p.PostReaction.length : 0;
+
+          if (existing) {
+            existing.views += views;
+            existing.reactions += reactions;
+          } else {
+            acc.push({
+              date: new Date(date).getTime(),
+              views,
+              reactions,
+            });
+          }
+          return acc;
+        }, []);
+
+        setChartData(aggregatedData);
+        setFilteredData(aggregatedData);
+
+        if (aggregatedData.length > 0) {
+          const dates = aggregatedData.map((d) => new Date(d.date));
+          const min = new Date(Math.min(...dates));
+          const max = new Date(Math.max(...dates));
+          const toYMD = (date) =>
+            `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+              2,
+              "0"
+            )}-${String(date.getDate()).padStart(2, "0")}`;
+          setFromDate(toYMD(min));
+          setToDate(toYMD(max));
+        }
+      } catch (err) {
+        console.error("Error fetching statistics:", err);
+      }
+    };
+    fetchStatistics();
+  }, []);
+
+  //  Fetch stories
+  useEffect(() => {
+    const fetchStories = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_URL}/me/posts`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        const formatted =
+          res.data?.map((post) => ({
+            id: post._id || post.id,
+            title: post.title || "Untitled",
+            readTime: post.readTime || "1 min read",
+            date: new Date(post.createdAt).toISOString().split("T")[0],
+            views: post.PostView ? post.PostView.length : 0,
+            reactions: post.PostReaction ? post.PostReaction.length : 0,
+          })) || [];
+
+        setStories(formatted);
+      } catch {
+        setStories([]);
+      }
+    };
+    fetchStories();
+  }, []);
+
+  // Dropdown blur
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (sortRef.current && !sortRef.current.contains(e.target))
+        setOpenSort(false);
+    };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   useEffect(() => {
-    const handleTabChange = () => {
-      setOpenMonth(false);
-      setOpenSort(false);
-      setOpenViewType(false);
-    };
-
-    window.addEventListener("blur", handleTabChange);
-    window.addEventListener("focus", handleTabChange);
-    document.addEventListener("visibilitychange", handleTabChange);
-
-    return () => {
-      window.removeEventListener("blur", handleTabChange);
-      window.removeEventListener("focus", handleTabChange);
-      document.removeEventListener("visibilitychange", handleTabChange);
-    };
+    if (sortRef.current) setSortWidth(sortRef.current.offsetWidth);
   }, []);
-
-  useEffect(() => {
-    const updateWidths = () => {
-      if (monthRef.current) setMonthWidth(monthRef.current.offsetWidth);
-      if (sortRef.current) setSortWidth(sortRef.current.offsetWidth);
-      if (viewTypeRef.current)
-        setViewTypeWidth(viewTypeRef.current.offsetWidth);
-    };
-
-    updateWidths();
-    window.addEventListener("resize", updateWidths);
-    return () => window.removeEventListener("resize", updateWidths);
-  }, [viewType, selectedPeriod]);
 
   return (
     <div className="w-full">
@@ -134,55 +237,54 @@ export default function StatStories() {
         max-md:flex-col max-md:items-start max-md:gap-3"
       >
         <div>
-          <h3 className="text-2xl font-medium text-gray-900 mb-3">Monthly</h3>
-          <p className="text-sm text-gray-500 mb-10">
-            October 1, 2025 – Today (UTC) · Updated hourly
+          <h3 className="text-2xl font-medium text-gray-900 mb-3 max-md:text-xl">
+            Monthly
+          </h3>
+          <p className="text-sm text-gray-500 max-md:text-xs">
+            {today.toLocaleDateString("en-US", {
+              month: "long",
+              day: "numeric",
+              year: "numeric",
+            })}{" "}
+            (UTC) · Updated daily
           </p>
         </div>
 
         {/* Dropdown */}
         <DropdownSelectStat
-          viewType={viewType}
-          setViewType={setViewType}
-          openViewType={openViewType}
-          setOpenViewType={setOpenViewType}
-          viewTypeRef={viewTypeRef}
-          viewTypeWidth={viewTypeWidth}
-          selectedPeriod={selectedPeriod}
-          setSelectedPeriod={setSelectedPeriod}
-          openMonth={openMonth}
-          setOpenMonth={setOpenMonth}
-          monthRef={monthRef}
-          monthWidth={monthWidth}
-          months={months}
-          quarters={quarters}
-          years={years}
+          chartData={chartData}
+          setFilteredData={setFilteredData}
         />
       </div>
 
-      {/* Summary stats */}
-      <SummaryStatsStat />
+      {/* Summary */}
+      <SummaryStatsStat data={summaryData} />
 
       {/* Chart */}
-      <StoryChartStat data={data} />
+      <StoryChartStat data={filteredData} />
 
       <hr className="my-10 border-gray-200" />
 
-      {/* Lifetime header row and list */}
+      {/* Lifetime section */}
       <div
         className="flex items-center justify-between w-full mt-10 mb-6 
         max-md:flex-col max-md:items-start max-md:gap-3"
       >
-        {/* Left: Lifetime info */}
         <div>
-          <h2 className="text-2xl font-semibold text-gray-900">Lifetime</h2>
-          <p className="text-sm text-gray-600">
-            October 18, 2025 – Today (UTC) <span className="mx-1 ">·</span>
-            Updated daily
+          <h3 className="text-2xl font-medium text-gray-900 mb-3 max-md:text-xl">
+            Lifetime
+          </h3>
+          <p className="text-sm text-gray-500 max-md:text-xs">
+            {today.toLocaleDateString("en-US", {
+              month: "long",
+              day: "numeric",
+              year: "numeric",
+            })}{" "}
+            (UTC) · Updated daily
           </p>
         </div>
 
-        {/* Right: Sort dropdown */}
+        {/* Sort dropdown */}
         <div
           ref={sortRef}
           className="relative text-left max-md:block max-md:w-full"
@@ -219,7 +321,6 @@ export default function StatStories() {
             </svg>
           </button>
 
-          {/* Dropdown with article */}
           {openSort && stories.length > 0 && (
             <div
               className="absolute right-0 mt-2 rounded-xl bg-white shadow-lg ring-1 ring-black/10 z-10"
@@ -273,7 +374,7 @@ export default function StatStories() {
         </div>
       </div>
 
-      {/* Story list component */}
+      {/* Story list */}
       <StoryListStat
         stories={stories}
         sortRef={sortRef}

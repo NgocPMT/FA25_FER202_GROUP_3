@@ -1,182 +1,125 @@
+import React, { useState, useEffect } from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+
 export default function DropdownSelectStat({
-  viewType,
-  setViewType,
-  openViewType,
-  setOpenViewType,
-  viewTypeRef,
-  viewTypeWidth,
-  selectedPeriod,
-  setSelectedPeriod,
-  openMonth,
-  setOpenMonth,
-  monthRef,
-  monthWidth,
-  months,
-  quarters,
-  years,
+  chartData = [],
+  setFilteredData,
 }) {
+  const [fromDate, setFromDate] = useState(null);
+  const [toDate, setToDate] = useState(null);
+
+  // min/max date (max not exceed today)
+  const computeBounds = (data) => {
+    if (!Array.isArray(data) || data.length === 0) {
+      const today = new Date();
+      return { minDate: today, maxDate: today };
+    }
+    const all = data
+      .map((d) => new Date(d.date))
+      .filter((d) => d instanceof Date && !isNaN(d));
+    if (all.length === 0) {
+      const today = new Date();
+      return { minDate: today, maxDate: today };
+    }
+    const minDate = new Date(Math.min(...all));
+    const today = new Date();
+    const maxDataDate = new Date(Math.max(...all));
+    const maxDate = maxDataDate > today ? today : maxDataDate;
+    return { minDate, maxDate };
+  };
+
+  const filterDataByDate = (start, end) => {
+    if (!chartData || chartData.length === 0) {
+      setFilteredData([]);
+      return;
+    }
+    const startTime = start ? new Date(start).getTime() : null;
+    const endTime = end ? new Date(end).getTime() : null;
+
+    const filtered = chartData.filter((item) => {
+      const t = new Date(item.date).getTime();
+      if (startTime && endTime) return t >= startTime && t <= endTime;
+      if (startTime) return t >= startTime;
+      if (endTime) return t <= endTime;
+      return true;
+    });
+
+    setFilteredData(filtered);
+  };
+
+  useEffect(() => {
+    const { minDate, maxDate } = computeBounds(chartData);
+    setFromDate(minDate);
+    setToDate(maxDate);
+    filterDataByDate(minDate, maxDate);
+  }, [chartData]);
+
+  const handleFromChange = (date) => {
+    if (!date) return;
+    const today = new Date();
+    const picked = date > today ? today : date;
+    setFromDate(picked);
+
+    const safeTo = toDate && toDate < picked ? picked : toDate;
+    if (safeTo !== toDate) setToDate(safeTo);
+
+    filterDataByDate(picked, safeTo);
+  };
+
+  const handleToChange = (date) => {
+    if (!date) return;
+    const today = new Date();
+    const picked = date > today ? today : date;
+
+    const safeFrom = fromDate && picked < fromDate ? picked : fromDate;
+    if (safeFrom !== fromDate) setFromDate(safeFrom);
+
+    setToDate(picked);
+    filterDataByDate(safeFrom, picked);
+  };
+
+  const { minDate: dataMinDate, maxDate: dataMaxDate } =
+    computeBounds(chartData);
+  const today = new Date();
+  const maxSelectable = today;
+
   return (
-    <div className="flex items-center gap-4 mb-6 max-md:flex-col max-md:items-start max-md:gap-3 max-md:w-full">
-      {/* Dropdown: Month / Quarter / Year */}
-      <div
-        ref={viewTypeRef}
-        className="relative text-left max-md:block max-md:w-full"
-      >
-        <button
-          onClick={() => setOpenViewType(!openViewType)}
-          className="inline-flex items-center justify-between w-44 rounded-full bg-white border border-gray-200 cursor-pointer
-              px-4 py-2 text-sm font-semibold text-gray-700 
-              focus:outline-none focus:ring-1 focus:ring-gray-400 transition max-md:w-full"
-        >
-          {viewType}
-          <svg
-            className={`ml-2 h-4 w-4 transform transition-transform duration-200 ${
-              openViewType ? "rotate-180" : "rotate-0"
-            }`}
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 9l-7 7-7-7"
-            />
-          </svg>
-        </button>
-
-        {openViewType && (
-          <div
-            className="absolute right-0 mt-2 rounded-xl bg-white shadow-lg ring-1 ring-black/10 z-10"
-            style={{ width: `${viewTypeWidth}px` }}
-          >
-            <ul className="py-1 text-sm text-gray-700">
-              {["Month", "Quarter", "Year"].map((type) => (
-                <li key={type}>
-                  <button
-                    onClick={() => {
-                      setViewType(type);
-                      setSelectedPeriod(
-                        type === "Month"
-                          ? months[0]
-                          : type === "Quarter"
-                          ? quarters[0]
-                          : years[0]
-                      );
-                      setOpenViewType(false);
-                    }}
-                    className={`w-full flex items-center justify-between px-4 py-2 rounded-lg transition ${
-                      viewType === type
-                        ? "bg-white text-gray-900 font-medium hover:bg-gray-100"
-                        : "hover:bg-gray-100"
-                    }`}
-                  >
-                    <span>{type}</span>
-
-                    {viewType === type && (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={2}
-                        stroke="currentColor"
-                        className="w-4 h-4 text-black"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M4.5 12.75l6 6 9-13.5"
-                        />
-                      </svg>
-                    )}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+    <div className="flex items-center gap-4 mb-6 max-md:flex-col max-md:items-start max-md:w-full">
+      {/* From */}
+      <div className="flex flex-col w-36 max-md:w-full">
+        <label className="text-xs font-medium text-gray-500 mb-1">From</label>
+        <DatePicker
+          selected={fromDate}
+          onChange={handleFromChange}
+          dateFormat="yyyy-MM-dd"
+          placeholderText="Select date"
+          minDate={dataMinDate}
+          maxDate={maxSelectable}
+          onFocus={(e) => e.target.blur()}
+          className="w-36 rounded-full bg-white text-left border border-gray-200 px-4 py-2 
+                     text-sm font-semibold text-gray-700 cursor-pointer max-md:w-full
+                     focus:outline-none focus:ring-1 focus:ring-gray-400 transition"
+          popperPlacement="bottom-start"
+        />
       </div>
 
-      {/* Dropdown Date/Quarter/Month/Year */}
-      <div
-        ref={monthRef}
-        className="relative text-left max-md:block max-md:w-full"
-      >
-        <button
-          onClick={() => setOpenMonth(!openMonth)}
-          className="inline-flex items-center justify-between w-44 rounded-full bg-white border border-gray-200 cursor-pointer
-                 px-4 py-2 text-sm font-semibold text-gray-700 
-                 focus:outline-none focus:ring-1 focus:ring-gray-400 transition max-md:w-full"
-        >
-          {selectedPeriod}
-          <svg
-            className={`ml-2 h-4 w-4 transform transition-transform duration-200 ${
-              openMonth ? "rotate-180" : "rotate-0"
-            }`}
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 9l-7 7-7-7"
-            />
-          </svg>
-        </button>
-
-        {openMonth && (
-          <div
-            className="absolute right-0 mt-2 rounded-xl bg-white shadow-lg ring-1 ring-black/10 z-10"
-            style={{ width: `${monthWidth}px` }}
-          >
-            <ul className="py-1 text-sm text-gray-700">
-              {(viewType === "Month"
-                ? months
-                : viewType === "Quarter"
-                ? quarters
-                : years
-              ).map((item) => (
-                <li key={item}>
-                  <button
-                    onClick={() => {
-                      setSelectedPeriod(item);
-                      setOpenMonth(false);
-                    }}
-                    className={`w-full flex items-center justify-between px-4 py-2 rounded-lg transition ${
-                      selectedPeriod === item
-                        ? "bg-white text-gray-900 font-medium hover:bg-gray-100"
-                        : "hover:bg-gray-100"
-                    }`}
-                  >
-                    <span>{item}</span>
-
-                    {selectedPeriod === item && (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={2}
-                        stroke="currentColor"
-                        className="w-4 h-4 text-black"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M4.5 12.75l6 6 9-13.5"
-                        />
-                      </svg>
-                    )}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+      {/* To */}
+      <div className="flex flex-col w-36 max-md:w-full">
+        <label className="text-xs font-medium text-gray-500 mb-1">To</label>
+        <DatePicker
+          selected={toDate}
+          onChange={handleToChange}
+          dateFormat="yyyy-MM-dd"
+          placeholderText="Select date"
+          minDate={fromDate || dataMinDate}
+          maxDate={maxSelectable}
+          onFocus={(e) => e.target.blur()}
+          className="w-36 text-left rounded-full bg-white border border-gray-200 px-4 py-2 
+                     text-sm font-semibold text-gray-700 cursor-pointer max-md:w-full
+                     focus:outline-none focus:ring-1 focus:ring-gray-400 transition"
+          popperPlacement="bottom-start"
+        />
       </div>
     </div>
   );

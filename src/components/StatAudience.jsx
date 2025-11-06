@@ -1,7 +1,60 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { IoMdInformationCircleOutline } from "react-icons/io";
+import axios from "axios";
 
 export default function StatAudience() {
+  const [followers, setFollowers] = useState(0);
+  const [changeFromLastMonth, setChangeFromLastMonth] = useState(0);
+  const [today, setToday] = useState(new Date());
+
+  // update day
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = new Date();
+      if (now.getDate() !== today.getDate()) {
+        setToday(now);
+      }
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, [today]);
+
+  useEffect(() => {
+    const fetchAudienceStats = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const [followersRes, statsRes] = await Promise.all([
+          axios.get(`${import.meta.env.VITE_API_URL}/me/followers`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          axios.get(`${import.meta.env.VITE_API_URL}/me/statistics`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
+
+        // Total followers
+        if (Array.isArray(followersRes.data)) {
+          setFollowers(followersRes.data.length);
+        } else if (followersRes.data.totalFollowers !== undefined) {
+          setFollowers(followersRes.data.totalFollowers);
+        }
+
+        // Followers increase/decrease during the month
+        if (statsRes.data?.followersChangeMonth !== undefined) {
+          setChangeFromLastMonth(statsRes.data.followersChangeMonth);
+        } else {
+          setChangeFromLastMonth(0);
+        }
+      } catch (err) {
+        console.error("Error fetching audience stats:", err);
+        setFollowers(0);
+        setChangeFromLastMonth(0);
+      }
+    };
+
+    fetchAudienceStats();
+  }, []);
+
   return (
     <div className="w-full">
       {/* Header */}
@@ -11,17 +64,21 @@ export default function StatAudience() {
             Lifetime
           </h3>
           <p className="text-sm text-gray-500 max-md:text-xs">
-            October 17, 2025 – Today (UTC) · Updated daily
+            {today.toLocaleDateString("en-US", {
+              month: "long",
+              day: "numeric",
+              year: "numeric",
+            })}{" "}
+            (UTC) · Updated daily
           </p>
         </div>
       </div>
 
-      {/* Overview Stats */}
+      {/* Followers Overview */}
       <div className="flex flex-wrap justify-start gap-32 max-md:gap-10 mb-8">
-        {/* Followers */}
         <div className="relative text-left">
           <p className="text-5xl max-md:text-3xl font-semibold text-gray-900 mb-2 text-left">
-            0
+            {followers}
           </p>
           <div className="flex items-center justify-start gap-1 text-sm max-md:text-xs text-gray-900 font-semibold text-left">
             <p className="text-left">Followers</p>
@@ -37,35 +94,21 @@ export default function StatAudience() {
               </div>
             </div>
           </div>
-          <p className="text-sm font-medium text-gray-900 mt-1 max-md:text-xs">
-            0 from last month
-          </p>
-        </div>
-
-        {/* Email Subscribers */}
-        <div className="relative text-left">
-          <p className="text-5xl max-md:text-3xl font-semibold text-gray-900 mb-2 text-left">
-            0
-          </p>
-          <div className="flex items-center justify-center gap-1 text-sm max-md:text-xs text-gray-900 font-semibold">
-            <p>Email Subscribers</p>
-
-            <div className="relative group">
-              <IoMdInformationCircleOutline className="text-gray-700 text-lg cursor-pointer transition" />
-
-              <div
-                className="absolute top-full left-1/2 -translate-x-1/2 ml-5 mt-2 hidden group-hover:block 
-                bg-white text-gray-900 border border-gray-100 text-sm rounded-lg 
-                px-5 py-4 w-66 max-md:w-56 max-md:ml-0 max-md:text-xs shadow-xl z-50 text-left"
-              >
-                Readers who have opted to receive emails from you. This excludes
-                unsubscribed, inactive, deactivated, deleted, or suspended
-                users.
-              </div>
-            </div>
-          </div>
-          <p className="text-sm font-medium text-gray-900 mt-1 max-md:text-xs">
-            0 from last month
+          <p className="text-sm font-medium mt-1 max-md:text-xs text-gray-900">
+            <span
+              className={`${
+                changeFromLastMonth > 0
+                  ? "text-green-600"
+                  : changeFromLastMonth < 0
+                  ? "text-red-500"
+                  : "text-gray-900"
+              }`}
+            >
+              {changeFromLastMonth >= 0
+                ? `+${changeFromLastMonth}`
+                : `${changeFromLastMonth}`}
+            </span>{" "}
+            from last month
           </p>
         </div>
       </div>

@@ -143,35 +143,36 @@ export default function Stories({ filter, onToggleStatusFilter }) {
 
       {/* PUBLISHED */}
       {activeTab === "Published" && (
-
         <div className="mt-8">
-          <div className="grid grid-cols-3 text-sm text-gray-500 pb-2">
+          {/* Header */}
+          <div className="grid grid-cols-[2fr_1fr_1fr] text-sm text-gray-500 pb-3">
             <span>Latest</span>
-            <span className="justify-self-start ml-60">Publication</span>
-            <span className="justify-self-start ml-30">Status</span>
+            <span>Publication</span>
+            <span>Status</span>
           </div>
 
-
+          {/* Body */}
           {stories.published.length > 0 ? (
             stories.published.map((p) => (
               <div
                 key={p.id}
-                className="flex justify-between items-start border-b border-gray-200 py-6 relative"
+                className="grid grid-cols-[2fr_1fr_1fr] border-b border-gray-200 py-6 items-center"
               >
-                <div className="flex items-start space-x-4">
+                {/* Latest */}
+                <div className="flex items-center space-x-4 overflow-hidden pr-8"> 
                   {p.thumbnail && (
                     <img
                       src={p.thumbnail}
                       alt={p.title}
-                      className="w-20 h-20 object-cover rounded-md"
+                      className="w-20 h-20 object-cover rounded-md flex-shrink-0"
                     />
                   )}
-                  <div>
-                    <h3 className="font-semibold text-lg text-gray-900">
-                      {p.title}
+                  <div className="min-w-0">
+                    <h3 className="font-semibold text-lg text-gray-900 truncate">
+                      {p.title || "Untitled"}
                     </h3>
-                    <p className="text-sm text-gray-500">
-                      Published {new Date(p.createdAt).toLocaleDateString("vi-VN")} · 1 min read · Updated{" "}
+                    <p className="text-sm text-gray-500 truncate">
+                      Published {new Date(p.createdAt).toLocaleDateString("vi-VN")} · Updated{" "}
                       {new Date(p.updatedAt).toLocaleDateString("vi-VN")}
                     </p>
 
@@ -186,35 +187,44 @@ export default function Stories({ filter, onToggleStatusFilter }) {
                   </div>
                 </div>
 
-                <button
-                  onClick={() => setMenuOpen(menuOpen === p.id ? null : p.id)}
-                  className="p-2 hover:bg-gray-100 rounded-full"
-                >
-                  <HiOutlineDotsHorizontal size={20} />
-                </button>
+                {/* Publication */}
+                <div className="text-gray-600 truncate text-sm px-2">
+                  {p.publication?.name || "None"}
+                </div>
 
-                {menuOpen === p.id && (
-                  <div className="absolute right-0 top-12 bg-white border rounded-lg shadow-md z-10 w-36 text-sm">
-                    <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
-                      View
-                    </button>
-                    <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">
-                      Edit
-                    </button>
-                    <button className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100">
-                      Delete
-                    </button>
-                  </div>
-                )}
+                {/* Status + Menu */}
+                <div className="relative flex items-center justify-between">
+                  <span className="text-gray-600 text-xs truncate">{p.status || "Published"}</span>
+                  <button
+                    onClick={() => setMenuOpen(menuOpen === p.id ? null : p.id)}
+                    className="p-2 hover:bg-gray-100 rounded-full"
+                  >
+                    <HiOutlineDotsHorizontal size={20} />
+                  </button>
+
+                  {menuOpen === p.id && (
+                    <div className="absolute right-0 top-8 bg-white border rounded-lg shadow-md z-10 w-36 text-sm">
+                      <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">View</button>
+                      <button className="block w-full text-left px-4 py-2 hover:bg-gray-100">Edit</button>
+                      <button className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100">
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             ))
           ) : (
             <div className="text-center py-20 text-gray-600">
-              <p className="text-lg">You haven’t published any stories yet.</p>
+              <p className="text-lg font-medium">You haven’t published any stories yet.</p>
+              <p className="text-sm mt-1">Start writing and share your first story!</p>
             </div>
           )}
         </div>
       )}
+
+
+
 
 
       {/* SUBMISSIONS */}

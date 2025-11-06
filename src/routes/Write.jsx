@@ -92,6 +92,7 @@ const Write = () => {
           title,
           content: JSON.stringify(content),
           coverImageUrl,
+          status: "published",
         }),
       });
 

@@ -159,14 +159,16 @@ export default function Stories({ filter, onToggleStatusFilter }) {
                 className="grid grid-cols-[2fr_1fr_1fr] border-b border-gray-200 py-6 items-center"
               >
                 {/* Latest */}
-                <div className="flex items-center space-x-4 overflow-hidden pr-8"> 
-                  {p.thumbnail && (
+                <div className="flex items-center space-x-4 overflow-hidden pr-10">
+                  {/* Chỉ hiển thị ảnh nếu có coverImageUrl hoặc thumbnail */}
+                  {(p.coverImageUrl || p.thumbnail) && (
                     <img
-                      src={p.thumbnail}
+                      src={p.coverImageUrl || p.thumbnail}
                       alt={p.title}
-                      className="w-20 h-20 object-cover rounded-md flex-shrink-0"
+                      className="w-20 h-20 object-cover rounded-lg border flex-shrink-0"
                     />
                   )}
+
                   <div className="min-w-0">
                     <h3 className="font-semibold text-lg text-gray-900 truncate">
                       {p.title || "Untitled"}

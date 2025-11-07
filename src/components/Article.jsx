@@ -49,7 +49,7 @@ export default function Article({ data }) {
         <p className="text-sm text-gray-600 mb-1">
           {user?.username ?? "Unknown Author"}
         </p>
-        <Link to={`/@${user.username}/${slug}`}>
+        <Link to={`/posts/${slug}`}>
           <h2 className="text-xl font-semibold mb-1 hover:underline cursor-pointer">
             {title}
           </h2>

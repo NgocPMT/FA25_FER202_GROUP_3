@@ -17,8 +17,10 @@ body {
   font-style: normal;
   padding: 0;
   overscroll-behavior-y: none;
+}
+
+body.page-no-scroll {
   overflow: hidden;
-  height: 100%;
 }
 
 html,

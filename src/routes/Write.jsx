@@ -1,5 +1,5 @@
 import { SimpleEditor } from "@/components/tiptap-templates/simple/simple-editor";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import useLogOut from "@/hooks/useLogOut";
 
 import { IoWarning } from "react-icons/io5";
@@ -16,6 +16,13 @@ const Write = () => {
   const editorRef = useRef(null);
   const navigate = useNavigate();
   const { showLoader, hideLoader } = useLoader();
+
+  useEffect(() => {
+    document.body.classList.add("page-no-scroll");
+    return () => {
+      document.body.classList.remove("page-no-scroll");
+    };
+  }, []);
 
   const toggleAvatarDropdownShow = () => {
     setIsAvatarDropdownShow(!isAvatarDropdownShow);

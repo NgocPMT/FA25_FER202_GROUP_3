@@ -2,6 +2,7 @@ import React from "react";
 import { BsStarFill, BsChat, BsBookmark, BsThreeDots } from "react-icons/bs";
 import { Link } from "react-router-dom";
 
+
 export default function Article({ data }) {
   const {
     title,
@@ -38,7 +39,7 @@ export default function Article({ data }) {
     if (!fullText) return "...";
     return fullText.length > maxLength ? fullText.slice(0, maxLength) + "..." : fullText;
   };
-
+ 
 
   return (
     <div className="flex justify-between items-start border-b border-gray-200 pb-6">

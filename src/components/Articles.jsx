@@ -122,28 +122,24 @@ const Articles = () => {
       </div>
 
       {/* pagination */}
-      <div className="min-h-[75vh] flex flex-col">
-        <div className="flex items-center justify-center gap-3 mt-auto pt-8">
-          <button
-            onClick={handlePrev}
-            disabled={!hasPrev}
-            className={`px-3 py-1 rounded border ${hasPrev ? "hover:bg-gray-50" : "opacity-50 cursor-not-allowed"
-              }`}
-          >
-            ← Prev
-          </button>
+      <div className="flex items-center justify-center gap-3 mt-8">
+        <button
+          onClick={handlePrev}
+          disabled={!hasPrev}
+          className={`px-3 py-1 rounded border ${hasPrev ? "hover:bg-gray-50" : "opacity-50 cursor-not-allowed"}`}
+        >
+          ← Prev
+        </button>
 
-          <span className="text-sm text-gray-600">Page {page}</span>
+        <span className="text-sm text-gray-600">Pages{page}</span>
 
-          <button
-            onClick={handleNext}
-            disabled={!hasNext}
-            className={`px-3 py-1 rounded border ${hasNext ? "hover:bg-gray-50" : "opacity-50 cursor-not-allowed"
-              }`}
-          >
-            Next →
-          </button>
-        </div>
+        <button
+          onClick={handleNext}
+          disabled={!hasNext}
+          className={`px-3 py-1 rounded border ${hasNext ? "hover:bg-gray-50" : "opacity-50 cursor-not-allowed"}`}
+        >
+          Next →
+        </button>
       </div>
     </div>
   );

@@ -13,6 +13,8 @@ import Notifications from "./Notification";
 import Write from "./Write";
 import StoriesPage from "./StoriesPage";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import Library from "./Library";
+import Read from "./Read";
 
 const routes = [
   {
@@ -44,6 +46,10 @@ const routes = [
       {
         path: "/home",
         element: <HomeDashboard />,
+      },
+      {
+        path: "/posts/:slug",
+        element: <Read />,
       },
       {
         path: "/username-input",
@@ -87,12 +93,20 @@ const routes = [
           </ProtectedRoute>
         ),
       },
-      
+
       {
         path: "/stories",
         element: (
           <ProtectedRoute>
             <StoriesPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/library",
+        element: (
+          <ProtectedRoute>
+            <Library />
           </ProtectedRoute>
         ),
       },

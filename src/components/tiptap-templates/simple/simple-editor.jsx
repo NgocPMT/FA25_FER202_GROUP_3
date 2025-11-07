@@ -71,6 +71,8 @@ import { handleImageUpload, MAX_FILE_SIZE } from "lib/tiptap-utils";
 import "@/components/tiptap-templates/simple/simple-editor.scss";
 
 import { Input } from "@/components/tiptap-ui-primitive/input";
+import { RxAvatar } from "react-icons/rx";
+import { Link } from "react-router";
 
 const MainToolbarContent = ({ onHighlighterClick, onLinkClick, isMobile }) => {
   return (
@@ -150,7 +152,17 @@ const MobileToolbarContent = ({ type, onBack }) => (
 );
 
 export const SimpleEditor = React.forwardRef(
-  ({ title, onTitleChange }, ref) => {
+  (
+    {
+      title,
+      onTitleChange,
+      handlePublish,
+      isAvatarDropdownShow,
+      toggleAvatarDropdownShow,
+      logOut,
+    },
+    ref
+  ) => {
     const isMobile = useIsMobile();
     const { height } = useWindowSize();
     const [mobileView, setMobileView] = React.useState("main");
@@ -214,6 +226,37 @@ export const SimpleEditor = React.forwardRef(
     return (
       <div className="simple-editor-wrapper">
         <EditorContext.Provider value={{ editor }}>
+          <nav className="flex justify-between max-w-5xl py-2 px-4 md:mx-auto mb-5">
+            <Link to="/home" className="font-bold text-3xl font-lora">
+              Easium
+            </Link>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={handlePublish}
+                className="bg-green-700 text-white px-3 py-1 rounded-full text-sm cursor-pointer hover:bg-green-800"
+              >
+                Publish
+              </button>
+              <div className="relative w-8 h-8">
+                <button
+                  onClick={toggleAvatarDropdownShow}
+                  className="w-full h-full rounded-full flex items-center justify-center text-white font-bold cursor-pointer flex-shrink-0 overflow-hidden"
+                >
+                  <RxAvatar className="w-full h-full text-black" />
+                </button>
+                {isAvatarDropdownShow && (
+                  <div className="bg-white top-10 right-0 absolute w-fit z-50">
+                    <button
+                      onClick={logOut}
+                      className="cursor-pointer hover:bg-gray-400 p-1 whitespace-nowrap"
+                    >
+                      Log out
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </nav>
           <Toolbar
             ref={toolbarRef}
             style={{

@@ -17,6 +17,8 @@ body {
   font-style: normal;
   padding: 0;
   overscroll-behavior-y: none;
+  overflow: hidden;
+  height: 100%;
 }
 
 html,
@@ -55,13 +57,17 @@ body,
 }
 
 .simple-editor-wrapper {
-  width: 100vw;
   height: 100vh;
   overflow: auto;
 }
 
 .simple-editor-title-wrapper {
-  width: 100vw;
+  max-width: 648px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 0 2.75rem;
 }
 
 .simple-editor-content,
@@ -76,7 +82,6 @@ body,
 }
 
 .simple-editor-title {
-  padding: 1rem 2.75rem 0;
   font-family: Lora, Georgia, "Times New Roman", serif;
   font-size: 2rem;
   font-weight: bold;
@@ -86,6 +91,10 @@ body,
   flex: 1;
   padding: 3rem 3rem 30vh;
   font-family: Lora, Georgia, "Times New Roman", serif;
+}
+
+.simple-editor-content .tiptap.ProseMirror.simple-editor p {
+  font-size: 1.125rem;
 }
 
 @media screen and (max-width: 480px) {

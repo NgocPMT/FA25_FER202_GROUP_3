@@ -11,7 +11,9 @@ import StatStories from "../components/StatStories";
 import StatAudience from "../components/StatAudience";
 import Notifications from "./Notification";
 import Write from "./Write";
+import StoriesPage from "./StoriesPage";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import Articles from "../components/Articles";
 
 const routes = [
   {
@@ -44,6 +46,17 @@ const routes = [
         path: "/home",
         element: <HomeDashboard />,
       },
+
+      {
+        path: "/search",
+        element: <Articles />,
+      },
+
+      {
+        path: "/search=:keyword",
+        element: <HomeDashboard />,
+      },
+
       {
         path: "/username-input",
         element: (
@@ -83,6 +96,15 @@ const routes = [
         element: (
           <ProtectedRoute>
             <Notifications />
+          </ProtectedRoute>
+        ),
+      },
+
+      {
+        path: "/stories",
+        element: (
+          <ProtectedRoute>
+            <StoriesPage />
           </ProtectedRoute>
         ),
       },

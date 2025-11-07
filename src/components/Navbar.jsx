@@ -4,11 +4,15 @@ import { RxAvatar } from "react-icons/rx";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import useLogOut from "../hooks/useLogOut";
 import { useLoader } from "@/context/LoaderContext";
+import { IoSearchOutline } from "react-icons/io5";
+
 
 const Navbar = ({ onToggleSideNav }) => {
   const [showSearch, setShowSearch] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
   const [isAvatarDropdownShow, setIsAvatarDropdownShow] = useState(false);
-  const [isValidToken, setIsValidToken] = useState(null); // null = loading
+  const [isValidToken, setIsValidToken] = useState(null);
+
   const { showLoader, hideLoader } = useLoader();
   const token = localStorage.getItem("token");
   const logOut = useLogOut();
@@ -16,14 +20,34 @@ const Navbar = ({ onToggleSideNav }) => {
   const navigate = useNavigate();
   const bellActive = location.pathname === "/notifications";
 
-  const handleBellClick = () => {
-    if (location.pathname === "/notifications") {
-      navigate(-1);
-    } else {
-      navigate("/notifications");
-    }
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const [searchHistory, setSearchHistory] = useState(() => {
+    return JSON.parse(localStorage.getItem("searchHistory") || "[]");
+  });
+
+  const saveSearchHistory = (keyword) => {
+    if (!keyword.trim()) return;
+
+    const updated = [
+      keyword,
+      ...searchHistory.filter((item) => item !== keyword),
+    ].slice(0, 10);
+
+    setSearchHistory(updated);
+    localStorage.setItem("searchHistory", JSON.stringify(updated));
   };
 
+  const removeHistoryItem = (item) => {
+    const updated = searchHistory.filter((i) => i !== item);
+    setSearchHistory(updated);
+    localStorage.setItem("searchHistory", JSON.stringify(updated));
+  };
+
+  const clearAllHistory = () => {
+    setSearchHistory([]);
+    localStorage.removeItem("searchHistory");
+  };
 
   useEffect(() => {
     const validateToken = async () => {
@@ -34,29 +58,18 @@ const Navbar = ({ onToggleSideNav }) => {
 
       try {
         showLoader();
-        const res = await fetch(
-          `${import.meta.env.VITE_API_URL}/validate-token`,
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        if (!res.ok) {
-          const data = await res.json();
-          console.log(data);
-          return;
-        }
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/validate-token`, {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) return;
 
         const data = await res.json();
-
         setIsValidToken(data.valid);
-        if (data.valid === false) {
-          localStorage.removeItem("token");
-        }
-      } catch (error) {
-        console.error("Error validating token:", error);
+
+        if (!data.valid) localStorage.removeItem("token");
+      } catch {
         setIsValidToken(false);
       } finally {
         hideLoader();
@@ -70,75 +83,140 @@ const Navbar = ({ onToggleSideNav }) => {
     setIsAvatarDropdownShow(!isAvatarDropdownShow);
   };
 
+  const handleSearchEnter = (e) => {
+    if (e.key === "Enter" && searchQuery.trim()) {
+      saveSearchHistory(searchQuery);
+      setShowDropdown(false);
+      navigate(`/home?query=${encodeURIComponent(searchQuery)}&page=1&limit=5`);
+    }
+  };
+
   return (
     <nav className="sticky top-0 z-50 bg-white border-b shadow-sm">
-      <div className="flex items-center justify-between flex-wrap px-4 py-3 w-full min-w-0">
-        <div className="flex items-center gap-3 flex-shrink-0 min-w-0">
+      <div className="flex items-center justify-between px-4 py-3 w-full">
+
+        <div className="flex items-center gap-3">
           <button
-            className="p-2 rounded-full hover:bg-gray-100 cursor-pointer"
+            className="p-2 rounded-full hover:bg-gray-100"
             onClick={onToggleSideNav}
           >
             <Menu className="w-6 h-6" />
           </button>
 
-          <Link
-            to="/home"
-            className="font-lora font-bold text-2xl text-gray-900 truncate"
-          >
+          <Link to="/home" className="font-lora font-bold text-2xl text-gray-900">
             Easium
           </Link>
         </div>
 
-        <div className="hidden [@media(min-width:727px)]:flex justify-center flex-1 min-w-0 px-4">
+        <div className="relative w-full max-w-xs">
+          <IoSearchOutline
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg pointer-events-none"
+          />
           <input
             type="text"
             placeholder="Search"
-            className="w-full max-w-xs border border-gray-300 rounded-full px-4 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 [@media(max-width:900px)]:max-w-[200px]"
+            className="w-full max-w-xs border border-gray-300 rounded-full px-10 py-1 focus:outline-none text-sm focus:ring-0 bg-gray-50 focus:bg-gray-100 "
+            value={searchQuery}
+            onFocus={() => setShowDropdown(true)}
+            onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={handleSearchEnter}
           />
+
+
+          {showDropdown && (
+            <div className=" absolute top-11 w-full max-w-xs bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-gray-200 z-50 ">
+
+              <div className="absolute -top-2 left-6 w-4 h-4 bg-white border-l border-t border-gray-200 rotate-45"></div>   {/*MŨI TÊN DROPDOWN */}
+
+              <div className="px-4 py-2  font-semibold text-xs tracking-wide text-gray-500">
+                RECENT SEARCHES
+              </div>
+
+              {searchHistory.length === 0 && (
+                <div className="px-4 py-3 text-gray-400 text-sm">No recent searches</div>
+              )}
+
+              {searchHistory
+                .filter((item) =>
+                  item.toLowerCase().includes(searchQuery.toLowerCase())
+                )
+                .map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="flex justify-between px-4 py-2 cursor-pointer hover:bg-gray-100 group"
+                    onClick={() => {
+                      saveSearchHistory(item);
+                      setSearchQuery(item);
+                      setShowDropdown(false);
+                      navigate(`/home?query=${encodeURIComponent(item)}&page=1&limit=5`);
+                    }}
+                  >
+                    <div className="flex items-center gap-2">
+                      <IoSearchOutline className="text-gray-400 text-lg" />
+                      <span className="truncate">{item}</span>
+                    </div>
+
+                    <button
+                      className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeHistoryItem(item);
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+
+              {searchHistory.length > 0 && (
+                <div className="px-4 py-2 text-center border-t border-gray-200">
+                  <button
+                    className="text-xs text-black-500 hover:underline"
+                    onClick={clearAllHistory}
+                  >
+                    Clear all
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {token || isValidToken ? (
-          <div className="flex items-center gap-2 flex-shrink-0 min-w-0">
+          <div className="flex items-center gap-2">
             <Link
               to="/write"
-              className="hidden [@media(min-width:727px)]:flex items-center gap-1 px-3 py-1 border rounded-full text-sm hover:bg-gray-100"
+              className="hidden md:flex items-center gap-1 px-3 py-1 border rounded-full hover:bg-gray-100"
             >
               <Pen className="w-4 h-4" />
               <span>Write</span>
             </Link>
 
-            <Link
-              to="/notifications"
-              className="hidden [@media(min-width:727px)]:block p-2 rounded-full hover:bg-gray-100"
-            >
-              <Bell
-                className={`w-5 h-5 ${bellActive ? "text-amber-500" : ""}`}
-              />
+            <Link to="/notifications" className="hidden md:block p-2 rounded-full hover:bg-gray-100">
+              <Bell className={`w-5 h-5 ${bellActive ? "text-amber-500" : ""}`} />
             </Link>
 
             <button
-              className="p-2 rounded-full hover:bg-gray-100 [@media(min-width:727px)]:hidden"
+              className="md:hidden p-2 rounded-full hover:bg-gray-100"
               onClick={() => setShowSearch(!showSearch)}
             >
-              {showSearch ? (
-                <X className="w-5 h-5" />
-              ) : (
-                <Search className="w-5 h-5" />
-              )}
+              {showSearch ? <X className="w-5 h-5" /> : <Search className="w-5 h-5" />}
             </button>
 
-            <div className="relative w-8 h-8 ">
+            <div className="relative w-8 h-8">
               <button
                 onClick={toggleAvatarDropdownShow}
-                className="w-full h-full rounded-full flex items-center justify-center text-white font-bold cursor-pointer flex-shrink-0 overflow-hidden"
+                className="w-full h-full rounded-full text-black"
               >
-                <RxAvatar className="w-full h-full text-black" />
+                <RxAvatar className="w-full h-full" />
               </button>
+
               {isAvatarDropdownShow && (
-                <div className="bg-white top-10 right-0 absolute w-fit">
+                <div className="absolute top-10 right-0 bg-white shadow border rounded">
                   <button
                     onClick={logOut}
-                    className="cursor-pointer hover:bg-gray-400 p-1 whitespace-nowrap"
+                    className="block px-4 py-2 w-full text-left hover:bg-gray-200"
                   >
                     Log out
                   </button>
@@ -148,22 +226,6 @@ const Navbar = ({ onToggleSideNav }) => {
           </div>
         ) : (
           <div></div>
-        )}
-      </div>
-
-      <div
-        className={`overflow-hidden transition-all duration-300 ease-in-out border-t [@media(min-width:727px)]:hidden ${showSearch ? "max-h-20 opacity-100" : "max-h-0 opacity-0"
-          }`}
-      >
-        {showSearch && (
-          <div className="px-4 py-3 bg-white">
-            <input
-              type="text"
-              placeholder="Search Easium..."
-              autoFocus
-              className="w-full border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
-            />
-          </div>
         )}
       </div>
     </nav>

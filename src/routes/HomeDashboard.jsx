@@ -15,7 +15,10 @@ const HomeDashboard = () => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
+  const params = new URLSearchParams(location.search);
+  const keyword = params.get("query") || "";
+  const page = Number(params.get("page")) || 1;
+  const limit = Number(params.get("limit")) || 5;
   return (
     <div className="flex">
       <main className="flex-1 p-6">

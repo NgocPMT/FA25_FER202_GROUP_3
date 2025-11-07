@@ -27,6 +27,13 @@ const ReadOnlyContent = ({ slug }) => {
   const [post, setPost] = useState(null);
   const [showMore, setShowMore] = useState(false);
 
+  useEffect(() => {
+    document.body.classList.add("page-no-scroll");
+    return () => {
+      document.body.classList.remove("page-no-scroll");
+    };
+  }, []);
+
   const toggleShowMore = () => {
     setShowMore(!showMore);
   };

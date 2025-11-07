@@ -48,7 +48,7 @@ const Layout = () => {
 
       <main
         className={`pt-16 transition-all duration-300 relative z-10
-    ${!isMobile && showSideNav ? "ml-60" : "mx-4 md:mx-24"}`}
+    ${!isMobile && showSideNav ? "ml-60" : "mx-4"}`}
       >
         <Outlet />
       </main>

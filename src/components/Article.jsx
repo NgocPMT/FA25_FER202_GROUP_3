@@ -2,6 +2,7 @@ import React from "react";
 import { BsStarFill, BsChat, BsBookmark, BsThreeDots } from "react-icons/bs";
 import { Link } from "react-router-dom";
 
+
 export default function Article({ data }) {
   const {
     title,
@@ -38,7 +39,7 @@ export default function Article({ data }) {
     if (!fullText) return "...";
     return fullText.length > maxLength ? fullText.slice(0, maxLength) + "..." : fullText;
   };
-
+ 
 
   return (
     <div className="flex justify-between items-start border-b border-gray-200 pb-6">
@@ -48,7 +49,7 @@ export default function Article({ data }) {
         <p className="text-sm text-gray-600 mb-1">
           {user?.username ?? "Unknown Author"}
         </p>
-        <Link to={`/@${user.username}/${slug}`}>
+        <Link to={`/posts/${slug}`}>
           <h2 className="text-xl font-semibold mb-1 hover:underline cursor-pointer">
             {title}
           </h2>

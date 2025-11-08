@@ -15,6 +15,7 @@ import StoriesPage from "./StoriesPage";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Library from "./Library";
 import Read from "./Read";
+import Articles from "../components/Articles";
 
 const routes = [
   {
@@ -45,6 +46,16 @@ const routes = [
     children: [
       {
         path: "/home",
+        element: <HomeDashboard />,
+      },
+
+      {
+        path: "/search",
+        element: <Articles />
+      },
+
+      {
+        path: "/search=:keyword",
         element: <HomeDashboard />,
       },
       {

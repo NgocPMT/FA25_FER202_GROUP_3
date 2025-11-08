@@ -35,7 +35,7 @@ export default function RightSidebar() {
   const [openMenu, setOpenMenu] = useState(null);
   const menuRefs = useRef([]);
 
-  // ✅ Lấy bài viết mới nhất cho phần Staff Picks
+  // Lấy bài viết mới nhất cho phần Staff Picks
   useEffect(() => {
     const fetchPosts = async () => {
       try {
@@ -59,7 +59,7 @@ export default function RightSidebar() {
     fetchPosts();
   }, []);
 
-  // ✅ Đóng menu khi click ra ngoài
+  // Đóng menu khi click ra ngoài
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
@@ -124,13 +124,13 @@ export default function RightSidebar() {
           </ul>
         )}
 
-        <p className="text-xs text-green-700 mt-3 hover:underline cursor-pointer">
+        {/* <p className="text-xs text-green-700 mt-3 hover:underline cursor-pointer">
           See the full list
-        </p>
+        </p> */}
       </section>
 
       {/* TOPICS */}
-      <section className="mb-8">
+      {/* <section className="mb-8">
         <h2 className="text-sm font-semibold mb-3">Recommended topics</h2>
         <div className="flex flex-wrap gap-2">
           {topics.map((topic, idx) => (
@@ -145,17 +145,17 @@ export default function RightSidebar() {
         <p className="text-xs text-green-700 mt-3 hover:underline cursor-pointer">
           See more topics
         </p>
-      </section>
+      </section> */}
 
       {/* WHO TO FOLLOW */}
-      <section className="mb-8">
+      {/* <section className="mb-8">
         <h2 className="text-sm font-semibold mb-3">Who to follow</h2>
         <ul className="space-y-4">
           {suggestions.map((user, idx) => (
             <li key={idx} className="relative">
               <div className="flex items-start justify-between hover:bg-gray-50 rounded-lg p-1 transition">
                 {/* Avatar + info */}
-                <a
+                {/* <a
                   href={`/@${user.name.replace(/\s+/g, "")}`}
                   className="flex gap-2"
                 >
@@ -170,10 +170,10 @@ export default function RightSidebar() {
                       {user.bio}
                     </p>
                   </div>
-                </a>
+                </a>  */}
 
                 {/* Nút Follow / Following */}
-                {!following[idx] ? (
+                {/* {!following[idx] ? (
                   <button
                     onClick={() => handleFollowToggle(idx)}
                     className="text-xs px-3 py-1 border border-gray-300 rounded-full hover:bg-gray-100 transition"
@@ -204,10 +204,10 @@ export default function RightSidebar() {
                           d="M19 9l-7 7-7-7"
                         />
                       </svg>
-                    </button>
+                    </button> */}
 
                     {/* Dropdown menu */}
-                    {openMenu === idx && (
+                    {/* {openMenu === idx && (
                       <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50 text-sm animate-fade-slide">
                         <ul>
                           <li
@@ -245,7 +245,7 @@ export default function RightSidebar() {
         <p className="text-xs text-green-700 mt-3 hover:underline cursor-pointer">
           See more suggestions
         </p>
-      </section>
+      </section> */}
 
       {/* READING LIST + FOOTER */}
       <section className="border-t pt-4 text-xs text-gray-500 space-y-2">

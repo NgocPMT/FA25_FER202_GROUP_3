@@ -34,6 +34,25 @@ const ReadOnlyContent = ({ slug }) => {
     };
   }, []);
 
+  const ReactionCount = ({ keyword }) => {
+    const count = post?.PostReaction.reduce(
+      (counts, reaction) =>
+        reaction.reactionType.name === keyword ? counts + 1 : counts,
+      0
+    );
+    return (
+      count > 0 && (
+        <p className="flex gap-2 text-gray-600 items-center">
+          <img
+            src={`https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/reactions/facebook-${keyword}.svg`}
+            className="size-5"
+          />
+          <span>{count}</span>
+        </p>
+      )
+    );
+  };
+
   const toggleShowMore = () => {
     setShowMore(!showMore);
   };
@@ -109,10 +128,15 @@ const ReadOnlyContent = ({ slug }) => {
             </div>
             <div className="mt-10 flex gap-3 items-center justify-between text-xs border-t border-b border-gray-300 py-3">
               <div className="flex gap-3 text-gray-600">
-                <p className=" hover:text-black transition cursor-pointer flex gap-2 items-center">
+                <button className=" hover:text-black transition cursor-pointer flex items-center">
                   <VscReactions className="size-6" />
-                  <span>{0}</span>
-                </p>
+                </button>
+                <ReactionCount keyword="like" />
+                <ReactionCount keyword="love" />
+                <ReactionCount keyword="haha" />
+                <ReactionCount keyword="sad" />
+                <ReactionCount keyword="wow" />
+                <ReactionCount keyword="angry" />
                 <p className="hover:text-black transition cursor-pointer flex gap-2 items-center">
                   <FaRegComments className="size-5" />
                   <span>{post.comments.length}</span>

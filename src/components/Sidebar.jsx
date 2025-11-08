@@ -39,14 +39,15 @@ export default function RightSidebar() {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/posts?page=1&limit=100&search=`);
+        const res = await fetch(
+          `${import.meta.env.VITE_API_URL}/posts?page=1&limit=100&search=`
+        );
         const data = await res.json();
 
         const sorted = data
           .sort(
             (a, b) =>
-              new Date(b.createdAt).getTime() -
-              new Date(a.createdAt).getTime()
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           )
           .slice(0, 3);
 
@@ -107,16 +108,19 @@ export default function RightSidebar() {
                   <img
                     src={
                       post.user.Profile.avatarUrl ||
-                      "https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-iconn.png"
+                      "https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-icon.webp"
                     }
-                    alt={post.user.username}
+                    alt={post.user.Profile.name}
                     className="w-5 h-5 rounded-full"
                   />
                   <p className="text-xs text-gray-700">
-                    {post.user.username}
+                    {post.user.Profile.name}
                   </p>
                 </div>
-                <Link to={`/posts/${post.slug}`} className="text-sm font-medium hover:underline cursor-pointer leading-snug">
+                <Link
+                  to={`/posts/${post.slug}`}
+                  className="text-sm font-medium hover:underline cursor-pointer leading-snug"
+                >
                   {post.title}
                 </Link>
                 <p className="text-xs text-gray-500 mt-1">

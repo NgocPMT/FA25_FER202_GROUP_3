@@ -2,7 +2,6 @@ import React from "react";
 import { BsStarFill, BsChat, BsBookmark, BsThreeDots } from "react-icons/bs";
 import { Link } from "react-router-dom";
 
-
 export default function Article({ data }) {
   const {
     title,
@@ -12,12 +11,11 @@ export default function Article({ data }) {
     user,
     PostReaction,
     comments,
-    slug
+    slug,
   } = data;
 
   const postReactions = PostReaction?.length || 0;
-  const postComments = comments?.length || 0
-
+  const postComments = comments?.length || 0;
 
   const extractTextRecursively = (node) => {
     if (!node) return "";
@@ -35,27 +33,31 @@ export default function Article({ data }) {
 
   const getPreviewText = (content, maxLength = 60) => {
     if (!content) return "...";
-    const fullText = extractTextRecursively(content).replace(/\s+/g, " ").trim();
+    const fullText = extractTextRecursively(content)
+      .replace(/\s+/g, " ")
+      .trim();
     if (!fullText) return "...";
-    return fullText.length > maxLength ? fullText.slice(0, maxLength) + "..." : fullText;
+    return fullText.length > maxLength
+      ? fullText.slice(0, maxLength) + "..."
+      : fullText;
   };
-
 
   return (
     <div className="flex justify-between items-start border-b border-gray-200 pb-6">
-
       {/* Left */}
       <div className="flex-1 pr-4">
         <div className="flex items-center gap-2 mb-1">
           <img
             src={
               user.Profile.avatarUrl ||
-              "https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-iconn.png"
+              "https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-icon.webp"
             }
             alt="author"
             className="w-5 h-5 object-cover"
           />
-          <span className="text-sm text-gray-600">{user?.username ?? "Unknown Author"}</span>
+          <span className="text-sm text-gray-600">
+            {user?.Profile.name ?? "Unknown Author"}
+          </span>
         </div>
         <Link to={`/posts/${slug}`}>
           <h2 className="text-xl font-semibold mb-1 hover:underline cursor-pointer">

@@ -96,7 +96,7 @@ const ReadOnlyContent = ({ slug }) => {
               <img
                 src={
                   post.user.Profile.avatarUrl ||
-                  "https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-iconn.png"
+                  "https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-icon.webp"
                 }
                 className="rounded-full size-8"
               />

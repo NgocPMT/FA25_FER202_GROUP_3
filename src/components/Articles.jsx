@@ -126,7 +126,7 @@ const Articles = () => {
         <button
           onClick={handlePrev}
           disabled={!hasPrev}
-          className={`px-3 py-1  ${hasPrev ? "hover:bg-gray-50" : "opacity-50 cursor-not-allowed"}`}
+          className={`px-3 py-1  ${hasPrev ? "hover:bg-gray-50 cursor-pointer"  : "opacity-50 cursor-not-allowed"}`}
         >
           Prev
         </button>
@@ -136,7 +136,7 @@ const Articles = () => {
         <button
           onClick={handleNext}
           disabled={!hasNext}
-          className={`px-3 py-1  ${hasNext ? "hover:bg-gray-50" : "opacity-50 cursor-not-allowed"}`}
+          className={`px-3 py-1  ${hasNext ? "hover:bg-gray-50 cursor-pointer" : "opacity-50 cursor-not-allowed"}`}
         >
           Next
         </button>

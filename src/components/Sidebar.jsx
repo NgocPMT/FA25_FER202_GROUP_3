@@ -48,7 +48,7 @@ export default function RightSidebar() {
               new Date(b.createdAt).getTime() -
               new Date(a.createdAt).getTime()
           )
-          .slice(0, 3); 
+          .slice(0, 3);
 
         setLatestPosts(sorted);
       } catch (err) {
@@ -105,7 +105,10 @@ export default function RightSidebar() {
               <li key={idx}>
                 <div className="flex items-center gap-2 mb-1">
                   <img
-                    src={post.user.avatar || "https://i.pravatar.cc/24?img=1"}
+                    src={
+                      post.user.Profile.avatarUrl ||
+                      "https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-iconn.png"
+                    }
                     alt={post.user.username}
                     className="w-5 h-5 rounded-full"
                   />
@@ -113,7 +116,7 @@ export default function RightSidebar() {
                     {post.user.username}
                   </p>
                 </div>
-                <Link to={`/@${post.user.username}/${post.slug}`} className="text-sm font-medium hover:underline cursor-pointer leading-snug">
+                <Link to={`/posts/${post.slug}`} className="text-sm font-medium hover:underline cursor-pointer leading-snug">
                   {post.title}
                 </Link>
                 <p className="text-xs text-gray-500 mt-1">
@@ -155,7 +158,7 @@ export default function RightSidebar() {
             <li key={idx} className="relative">
               <div className="flex items-start justify-between hover:bg-gray-50 rounded-lg p-1 transition">
                 {/* Avatar + info */}
-                {/* <a
+      {/* <a
                   href={`/@${user.name.replace(/\s+/g, "")}`}
                   className="flex gap-2"
                 >
@@ -172,8 +175,8 @@ export default function RightSidebar() {
                   </div>
                 </a>  */}
 
-                {/* Nút Follow / Following */}
-                {/* {!following[idx] ? (
+      {/* Nút Follow / Following */}
+      {/* {!following[idx] ? (
                   <button
                     onClick={() => handleFollowToggle(idx)}
                     className="text-xs px-3 py-1 border border-gray-300 rounded-full hover:bg-gray-100 transition"
@@ -206,8 +209,8 @@ export default function RightSidebar() {
                       </svg>
                     </button> */}
 
-                    {/* Dropdown menu */}
-                    {/* {openMenu === idx && (
+      {/* Dropdown menu */}
+      {/* {openMenu === idx && (
                       <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50 text-sm animate-fade-slide">
                         <ul>
                           <li

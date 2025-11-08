@@ -126,19 +126,19 @@ const Articles = () => {
         <button
           onClick={handlePrev}
           disabled={!hasPrev}
-          className={`px-3 py-1 rounded border ${hasPrev ? "hover:bg-gray-50" : "opacity-50 cursor-not-allowed"}`}
+          className={`px-3 py-1  ${hasPrev ? "hover:bg-gray-50" : "opacity-50 cursor-not-allowed"}`}
         >
-          ← Prev
+          Prev
         </button>
 
-        <span className="text-sm text-gray-600">Pages{page}</span>
+        <span className="text-sm text-gray-600">{page}</span>
 
         <button
           onClick={handleNext}
           disabled={!hasNext}
-          className={`px-3 py-1 rounded border ${hasNext ? "hover:bg-gray-50" : "opacity-50 cursor-not-allowed"}`}
+          className={`px-3 py-1  ${hasNext ? "hover:bg-gray-50" : "opacity-50 cursor-not-allowed"}`}
         >
-          Next →
+          Next
         </button>
       </div>
     </div>

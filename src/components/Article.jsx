@@ -39,16 +39,24 @@ export default function Article({ data }) {
     if (!fullText) return "...";
     return fullText.length > maxLength ? fullText.slice(0, maxLength) + "..." : fullText;
   };
- 
+
 
   return (
     <div className="flex justify-between items-start border-b border-gray-200 pb-6">
 
       {/* Left */}
       <div className="flex-1 pr-4">
-        <p className="text-sm text-gray-600 mb-1">
-          {user?.username ?? "Unknown Author"}
-        </p>
+        <div className="flex items-center gap-2 mb-1">
+          <img
+            src={
+              user.Profile.avatarUrl ||
+              "https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-iconn.png"
+            }
+            alt="author"
+            className="w-5 h-5 object-cover"
+          />
+          <span className="text-sm text-gray-600">{user?.username ?? "Unknown Author"}</span>
+        </div>
         <Link to={`/posts/${slug}`}>
           <h2 className="text-xl font-semibold mb-1 hover:underline cursor-pointer">
             {title}

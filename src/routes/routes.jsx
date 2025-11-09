@@ -15,9 +15,9 @@ import StoriesPage from "./StoriesPage";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Library from "./Library";
 import Read from "./Read";
-import Articles from "../components/Articles";
 import EditProfile from "./EditProfile"
-import Articles from "../components/Articles"; import Following from "./Following";
+import Articles from "../components/Articles"; 
+import Following from "./Following";
 import FollowingList from "./FollowingList";
 import FollowersList from "./FollowersList";
 

@@ -60,27 +60,27 @@ export default function Article({ data }) {
 
 
   return (
-    <div className="flex justify-between items-start border-b border-gray-200 pb-6 relative px-20">
+    <div className="flex justify-between items-start border-b border-gray-200 pb-6">
 
       {/* Left */}
       <div className="flex-1 pr-4">
         <div className="flex items-center gap-2 mb-1">
-<Link
-    to={`/profile/${user?.username ?? "unknown"}`}
-    className="flex items-center gap-2 hover:underline"
-  >
-    <img
-      src={
-        user?.Profile?.avatarUrl ||
-        "https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-icon.webp"
-      }
-      alt="author"
-      className="w-5 h-5 object-cover rounded-full"
-    />
-    <span className="text-sm text-gray-600">
-      {user?.Profile?.name ?? "Unknown Author"}
-    </span>
-  </Link>
+          <Link
+            to={`/profile/${user?.username ?? "unknown"}`}
+            className="flex items-center gap-2 hover:underline"
+          >
+            <img
+              src={
+                user?.Profile?.avatarUrl ||
+                "https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-icon.webp"
+              }
+              alt="author"
+              className="w-5 h-5 object-cover rounded-full"
+            />
+            <span className="text-sm text-gray-600">
+              {user?.Profile?.name ?? "Unknown Author"}
+            </span>
+          </Link>
         </div>
         <Link to={`/posts/${slug}`}>
           <h2
@@ -114,22 +114,25 @@ break-words leading-snug
             <BsChat /> {postComments}
           </span>
 
-          <div className="absolute bot-0 right-70 flex gap-3 text-gray-500">
-            <BsBookmark className="cursor-pointer hover:text-black" />
-            <BsThreeDots className="cursor-pointer hover:text-black" />
-          </div>
-
         </div>
       </div>
 
       {/* Right */}
-      {coverImageUrl && (
-        <img
-          src={coverImageUrl}
-          alt={title}
-          className="w-36 h-24 object-cover rounded-md -ml-3"
-        />
-      )}
+      <div className="relative">
+        {coverImageUrl && (
+          <img
+            src={coverImageUrl}
+            alt={title}
+            className="w-36 h-24 object-cover rounded-md -ml-3"
+          />
+        )}
+        <div className="hidden xl:flex absolute top-30 right-60 gap-3 text-gray-500">
+          <BsBookmark className="cursor-pointer hover:text-black" />
+          <BsThreeDots className="cursor-pointer hover:text-black" />
+        </div>
+
+      </div>
+
     </div>
   );
 }

@@ -36,9 +36,8 @@ const Articles = () => {
   };
 
   // API: hỗ trợ cả chưa tìm và đang tìm cùng một endpoint
-  const API_URL = `${
-    import.meta.env.VITE_API_URL
-  }/posts?page=${page}&limit=${limit}&search=${encodeURIComponent(keyword)}`;
+  const API_URL = `${import.meta.env.VITE_API_URL
+    }/posts?page=${page}&limit=${limit}&search=${encodeURIComponent(keyword)}`;
 
   useEffect(() => {
     let aborted = false;
@@ -97,9 +96,9 @@ const Articles = () => {
         </h1>
       )}
 
-      <div className="flex items-center justify-between mb-6 pl-20">
+      <div className="flex items-center justify-between mb-6 pl-10">
         <div className="flex items-center gap-2 text-sm">
-          <span>Display</span>
+          <span><b>Display</b></span>
           <select
             className="border rounded px-2 py-1"
             value={limit}
@@ -114,7 +113,7 @@ const Articles = () => {
         </div>
       </div>
 
-      <div className="space-y-8">
+      <div className="space-y-8 px-10">
         {articles.length === 0 ? (
           <p className="text-gray-500 italic">
             {isSearching
@@ -126,16 +125,16 @@ const Articles = () => {
         )}
       </div>
 
+
       {/* pagination */}
       <div className="flex items-center justify-center gap-3 mt-8">
         <button
           onClick={handlePrev}
           disabled={!hasPrev}
-          className={`px-3 py-1  ${
-            hasPrev
+          className={`px-3 py-1  ${hasPrev
               ? "hover:bg-gray-50 cursor-pointer"
               : "opacity-50 cursor-not-allowed"
-          }`}
+            }`}
         >
           Prev
         </button>
@@ -145,11 +144,10 @@ const Articles = () => {
         <button
           onClick={handleNext}
           disabled={!hasNext}
-          className={`px-3 py-1  ${
-            hasNext
+          className={`px-3 py-1  ${hasNext
               ? "hover:bg-gray-50 cursor-pointer"
               : "opacity-50 cursor-not-allowed"
-          }`}
+            }`}
         >
           Next
         </button>

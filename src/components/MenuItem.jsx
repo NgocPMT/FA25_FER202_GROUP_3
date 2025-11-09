@@ -5,7 +5,7 @@ const MenuItem = ({ icon, activeIcon, label, href, active }) => {
     <li className="relative">
       <Link
         to={href}
-        className={`group flex items-center gap-4 pl-4 pr-3 py-2 rounded-md cursor-pointer hover:bg-gray-100 transition-all`}
+        className={`group flex items-center gap-4 pl-4 pr-3 py-2 rounded-md cursor-pointer transition-all`}
       >
         <span
           className={`absolute top-0 -left-3.5 h-full w-0.5 rounded-r transition-colors ${

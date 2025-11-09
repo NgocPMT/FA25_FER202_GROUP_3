@@ -126,7 +126,7 @@ break-words leading-snug
             className="w-36 h-24 object-cover rounded-md -ml-3"
           />
         )}
-        <div className="hidden xl:flex absolute top-30 right-60 gap-3 text-gray-500">
+        <div className="hidden xl:flex absolute top-25 right-60 gap-3 text-gray-500">
           <BsBookmark className="cursor-pointer hover:text-black" />
           <BsThreeDots className="cursor-pointer hover:text-black" />
         </div>

@@ -23,13 +23,13 @@ export default function Stories() {
   });
   const [isUserPaging, setIsUserPaging] = useState(false);
   const listTopRef = useRef(null);
+  const token = localStorage.getItem("token");
 
   // 🧭 Fetch toàn bộ stories (1 lần)
   useEffect(() => {
     const fetchStories = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem("token");
         if (!token)
           throw new Error("⚠️ Bạn chưa đăng nhập, vui lòng đăng nhập lại.");
 
@@ -82,21 +82,45 @@ export default function Stories() {
     setIsUserPaging(false);
   }, [page]);
 
-  // Ẩn menu khi click ngoài
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target))
-        setMenuOpen(null);
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  const handleDeletePost = async (postId) => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/posts/${postId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Error deleting post:", errorData);
+        alert(errorData.message || "Failed to delete post!");
+        return;
+      }
+
+      setStories((prev) => ({
+        drafts: prev.drafts.filter((p) => p.id !== postId),
+        published: prev.published.filter((p) => p.id !== postId),
+        submissions: prev.submissions.filter((p) => p.id !== postId),
+      }));
+
+      // Close the menu
+      setMenuOpen(null);
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      alert("An unexpected error occurred.");
+    }
+  };
 
   // Tabs hiển thị
   const tabs = [
-    { name: "Drafts", count: counts.drafts },
+    // { name: "Drafts", count: counts.drafts },
     { name: "Published", count: counts.published },
-    { name: "Submissions", count: counts.submissions },
+    // { name: "Submissions", count: counts.submissions },
   ];
 
   // Lấy danh sách theo tab
@@ -119,7 +143,9 @@ export default function Stories() {
       <h1 className="text-3xl font-semibold mb-6">Stories</h1>
 
       {error && <div className="text-center text-red-500 mb-4">{error}</div>}
-      {loading && <div className="text-center text-gray-500 mb-4">⏳ Đang tải...</div>}
+      {loading && (
+        <div className="text-center text-gray-500 mb-4">⏳ Đang tải...</div>
+      )}
 
       {/* Tabs */}
       <div className="flex space-x-6 border-b border-gray-200 mb-6">
@@ -145,7 +171,7 @@ export default function Stories() {
       <div className="mt-8" ref={listTopRef}>
         <div className="grid grid-cols-[2fr_1fr_1fr] text-sm text-gray-500 pb-3">
           <span>Latest</span>
-          <span>Publication</span>
+          {/* <span>Publication</span> */}
           <span>Status</span>
         </div>
 
@@ -188,9 +214,9 @@ export default function Stories() {
               </div>
 
               {/* Publication */}
-              <div className="text-gray-600 truncate text-sm px-2">
+              {/* <div className="text-gray-600 truncate text-sm px-2">
                 {p.publication?.name || "None"}
-              </div>
+              </div> */}
 
               {/* Status + Menu */}
               <div
@@ -201,20 +227,15 @@ export default function Stories() {
                   {p.status || "Published"}
                 </span>
                 <button
-                  onClick={() =>
-                    setMenuOpen(menuOpen === p.id ? null : p.id)
-                  }
+                  onClick={() => setMenuOpen(menuOpen === p.id ? null : p.id)}
                   className="p-2 hover:bg-gray-100 rounded-full"
                 >
                   <HiOutlineDotsHorizontal size={20} />
                 </button>
 
                 {menuOpen === p.id && (
-                  <div
-                    className="absolute right-0 top-8 bg-white border rounded-lg shadow-md z-10 w-36 text-sm"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <button
+                  <div className="absolute right-0 top-8 bg-white border rounded-lg shadow-md z-10 w-36 text-sm">
+                    {/* <button
                       onClick={(e) => {
                         e.stopPropagation();
                         console.log("Edit clicked", p.id);
@@ -222,12 +243,12 @@ export default function Stories() {
                       className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                     >
                       Edit
-                    </button>
+                    </button> */}
 
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        console.log("Delete clicked", p.id);
+                        handleDeletePost(p.id);
                       }}
                       className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
                     >
@@ -243,7 +264,9 @@ export default function Stories() {
             <p className="text-lg font-medium">
               You haven’t published any stories yet.
             </p>
-            <p className="text-sm mt-1">Start writing and share your first story!</p>
+            <p className="text-sm mt-1">
+              Start writing and share your first story!
+            </p>
           </div>
         )}
       </div>

@@ -2,7 +2,6 @@ import React from "react";
 
 export default function NotificationItem({
   avatar,
-  title,
   message,
   time,
   isLast,
@@ -18,19 +17,16 @@ export default function NotificationItem({
           : "bg-amber-50 text-gray-900" // Chưa đọc
       } hover:bg-gray-200 transition`}
     >
-      <img
+      {/* <img
         src={
           avatar ||
           "https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-icon.webp"
         }
         alt="avatar"
         className="w-10 h-10 rounded-full object-cover flex-shrink-0"
-      />
+      /> */}
       <div className="flex-1 min-w-0">
         <p className="text-sm leading-snug">
-          <span className="font-semibold hover:underline text-gray-800">
-            {title}
-          </span>{" "}
           <span>{message}</span>
         </p>
         <span className="text-xs text-gray-400">{time}</span>

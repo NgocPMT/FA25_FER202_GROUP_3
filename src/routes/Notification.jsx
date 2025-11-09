@@ -10,12 +10,15 @@ export default function Notification() {
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/me/notifications`, {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
+        const res = await fetch(
+          `${import.meta.env.VITE_API_URL}/me/notifications`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
 
         if (!res.ok) throw new Error("Failed to fetch notifications");
         const data = await res.json();
@@ -52,7 +55,6 @@ export default function Notification() {
                  fixed lg:static top-[64px] left-0 right-0 z-40 
                  lg:w-full lg:max-w-[100%] transition-all duration-300"
       >
-
         <div className="flex justify-between items-center px-6 pt-6">
           <h1 className="text-2xl font-bold text-gray-900">Notifications</h1>
           <button
@@ -65,19 +67,21 @@ export default function Notification() {
 
         <div className="flex border-b mt-4 text-sm font-medium">
           <button
-            className={`px-6 py-3 border-b-2 ${filter === "all"
+            className={`px-6 py-3 border-b-2 ${
+              filter === "all"
                 ? "border-amber-500 text-amber-600"
                 : "border-transparent text-gray-500 hover:text-amber-600 hover:border-amber-400"
-              }`}
+            }`}
             onClick={() => setFilter("all")}
           >
             All
           </button>
           <button
-            className={`px-6 py-3 border-b-2 ${filter === "response"
+            className={`px-6 py-3 border-b-2 ${
+              filter === "response"
                 ? "border-amber-500 text-amber-600"
                 : "border-transparent text-gray-500 hover:text-amber-600 hover:border-amber-400"
-              }`}
+            }`}
             onClick={() => setFilter("response")}
           >
             Responses
@@ -89,8 +93,7 @@ export default function Notification() {
             filteredNotifications.map((n, index) => (
               <NotificationItem
                 key={n.id}
-                avatar={n.avatar}
-                title={n.title}
+                avatar={n.avatarUrl}
                 message={n.message}
                 time={n.time}
                 isLast={index === filteredNotifications.length - 1}
@@ -98,9 +101,7 @@ export default function Notification() {
               />
             ))
           ) : (
-            <p className="text-center text-gray-500 mt-6">
-              No notifications
-            </p>
+            <p className="text-center text-gray-500 mt-6">No notifications</p>
           )}
         </div>
       </div>

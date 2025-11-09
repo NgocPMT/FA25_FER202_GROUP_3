@@ -131,10 +131,10 @@ const SignInForm = () => {
           <>
             <h2 className="font-lora text-3xl">Welcome back.</h2>
             <div className="flex flex-col gap-4 ">
-              <button className="btn bg-white text-black border px-8 md:px-16 md:py-2.5 relative">
+              {/* <button className="btn bg-white text-black border px-8 md:px-16 md:py-2.5 relative">
                 <FcGoogle className="h-1/2 w-auto absolute left-2 top-1/4" />
                 <p>Sign in with Google</p>
-              </button>
+              </button> */}
               <button
                 onClick={() => setIsAccount(true)}
                 className="btn bg-white text-black border px-8 md:px-16 md:py-2.5 relative"

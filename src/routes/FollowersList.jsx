@@ -38,12 +38,13 @@ export default function FollowersList() {
         const rawList = Array.isArray(data.data)
           ? data.data
           : Array.isArray(data)
-          ? data
-          : [];
+            ? data
+            : [];
 
         // ✅ Map đúng key “follower”
         const list = rawList
-          .map((item) => item.follower || item.Follower || item.user || {})
+          .map((item) => item.followedBy || item.follower || item.Follower || item.user || {})
+
           .filter((f) => f && f.id);
 
         setFollowers(list);
@@ -63,6 +64,11 @@ export default function FollowersList() {
 
   const handleFollowBack = async (userId) => {
     try {
+      console.log("📤 Sending follow request:", {
+        followingId: Number(userId),
+        token: token?.slice(0, 20) + "..."
+      });
+
       const res = await fetch(`${import.meta.env.VITE_API_URL}/me/followings`, {
         method: "POST",
         headers: {
@@ -73,16 +79,26 @@ export default function FollowersList() {
       });
 
       const data = await res.json();
+      console.log("📩 Follow back response:", data);
+
+      // ✅ Nếu đã follow rồi thì hiển thị thông báo nhẹ
+      if (data.error === "You have followed this user") {
+        alert("ℹ️ Bạn đã follow người này rồi.");
+        return;
+      }
+
       if (!res.ok) throw new Error(data.message || "Follow back failed.");
+
       alert("✅ Followed back!");
     } catch (err) {
+      console.error("❌ Follow back error:", err);
       alert("❌ " + err.message);
     }
   };
 
+
   return (
     <div className="max-w-5xl mx-auto px-6 py-10">
-      <h1 className="text-3xl font-semibold mb-6">Followers</h1>
 
       {/* 🔹 Trạng thái tải / lỗi */}
       {loading && <p className="text-gray-500">⏳ Đang tải danh sách...</p>}

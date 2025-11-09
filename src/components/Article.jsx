@@ -65,17 +65,22 @@ export default function Article({ data }) {
       {/* Left */}
       <div className="flex-1 pr-4">
         <div className="flex items-center gap-2 mb-1">
-          <img
-            src={
-              user.Profile.avatarUrl ||
-              "https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-icon.webp"
-            }
-            alt="author"
-            className="w-5 h-5 object-cover"
-          />
-          <span className="text-sm text-gray-600">
-            {user?.Profile.name ?? "Unknown Author"}
-          </span>
+<Link
+    to={`/profile/${user?.username ?? "unknown"}`}
+    className="flex items-center gap-2 hover:underline"
+  >
+    <img
+      src={
+        user?.Profile?.avatarUrl ||
+        "https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-icon.webp"
+      }
+      alt="author"
+      className="w-5 h-5 object-cover rounded-full"
+    />
+    <span className="text-sm text-gray-600">
+      {user?.Profile?.name ?? "Unknown Author"}
+    </span>
+  </Link>
         </div>
         <Link to={`/posts/${slug}`}>
           <h2

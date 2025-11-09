@@ -16,6 +16,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Library from "./Library";
 import Read from "./Read";
 import Articles from "../components/Articles";
+import EditProfile from "./EditProfile"
 
 const routes = [
   {
@@ -71,10 +72,16 @@ const routes = [
         ),
       },
       {
-        path: "/profile",
+        path: "/profile/:username?",
+        element: (
+            <Profile />
+        ),
+      },
+      {
+        path: "/profile/edit",
         element: (
           <ProtectedRoute>
-            <Profile />
+            <EditProfile />
           </ProtectedRoute>
         ),
       },

@@ -38,8 +38,6 @@ const ReadOnlyContent = ({ slug }) => {
   const [isFollowing, setIsFollowing] = useState(false); // ✅ trạng thái follow
   const [loadingFollow, setLoadingFollow] = useState(false);
 
-  const token = localStorage.getItem("token");
-
   useEffect(() => {
     document.body.classList.add("page-no-scroll");
     return () => {

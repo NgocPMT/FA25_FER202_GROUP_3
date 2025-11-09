@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
+import { BsStarFill } from "react-icons/bs";
+
 const topics = [
   "Writing",
   "Cryptocurrency",
@@ -119,12 +121,15 @@ export default function RightSidebar() {
                 </div>
                 <Link
                   to={`/posts/${post.slug}`}
-                  className="text-sm font-medium hover:underline cursor-pointer leading-snug"
+                  className="text-sm font-medium hover:underline cursor-pointer 
+             leading-snug line-clamp-2 text-ellipsis overflow-hidden"
                 >
                   {post.title}
                 </Link>
-                <p className="text-xs text-gray-500 mt-1">
-                  ⭐ {new Date(post.createdAt).toLocaleDateString("vi-VN")}
+                <p className="text-xs text-gray-500 mt-1 flex items-center gap-2">
+                  ⭐
+                  {post.PostReaction?.length || 0}
+                  <span>· {new Date(post.createdAt).toLocaleDateString("vi-VN")}</span>
                 </p>
               </li>
             ))}

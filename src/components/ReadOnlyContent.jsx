@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { EditorContent, EditorContext, useEditor } from "@tiptap/react";
 import { StarterKit } from "@tiptap/starter-kit";
 import { Image } from "@tiptap/extension-image";
@@ -22,10 +22,19 @@ import { FaRegComments } from "react-icons/fa";
 import { VscReactions } from "react-icons/vsc";
 import { CiBookmark } from "react-icons/ci";
 import { IoIosMore } from "react-icons/io";
+import { useLoader } from "@/context/LoaderContext";
 
 const ReadOnlyContent = ({ slug }) => {
   const [post, setPost] = useState(null);
   const [showMore, setShowMore] = useState(false);
+  const [reactions, setReactions] = useState(null);
+  const [isReactionShow, setIsReactionShow] = useState(false);
+  const { showLoader, hideLoader } = useLoader();
+  const token = localStorage.getItem("token");
+  const userId =
+    localStorage.getItem("userId") && parseInt(localStorage.getItem("userId"));
+  const [reactedType, setReactedType] = useState(null);
+  console.log(reactedType);
 
   useEffect(() => {
     document.body.classList.add("page-no-scroll");
@@ -33,6 +42,59 @@ const ReadOnlyContent = ({ slug }) => {
       document.body.classList.remove("page-no-scroll");
     };
   }, []);
+
+  useEffect(() => {
+    if (!token) return;
+    const fetchReactions = async () => {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/reactions`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+
+      setReactions(data.reactions);
+    };
+
+    fetchReactions();
+  }, []);
+
+  const toggleReactionShow = () => {
+    setIsReactionShow(!isReactionShow);
+  };
+
+  const handleReaction = async (reactionTypeId) => {
+    showLoader();
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/posts/${post.id}/reactions`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+        body: JSON.stringify({ reactionTypeId }),
+      }
+    );
+    const reacted = await res.json();
+    console.log(reacted.reacted.reactionType.name);
+
+    setReactedType(reacted.reacted.reactionType.name);
+    hideLoader();
+  };
+
+  const handleRemoveReaction = async () => {
+    showLoader();
+    await fetch(`${import.meta.env.VITE_API_URL}/posts/${post.id}/reactions`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      method: "DELETE",
+    });
+    setReactedType(null);
+    hideLoader();
+  };
 
   const ReactionCount = ({ keyword }) => {
     const count = post?.PostReaction.reduce(
@@ -47,7 +109,13 @@ const ReadOnlyContent = ({ slug }) => {
             src={`https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/reactions/facebook-${keyword}.svg`}
             className="size-5"
           />
-          <span>{count}</span>
+          <span
+            className={`${
+              reactedType === keyword ? "font-bold text-green-500" : ""
+            }`}
+          >
+            {count}
+          </span>
         </p>
       )
     );
@@ -90,17 +158,20 @@ const ReadOnlyContent = ({ slug }) => {
   useEffect(() => {
     const fetchPost = async () => {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/posts/${slug}`);
-      const post = await res.json();
+      const data = await res.json();
 
-      console.log(post);
-      setPost(post);
+      setPost(data);
+      const reacted = data.PostReaction.find(
+        (reaction) => reaction.userId === userId
+      );
+      setReactedType(reacted.reactionType.name);
 
-      if (editor && post.content) {
-        editor.commands.setContent(post.content);
+      if (editor && data.content) {
+        editor.commands.setContent(data.content);
       }
     };
     fetchPost();
-  }, [slug, editor]);
+  }, [slug, editor, reactedType]);
 
   if (!editor) return <p>Loading...</p>;
 
@@ -114,12 +185,12 @@ const ReadOnlyContent = ({ slug }) => {
             <div className="mt-5 flex gap-3 items-center text-sm">
               <img
                 src={
-                  post.user.Profile.avatarUrl ||
+                  post?.user?.Profile?.avatarUrl ||
                   "https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-icon.webp"
                 }
                 className="rounded-full size-8"
               />
-              <p>{post.user.Profile.name}</p>
+              <p>{post?.user?.Profile?.name}</p>
               <button className="ring rounded-full py-1.5 px-3 cursor-pointer">
                 Follow
               </button>
@@ -128,9 +199,36 @@ const ReadOnlyContent = ({ slug }) => {
             </div>
             <div className="mt-10 flex gap-3 items-center justify-between text-xs border-t border-b border-gray-300 py-3">
               <div className="flex gap-3 text-gray-600">
-                <button className=" hover:text-black transition cursor-pointer flex items-center">
-                  <VscReactions className="size-6" />
-                </button>
+                {reactions && !reactedType && (
+                  <div className="relative">
+                    <button
+                      onClick={toggleReactionShow}
+                      className=" hover:text-black transition cursor-pointer flex items-center"
+                    >
+                      <VscReactions className="size-6" />
+                    </button>
+                    {isReactionShow && (
+                      <div className="absolute left-0 p-2 ring ring-gray-300 rounded-sm shadow-lg bg-white flex gap-3 items-center w-fit z-20">
+                        {reactions.map((reaction) => (
+                          <button
+                            key={reaction.id}
+                            onClick={() => handleReaction(reaction.id)}
+                            className="p-2 group cursor-pointer"
+                          >
+                            <img
+                              src={reaction.reactionImageUrl}
+                              alt={reaction.name}
+                              className="size-5 inline-block transition-all group-hover:-translate-y-0.5"
+                            />
+                            <p className="text-gray-700 mt-2">
+                              {reaction.name}
+                            </p>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
                 <ReactionCount keyword="like" />
                 <ReactionCount keyword="love" />
                 <ReactionCount keyword="haha" />
@@ -154,7 +252,13 @@ const ReadOnlyContent = ({ slug }) => {
                     <IoIosMore className="size-5" />
                   </button>
                   {showMore && (
-                    <div className="absolute ring ring-gray-300 rounded-sm shadow-lg bg-white p-2 right-0 w-fit z-20">
+                    <div className="absolute ring ring-gray-300 rounded-sm shadow-lg bg-white p-2 right-0 w-fit z-20 flex flex-col gap-3">
+                      <button
+                        onClick={handleRemoveReaction}
+                        className="w-full text-start text-nowrap cursor-pointer text-gray-600 hover:text-black"
+                      >
+                        Remove reaction
+                      </button>
                       <button className="w-full text-start text-nowrap text-red-600 hover:text-red-700 cursor-pointer">
                         Report this post
                       </button>

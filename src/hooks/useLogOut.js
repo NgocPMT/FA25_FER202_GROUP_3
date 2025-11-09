@@ -4,6 +4,8 @@ const useLogOut = () => {
 
   const logOut = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("username");
+    localStorage.removeItem("userId");
     navigate("/");
   };
 

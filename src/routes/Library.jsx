@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { BsBookmarkFill, BsThreeDots } from "react-icons/bs";
 
+// ✅ Component chính
 const Library = () => {
   const token = localStorage.getItem("token");
   const [readlist, setReadlist] = useState([]);
@@ -18,21 +20,27 @@ const Library = () => {
     try {
       const res = await axios.get(
         `${import.meta.env.VITE_API_URL}/me/saved-posts?page=${currentPage}&limit=${limit}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      // API có thể trả về mảng trực tiếp hoặc { data: [...] }
       const data = res.data.data || res.data;
       setReadlist(data);
-
-      // Kiểm tra xem có trang kế không (nếu ít hơn limit thì hết)
       setHasNext(data.length === limit);
     } catch (err) {
       console.log("Failed to get readlist:", err);
     }
     setLoading(false);
+  }
+
+  async function handleUnsave(postId) {
+    try {
+      await axios.delete(
+        `${import.meta.env.VITE_API_URL}/me/saved-posts/${postId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setReadlist((prev) => prev.filter((item) => item.postId !== postId));
+    } catch (err) {
+      console.log("Error unsaving post:", err);
+    }
   }
 
   return (
@@ -49,10 +57,10 @@ const Library = () => {
         ) : (
           readlist.map((list) => (
             <div
-              key={list.id}
-              className="flex flex-col md:flex-row justify-between border-b border-gray-100 pb-6"
+              key={list.id || list.postId}
+              className="flex flex-col md:flex-row justify-between border-b border-gray-100 pb-6 min-h-[120px]"
             >
-              <PostItem list={list} />
+              <PostItem list={list} onUnsave={handleUnsave} />
             </div>
           ))
         )}
@@ -62,10 +70,9 @@ const Library = () => {
         )}
       </div>
 
-      {/* 🔹 Nút phân trang giống Profile */}
+      {/* Pagination */}
       {readlist.length > 0 && (
         <div className="flex justify-center mt-6 gap-3">
-          {/* Prev */}
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             className={`px-3 py-1 rounded-full bg-white transition ${
@@ -79,7 +86,6 @@ const Library = () => {
 
           <span className="px-3 py-1 opacity-70">{page}</span>
 
-          {/* Next */}
           <button
             onClick={() => setPage((p) => p + 1)}
             className={`px-3 py-1 rounded-full bg-white transition ${
@@ -96,47 +102,83 @@ const Library = () => {
   );
 };
 
-function PostItem({ list }) {
-  const post = list.post;
+// ✅ Hàm rút gọn title
+const formatTitle = (title) => {
+  if (!title) return "Untitled";
+  if (title.length <= 50) return title;
+  if (title.length <= 80) {
+    return (
+      <>
+        {title.slice(0, 50)}
+        <br />
+        {title.slice(50)}
+      </>
+    );
+  }
   return (
     <>
-      <div className="flex-1 pr-4">
-        <p className="text-sm text-gray-500 mb-1">
-          In{" "}
-          <span className="font-semibold">
-            {post.publication?.name || "Independent"}
-          </span>{" "}
-          by {post.user?.username || "Unknown"}
-        </p>
+      {title.slice(0, 100)}
+      ...
+    </>
+  );
+};
 
-        <a
-          href={`/posts/${post.slug}`}
-          className="block text-xl font-bold text-gray-900 hover:underline"
-        >
-          {post.title}
-        </a>
+// ✅ Component hiển thị từng bài viết
+function PostItem({ list, onUnsave }) {
+  const post = list.post;
 
-        <span className="text-gray-700 text-sm mt-1">
-          {post.updatedAt
-            ? new Date(post.updatedAt).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })
-            : ""}
-        </span>
+  return (
+    <div className="flex justify-between items-stretch w-full gap-4">
+      {/* Bên trái - Tiêu đề + Ngày + Nút */}
+      <div className="flex flex-col justify-between flex-1">
+        {/* Tiêu đề */}
+        <div>
+          <a
+            href={`/posts/${post.slug}`}
+            className="block text-xl font-bold text-gray-900 hover:underline leading-snug"
+          >
+            {formatTitle(post.title)}
+          </a>
+        </div>
+
+        {/* Ngày tháng và nút */}
+        <div className="mt-auto pt-4 flex justify-between items-center">
+          <span className="text-gray-700 text-sm">
+            {post.createdAt
+              ? new Date(post.createdAt).toLocaleDateString("vi-VN", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                })
+              : ""}
+          </span>
+
+          <div className="flex items-center gap-4">
+            <BsBookmarkFill
+              className="cursor-pointer text-black hover:opacity-60"
+              onClick={() => onUnsave(list.postId || post.id)}
+              title="Remove from Library"
+            />
+            <BsThreeDots className="cursor-pointer hover:text-black" />
+          </div>
+        </div>
       </div>
 
-      {post.coverImageUrl && (
-        <img
-          src={post.coverImageUrl}
-          alt={post.title}
-          className="w-40 h-28 object-cover rounded-md mt-4 md:mt-0"
-        />
-      )}
-    </>
+      {/* Bên phải - Ảnh hoặc placeholder */}
+      <div className="w-40 h-28 mt-4 md:mt-0 flex-shrink-0 flex items-center justify-center bg-gray-50 rounded-md overflow-hidden">
+        {post.coverImageUrl ? (
+          <img
+            src={post.coverImageUrl}
+            alt={post.title}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-gray-300 text-sm">
+            No Image
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 

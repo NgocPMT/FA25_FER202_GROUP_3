@@ -97,7 +97,7 @@ const Articles = () => {
         </h1>
       )}
 
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 pl-20">
         <div className="flex items-center gap-2 text-sm">
           <span>Display</span>
           <select

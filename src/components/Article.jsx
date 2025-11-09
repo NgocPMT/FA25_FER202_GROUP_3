@@ -42,8 +42,26 @@ export default function Article({ data }) {
       : fullText;
   };
 
+  const formatTitle = (title) => {
+    if (!title) return "Untitled";
+
+    if (title.length <= 40) {
+      return title;
+    } else if (title.length <= 100) {
+      return title.slice(0, 40) + "\n" + title.slice(40);
+    } else {
+      return title.slice(0, 100) + "...";
+    }
+  };
+
+
+
+
+
+
   return (
-    <div className="flex justify-between items-start border-b border-gray-200 pb-6">
+    <div className="flex justify-between items-start border-b border-gray-200 pb-6 relative px-20">
+
       {/* Left */}
       <div className="flex-1 pr-4">
         <div className="flex items-center gap-2 mb-1">
@@ -60,10 +78,21 @@ export default function Article({ data }) {
           </span>
         </div>
         <Link to={`/posts/${slug}`}>
-          <h2 className="text-xl font-semibold mb-1 hover:underline cursor-pointer">
-            {title}
+          <h2
+            className="
+      text-xl font-semibold mb-1 hover:underline cursor-pointer
+      whitespace-pre-line break-all
+break-words leading-snug
+    "
+            title={title}
+          >
+            {formatTitle(title)}
           </h2>
         </Link>
+
+
+
+
         <p className="text-gray-600 mb-3 line-clamp-2">
           {getPreviewText(content)}
         </p>
@@ -80,8 +109,11 @@ export default function Article({ data }) {
             <BsChat /> {postComments}
           </span>
 
-          <BsBookmark className="ml-auto cursor-pointer hover:text-black" />
-          <BsThreeDots className="cursor-pointer hover:text-black" />
+          <div className="absolute bot-0 right-70 flex gap-3 text-gray-500">
+            <BsBookmark className="cursor-pointer hover:text-black" />
+            <BsThreeDots className="cursor-pointer hover:text-black" />
+          </div>
+
         </div>
       </div>
 
@@ -90,7 +122,7 @@ export default function Article({ data }) {
         <img
           src={coverImageUrl}
           alt={title}
-          className="w-36 h-24 object-cover rounded-md"
+          className="w-36 h-24 object-cover rounded-md -ml-3"
         />
       )}
     </div>

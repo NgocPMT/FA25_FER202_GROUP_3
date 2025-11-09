@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { HiOutlineDotsHorizontal } from "react-icons/hi";
 import { BsStarFill, BsChat } from "react-icons/bs";
+import { Link } from "react-router-dom";
+
 
 export default function Stories() {
   const [activeTab, setActiveTab] = useState("Drafts");
@@ -21,7 +23,10 @@ export default function Stories() {
     published: 0,
     submissions: 0,
   });
+  const [isUserPaging, setIsUserPaging] = useState(false);
+  const listTopRef = useRef(null);
 
+  // 🧭 Fetch Stories
   useEffect(() => {
     const fetchStories = async () => {
       try {
@@ -29,7 +34,6 @@ export default function Stories() {
         const token = localStorage.getItem("token");
         if (!token) throw new Error("⚠️ Bạn chưa đăng nhập, vui lòng đăng nhập lại.");
 
-        // Fetch theo trang
         const res = await fetch(
           `${import.meta.env.VITE_API_URL}/me/posts?page=${page}&limit=${limit}`,
           { headers: { Authorization: `Bearer ${token}` } }
@@ -48,7 +52,7 @@ export default function Stories() {
 
         setStories({ drafts, published, submissions });
 
-        // Lấy tổng bài viết
+        // Lấy tổng số bài
         const resAll = await fetch(
           `${import.meta.env.VITE_API_URL}/me/posts?page=1&limit=99999`,
           { headers: { Authorization: `Bearer ${token}` } }
@@ -73,6 +77,15 @@ export default function Stories() {
     fetchStories();
   }, [page]);
 
+  // Cuộn lên đầu khi đổi trang
+  useEffect(() => {
+    if (!isUserPaging) return;
+    if (listTopRef.current)
+      listTopRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    setIsUserPaging(false);
+  }, [page]);
+
+  // Ẩn menu khi click ngoài
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(null);
@@ -87,8 +100,6 @@ export default function Stories() {
     { name: "Submissions", count: counts.submissions },
   ];
 
-  const totalPages = Math.ceil(total / limit);
-
   return (
     <div className="max-w-5xl mx-auto relative">
       <h1 className="text-3xl font-semibold mb-6">Stories</h1>
@@ -102,20 +113,19 @@ export default function Stories() {
           <button
             key={tab.name}
             onClick={() => setActiveTab(tab.name)}
-            className={`pb-2 text-sm font-medium ${
-              activeTab === tab.name
-                ? "border-b-2 border-black text-black"
-                : "text-gray-500 hover:text-black"
-            }`}
+            className={`pb-2 text-sm font-medium ${activeTab === tab.name
+              ? "border-b-2 border-black text-black"
+              : "text-gray-500 hover:text-black"
+              }`}
           >
             {tab.name} ({tab.count})
           </button>
         ))}
       </div>
 
-      {/* PUBLISHED */}
+      {/* Published List */}
       {activeTab === "Published" && (
-        <div className="mt-8">
+        <div className="mt-8" ref={listTopRef}>
           <div className="grid grid-cols-[2fr_1fr_1fr] text-sm text-gray-500 pb-3">
             <span>Latest</span>
             <span>Publication</span>
@@ -126,8 +136,9 @@ export default function Stories() {
             stories.published.map((p) => (
               <div
                 key={p.id}
-                className="grid grid-cols-[2fr_1fr_1fr] border-b border-gray-200 py-6 items-center"
+                className="grid grid-cols-[2fr_1fr_1fr] border-b border-gray-200 py-6 items-center relative"
               >
+                {/* Left */}
                 <div className="flex items-center space-x-4 overflow-hidden pr-10">
                   {p.coverImageUrl && (
                     <img
@@ -137,9 +148,10 @@ export default function Stories() {
                     />
                   )}
                   <div className="min-w-0">
-                    <h3 className="font-semibold text-lg text-gray-900 truncate">
+                    <Link to={`/posts/${p.slug}`} className="font-semibold text-lg text-gray-900 truncate hover:underline block max-w-full">
                       {p.title || "Untitled"}
-                    </h3>
+                    </Link>
+
                     <p className="text-sm text-gray-500 truncate">
                       {new Date(p.createdAt).toLocaleDateString("vi-VN")}
                     </p>
@@ -153,10 +165,14 @@ export default function Stories() {
                     </div>
                   </div>
                 </div>
+
+                {/* Publication */}
                 <div className="text-gray-600 truncate text-sm px-2">
                   {p.publication?.name || "None"}
                 </div>
-                <div className="relative flex items-center justify-between">
+
+                {/* Status + Menu */}
+                <div className="relative flex items-center justify-between" ref={menuRef}>
                   <span className="text-gray-600 text-xs truncate">
                     {p.status || "Published"}
                   </span>
@@ -166,6 +182,36 @@ export default function Stories() {
                   >
                     <HiOutlineDotsHorizontal size={20} />
                   </button>
+
+                  {menuOpen === p.id && (
+                    <div
+                      className="absolute right-0 top-8 bg-white border rounded-lg shadow-md z-10 w-36 text-sm"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          console.log("Edit clicked", p.id);
+                        }}
+                        className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                      >
+                        Edit
+                      </button>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          console.log("Delete clicked", p.id);
+                        }}
+                        className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
+
+
+
                 </div>
               </div>
             ))
@@ -180,13 +226,14 @@ export default function Stories() {
         </div>
       )}
 
-      {/* ✅ Simple Pagination */}
       <div className="flex justify-center mt-6 gap-3">
         <button
-          onClick={() => page > 1 && setPage((p) => p - 1)}
-          className={`px-3 py-1 rounded-full bg-white border transition hover:opacity-70 ${
-            page === 1 ? "invisible" : ""
-          }`}
+          onClick={() => {
+            setIsUserPaging(true);
+            setPage((p) => Math.max(1, p - 1));
+          }}
+          className={`px-3 py-1 rounded-full bg-white border transition hover:opacity-70 ${page === 1 ? "invisible" : ""
+            }`}
         >
           Prev
         </button>
@@ -194,10 +241,14 @@ export default function Stories() {
         <span className="px-3 py-1 text-gray-600 font-medium">{page}</span>
 
         <button
-          onClick={() => page < totalPages && setPage((p) => p + 1)}
-          className={`px-3 py-1 rounded-full bg-white border transition hover:opacity-70 ${
-            page === totalPages ? "invisible" : ""
-          }`}
+          onClick={() => {
+            if (page * limit < total) {
+              setIsUserPaging(true);
+              setPage((p) => p + 1);
+            }
+          }}
+          className={`px-3 py-1 rounded-full bg-white border transition hover:opacity-70 ${page * limit >= total ? "invisible" : ""
+            }`}
         >
           Next
         </button>
@@ -205,3 +256,5 @@ export default function Stories() {
     </div>
   );
 }
+
+

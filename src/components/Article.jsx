@@ -44,28 +44,28 @@ export default function Article({ data }) {
 
   const formatTitle = (title) => {
     if (!title) return "Untitled";
+
+
     if (title.length <= 50) return title;
-    if (title.length <= 80) {
+
+    if (title.length <= 100) {
       return (
         <>
-          {title.slice(0, 50)}
+          {title.slice(0, 65)}
           <br />
-          {title.slice(50)}
+          {title.slice(65)}
         </>
       );
     }
+
     return (
       <>
-        {title.slice(0, 100)}
-        ...
+        {title.slice(0, 65)}
+        <br />
+        {title.slice(50, 100)}...
       </>
     );
   };
-
-
-
-
-
 
   return (
     <div className="flex justify-between items-start border-b border-gray-200 pb-6">
@@ -92,10 +92,12 @@ export default function Article({ data }) {
         </div>
         <Link to={`/posts/${slug}`}>
           <h2
-            className="text-xl font-semibold mb-1 hover:underline cursor-pointer break-words leading-snug max-w-[500px]"
+            className="text-xl font-semibold mb-1 hover:underline cursor-pointer
+             whitespace-pre-line break-words leading-snug"
           >
             {formatTitle(title)}
           </h2>
+
         </Link>
 
 

@@ -45,15 +45,12 @@ export default function RightSidebar() {
         const data = await res.json();
 
         const sorted = data
-          .sort(
-            (a, b) =>
-              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          )
+          .sort((a, b) => (b.PostReaction?.length || 0) - (a.PostReaction?.length || 0))
           .slice(0, 3);
 
         setLatestPosts(sorted);
       } catch (err) {
-        console.error("❌ Error fetching posts:", err);
+        console.error("Error fetching posts:", err);
       }
     };
 
@@ -96,7 +93,7 @@ export default function RightSidebar() {
     <aside className="hidden lg:block w-80 shrink-0 p-4">
       {/* STAFF PICKS (dữ liệu từ API) */}
       <section className="mb-8">
-        <h2 className="text-sm font-semibold mb-4">New Post</h2>
+        <h2 className="text-sm font-semibold mb-4">Top Reaction</h2>
 
         {latestPosts.length === 0 ? (
           <p className="text-xs text-gray-500">No posts available.</p>
@@ -105,17 +102,20 @@ export default function RightSidebar() {
             {latestPosts.map((post, idx) => (
               <li key={idx}>
                 <div className="flex items-center gap-2 mb-1">
-                  <img
-                    src={
-                      post.user.Profile.avatarUrl ||
-                      "https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-icon.webp"
-                    }
-                    alt={post.user.Profile.name}
-                    className="w-5 h-5 rounded-full"
-                  />
-                  <p className="text-xs text-gray-700">
-                    {post.user.Profile.name}
-                  </p>
+                  <Link
+                    to={`/profile/${post.user.username ?? "unknown"}`}
+                    className="flex items-center gap-2 hover:underline"
+                  >
+                    <img
+                      src={
+                        post.user.Profile.avatarUrl ||
+                        "https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-icon.webp"
+                      }
+                      alt={post.user.Profile.name}
+                      className="w-5 h-5 rounded-full"
+                    />
+                    <p className="text-xs text-gray-700">{post.user.Profile.name}</p>
+                  </Link>
                 </div>
                 <Link
                   to={`/posts/${post.slug}`}

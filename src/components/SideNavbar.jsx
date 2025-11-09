@@ -68,7 +68,7 @@ const SideNavbar = () => {
           icon={<BsPeople />}
           activeIcon={<BsFillPeopleFill />}
           label="Following"
-          href="#"
+          href="/following"
           active={path === "/following"}
         />
 

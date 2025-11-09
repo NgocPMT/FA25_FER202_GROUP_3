@@ -42,28 +42,62 @@ export default function Article({ data }) {
       : fullText;
   };
 
+  const formatTitle = (title) => {
+    if (!title) return "Untitled";
+
+    if (title.length <= 40) {
+      return title;
+    } else if (title.length <= 100) {
+      return title.slice(0, 40) + "\n" + title.slice(40);
+    } else {
+      return title.slice(0, 100) + "...";
+    }
+  };
+
+
+
+
+
+
   return (
     <div className="flex justify-between items-start border-b border-gray-200 pb-6">
+
       {/* Left */}
       <div className="flex-1 pr-4">
         <div className="flex items-center gap-2 mb-1">
-          <img
-            src={
-              user.Profile.avatarUrl ||
-              "https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-icon.webp"
-            }
-            alt="author"
-            className="w-5 h-5 object-cover"
-          />
-          <span className="text-sm text-gray-600">
-            {user?.Profile.name ?? "Unknown Author"}
-          </span>
+          <Link
+            to={`/profile/${user?.username ?? "unknown"}`}
+            className="flex items-center gap-2 hover:underline"
+          >
+            <img
+              src={
+                user?.Profile?.avatarUrl ||
+                "https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-icon.webp"
+              }
+              alt="author"
+              className="w-5 h-5 object-cover rounded-full"
+            />
+            <span className="text-sm text-gray-600">
+              {user?.Profile?.name ?? "Unknown Author"}
+            </span>
+          </Link>
         </div>
         <Link to={`/posts/${slug}`}>
-          <h2 className="text-xl font-semibold mb-1 hover:underline cursor-pointer">
-            {title}
+          <h2
+            className="
+      text-xl font-semibold mb-1 hover:underline cursor-pointer
+      whitespace-pre-line break-all
+break-words leading-snug
+    "
+            title={title}
+          >
+            {formatTitle(title)}
           </h2>
         </Link>
+
+
+
+
         <p className="text-gray-600 mb-3 line-clamp-2">
           {getPreviewText(content)}
         </p>
@@ -80,19 +114,25 @@ export default function Article({ data }) {
             <BsChat /> {postComments}
           </span>
 
-          <BsBookmark className="ml-auto cursor-pointer hover:text-black" />
-          <BsThreeDots className="cursor-pointer hover:text-black" />
         </div>
       </div>
 
       {/* Right */}
-      {coverImageUrl && (
-        <img
-          src={coverImageUrl}
-          alt={title}
-          className="w-36 h-24 object-cover rounded-md"
-        />
-      )}
+      <div className="relative">
+        {coverImageUrl && (
+          <img
+            src={coverImageUrl}
+            alt={title}
+            className="w-36 h-24 object-cover rounded-md -ml-3"
+          />
+        )}
+        <div className="hidden xl:flex absolute top-25 right-60 gap-3 text-gray-500">
+          <BsBookmark className="cursor-pointer hover:text-black" />
+          <BsThreeDots className="cursor-pointer hover:text-black" />
+        </div>
+
+      </div>
+
     </div>
   );
 }

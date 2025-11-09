@@ -6,12 +6,12 @@ import useLogOut from "../hooks/useLogOut";
 import { useLoader } from "@/context/LoaderContext";
 import { IoSearchOutline } from "react-icons/io5";
 
-
 const Navbar = ({ onToggleSideNav }) => {
   const [showSearch, setShowSearch] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [isAvatarDropdownShow, setIsAvatarDropdownShow] = useState(false);
   const [isValidToken, setIsValidToken] = useState(null);
+  const [profile, setProfile] = useState(null);
 
   const { showLoader, hideLoader } = useLoader();
   const token = localStorage.getItem("token");
@@ -58,10 +58,13 @@ const Navbar = ({ onToggleSideNav }) => {
 
       try {
         showLoader();
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/validate-token`, {
-          method: "GET",
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await fetch(
+          `${import.meta.env.VITE_API_URL}/validate-token`,
+          {
+            method: "GET",
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
         if (!res.ok) return;
 
@@ -79,6 +82,18 @@ const Navbar = ({ onToggleSideNav }) => {
     validateToken();
   }, [token]);
 
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/me/profile`, {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setProfile(data);
+    };
+    fetchProfile();
+  }, []);
+
   const toggleAvatarDropdownShow = () => {
     setIsAvatarDropdownShow(!isAvatarDropdownShow);
   };
@@ -94,7 +109,6 @@ const Navbar = ({ onToggleSideNav }) => {
   return (
     <nav className="sticky top-0 z-50 bg-white border-b shadow-sm">
       <div className="flex items-center justify-between px-4 py-3 w-full">
-
         <div className="flex items-center gap-3">
           <button
             className="p-2 rounded-full hover:bg-gray-100"
@@ -103,15 +117,16 @@ const Navbar = ({ onToggleSideNav }) => {
             <Menu className="w-6 h-6" />
           </button>
 
-          <Link to="/home" className="font-lora font-bold text-2xl text-gray-900">
+          <Link
+            to="/home"
+            className="font-lora font-bold text-2xl text-gray-900"
+          >
             Easium
           </Link>
         </div>
 
         <div className="relative w-full max-w-xs">
-          <IoSearchOutline
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg pointer-events-none"
-          />
+          <IoSearchOutline className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg pointer-events-none" />
           <input
             type="text"
             placeholder="Search"
@@ -123,20 +138,18 @@ const Navbar = ({ onToggleSideNav }) => {
             onKeyDown={handleSearchEnter}
           />
 
-
           {showDropdown && (
             <div className=" absolute top-11 w-full max-w-xs bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-gray-200 z-50 ">
-
-              <div className="absolute -top-2 left-6 w-4 h-4 bg-white border-l border-t border-gray-200 rotate-45"></div>   {/*MŨI TÊN DROPDOWN */}
-
+              <div className="absolute -top-2 left-6 w-4 h-4 bg-white border-l border-t border-gray-200 rotate-45"></div>{" "}
+              {/*MŨI TÊN DROPDOWN */}
               <div className="px-4 py-2  font-semibold text-xs tracking-wide text-gray-500">
                 RECENT SEARCHES
               </div>
-
               {searchHistory.length === 0 && (
-                <div className="px-4 py-3 text-gray-400 text-sm">No recent searches</div>
+                <div className="px-4 py-3 text-gray-400 text-sm">
+                  No recent searches
+                </div>
               )}
-
               {searchHistory
                 .filter((item) =>
                   item.toLowerCase().includes(searchQuery.toLowerCase())
@@ -149,7 +162,9 @@ const Navbar = ({ onToggleSideNav }) => {
                       saveSearchHistory(item);
                       setSearchQuery(item);
                       setShowDropdown(false);
-                      navigate(`/home?query=${encodeURIComponent(item)}&page=1&limit=5`);
+                      navigate(
+                        `/home?query=${encodeURIComponent(item)}&page=1&limit=5`
+                      );
                     }}
                   >
                     <div className="flex items-center gap-2">
@@ -168,7 +183,6 @@ const Navbar = ({ onToggleSideNav }) => {
                     </button>
                   </div>
                 ))}
-
               {searchHistory.length > 0 && (
                 <div className="px-4 py-2 text-center border-t border-gray-200">
                   <button
@@ -193,23 +207,38 @@ const Navbar = ({ onToggleSideNav }) => {
               <span>Write</span>
             </Link>
 
-            <Link to="/notifications" className="hidden md:block p-2 rounded-full hover:bg-gray-100">
-              <Bell className={`w-5 h-5 ${bellActive ? "text-amber-500" : ""}`} />
+            <Link
+              to="/notifications"
+              className="hidden md:block p-2 rounded-full hover:bg-gray-100"
+            >
+              <Bell
+                className={`w-5 h-5 ${bellActive ? "text-amber-500" : ""}`}
+              />
             </Link>
 
             <button
               className="md:hidden p-2 rounded-full hover:bg-gray-100"
               onClick={() => setShowSearch(!showSearch)}
             >
-              {showSearch ? <X className="w-5 h-5" /> : <Search className="w-5 h-5" />}
+              {showSearch ? (
+                <X className="w-5 h-5" />
+              ) : (
+                <Search className="w-5 h-5" />
+              )}
             </button>
 
-                 <div className="relative w-8 h-8 ">
+            <div className="relative w-8 h-8 ">
               <button
                 onClick={toggleAvatarDropdownShow}
                 className="w-full h-full rounded-full flex items-center justify-center text-white font-bold cursor-pointer flex-shrink-0 overflow-hidden"
               >
-                <RxAvatar className="w-full h-full text-black" />
+                <img
+                  src={
+                    profile?.avatarUrl ||
+                    "https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-icon.webp"
+                  }
+                  className="w-full h-full object-center object-cover"
+                />
               </button>
               {isAvatarDropdownShow && (
                 <div className="bg-white top-10 right-0 absolute w-fit">

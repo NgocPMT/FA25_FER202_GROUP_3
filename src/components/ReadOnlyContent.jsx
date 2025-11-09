@@ -38,8 +38,6 @@ const ReadOnlyContent = ({ slug }) => {
   const [isFollowing, setIsFollowing] = useState(false); // ✅ trạng thái follow
   const [loadingFollow, setLoadingFollow] = useState(false);
 
-  const token = localStorage.getItem("token");
-
   useEffect(() => {
     document.body.classList.add("page-no-scroll");
     return () => {
@@ -186,19 +184,17 @@ const ReadOnlyContent = ({ slug }) => {
           const list = Array.isArray(data)
             ? data.map((item) => item.following)
             : Array.isArray(data.data)
-              ? data.data.map((item) => item.following)
-              : [];
+            ? data.data.map((item) => item.following)
+            : [];
 
           console.log("👀 Current followings:", list);
-          setIsFollowing(list.some((u) => Number(u.id) === Number(post.userId)));
-
+          setIsFollowing(
+            list.some((u) => Number(u.id) === Number(post.userId))
+          );
         } catch (err) {
           console.warn("Không thể kiểm tra trạng thái follow.", err);
         }
       }
-
-
-
     };
     fetchPost();
   }, [slug, editor, reactedType]);
@@ -220,14 +216,17 @@ const ReadOnlyContent = ({ slug }) => {
 
       if (!isFollowing) {
         // ✅ FOLLOW
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/me/followings`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ followingId: Number(targetId) }),
-        });
+        const res = await fetch(
+          `${import.meta.env.VITE_API_URL}/me/followings`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ followingId: Number(targetId) }),
+          }
+        );
 
         const result = await res.json();
         console.log("Follow API result:", result);
@@ -254,7 +253,8 @@ const ReadOnlyContent = ({ slug }) => {
         const result = await res.json().catch(() => ({}));
         console.log("Unfollow API result:", result);
 
-        if (!res.ok) throw new Error(result.message || result.error || "Unfollow failed");
+        if (!res.ok)
+          throw new Error(result.message || result.error || "Unfollow failed");
         setIsFollowing(false);
       }
     } catch (err) {
@@ -263,9 +263,6 @@ const ReadOnlyContent = ({ slug }) => {
       setLoadingFollow(false);
     }
   };
-
-
-
 
   if (!editor) return <p>Loading...</p>;
   return (
@@ -289,20 +286,18 @@ const ReadOnlyContent = ({ slug }) => {
               <button
                 onClick={handleFollowToggle}
                 disabled={loadingFollow}
-                className={`ring rounded-full py-1.5 px-3 cursor-pointer transition ${isFollowing
-                  ? "bg-gray-100 text-gray-700 border hover:bg-gray-200" // ✅ kiểu "Unfollow"
-                  : "bg-black text-white hover:opacity-80" // ✅ kiểu "Follow"
-                  }`}
+                className={`ring rounded-full py-1.5 px-3 cursor-pointer transition ${
+                  isFollowing
+                    ? "bg-gray-100 text-gray-700 border hover:bg-gray-200" // ✅ kiểu "Unfollow"
+                    : "bg-black text-white hover:opacity-80" // ✅ kiểu "Follow"
+                }`}
               >
                 {loadingFollow
                   ? "Loading..."
                   : isFollowing
-                    ? "Unfollow" // ✅ đổi chữ thành Unfollow khi đã theo dõi
-                    : "Follow"}
+                  ? "Unfollow" // ✅ đổi chữ thành Unfollow khi đã theo dõi
+                  : "Follow"}
               </button>
-
-
-
 
               <p>&middot;</p>
               <p>{new Date(post.createdAt).toLocaleDateString("vi-VN")}</p>

@@ -15,8 +15,8 @@ import StoriesPage from "./StoriesPage";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Library from "./Library";
 import Read from "./Read";
-import EditProfile from "./EditProfile"
-import Articles from "../components/Articles"; 
+import EditProfile from "./EditProfile";
+import Articles from "../components/Articles";
 import Following from "./Following";
 import FollowingList from "./FollowingList";
 import FollowersList from "./FollowersList";
@@ -55,7 +55,7 @@ const routes = [
 
       {
         path: "/search",
-        element: <Articles />
+        element: <Articles />,
       },
 
       {
@@ -76,9 +76,7 @@ const routes = [
       },
       {
         path: "/profile/:username?",
-        element: (
-            <Profile />
-        ),
+        element: <Profile />,
       },
       {
         path: "/profile/edit",
@@ -153,7 +151,6 @@ const routes = [
           },
         ],
       },
-
     ],
   },
 ];

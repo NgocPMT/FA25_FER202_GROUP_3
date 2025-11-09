@@ -16,6 +16,8 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Library from "./Library";
 import Read from "./Read";
 import Articles from "../components/Articles";
+import Following from "./Following";
+
 
 const routes = [
   {
@@ -121,6 +123,15 @@ const routes = [
           </ProtectedRoute>
         ),
       },
+      {
+        path: "/following",
+        element: (
+          <ProtectedRoute>
+            <Following />
+          </ProtectedRoute>
+        ),
+      },
+
     ],
   },
 ];

@@ -92,10 +92,7 @@ export default function Article({ data }) {
         </div>
         <Link to={`/posts/${slug}`}>
           <h2
-            className="
-    text-xl font-semibold mb-1 hover:underline cursor-pointer
-    break-words leading-snug max-w-[500px]
-  "
+            className="text-xl font-semibold mb-1 hover:underline cursor-pointer break-words leading-snug max-w-[500px]"
           >
             {formatTitle(title)}
           </h2>

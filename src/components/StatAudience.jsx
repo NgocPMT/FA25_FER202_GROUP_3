@@ -59,8 +59,11 @@ export default function StatAudience() {
           <span>Followers</span>
           <div className="relative group">
             <IoMdInformationCircleOutline className="text-gray-600 cursor-pointer" />
-            <div className="absolute hidden group-hover:block bg-white border shadow-lg p-4 rounded-lg w-56 mt-2 z-50">
-              Readers who follow you on Medium.
+            <div
+              className="absolute left-full top-1/2 -translate-y-[90%] ml-2 hidden group-hover:block bg-white 
+              shadow-lg p-3 rounded-lg w-56 z-50 text-gray-500 font-light text-sm border border-gray-100"
+            >
+              Readers who follow you on Easium.
             </div>
           </div>
         </div>

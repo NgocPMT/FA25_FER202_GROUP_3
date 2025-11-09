@@ -1,4 +1,5 @@
 // TLoi
+import "../css/Stat.css";
 import { useState } from "react";
 import StatStories from "../components/StatStories";
 import StatAudience from "../components/StatAudience";

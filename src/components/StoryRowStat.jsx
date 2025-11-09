@@ -14,7 +14,7 @@ export default function StoryRowStat({ story }) {
 
       {/* Story Info */}
       <div className="text-left">
-        <p className="font-semibold text-gray-900">{story.title}</p>
+        <p className="story-title font-semibold text-gray-900">{story.title}</p>
         <p className="text-sm text-gray-500">
           {story.readTime} · {story.date} ·{" "}
           <a href="#" className="underline hover:text-gray-800">

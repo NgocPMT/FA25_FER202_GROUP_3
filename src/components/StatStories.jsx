@@ -31,8 +31,8 @@ export default function StatStories() {
     "Oldest",
     "Most viewed",
     "Least viewed",
-    "Most read",
-    "Least read",
+    "Most reactions",
+    "Least reactions",
   ];
 
   // Scroll to the top of the list when the user clicks Prev / Next
@@ -92,8 +92,8 @@ export default function StatStories() {
       Oldest: () => arr.sort((a, b) => a.dateValue - b.dateValue),
       "Most viewed": () => arr.sort((a, b) => b.views - a.views),
       "Least viewed": () => arr.sort((a, b) => a.views - b.views),
-      "Most read": () => arr.sort((a, b) => b.reads - a.reads),
-      "Least read": () => arr.sort((a, b) => a.reads - b.reads),
+      "Most reactions": () => arr.sort((a, b) => b.reactions - a.reactions),
+      "Least reactions": () => arr.sort((a, b) => a.reactions - b.reactions),
     };
 
     sortMap[selectedSort]?.();

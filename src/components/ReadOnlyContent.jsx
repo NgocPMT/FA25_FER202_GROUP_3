@@ -26,6 +26,10 @@ import { IoIosMore } from "react-icons/io";
 const ReadOnlyContent = ({ slug }) => {
   const [post, setPost] = useState(null);
   const [showMore, setShowMore] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false); // ✅ trạng thái follow
+  const [loadingFollow, setLoadingFollow] = useState(false);
+
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     document.body.classList.add("page-no-scroll");
@@ -91,6 +95,7 @@ const ReadOnlyContent = ({ slug }) => {
     const fetchPost = async () => {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/posts/${slug}`);
       const post = await res.json();
+      console.log("🧩 FULL POST DATA:", post);
 
       console.log(post);
       setPost(post);
@@ -98,12 +103,101 @@ const ReadOnlyContent = ({ slug }) => {
       if (editor && post.content) {
         editor.commands.setContent(post.content);
       }
+
+      // ✅ Kiểm tra xem đã follow user này chưa (dùng userId)
+      // ✅ Kiểm tra xem đã follow user này chưa
+      if (token && post.userId) {
+        try {
+          const resFollow = await fetch(
+            `${import.meta.env.VITE_API_URL}/me/followings?page=1&limit=9999`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          const data = await resFollow.json();
+          const list = Array.isArray(data)
+            ? data.map((item) => item.following)
+            : Array.isArray(data.data)
+              ? data.data.map((item) => item.following)
+              : [];
+
+          console.log("👀 Current followings:", list);
+          setIsFollowing(list.some((u) => Number(u.id) === Number(post.userId)));
+
+        } catch (err) {
+          console.warn("Không thể kiểm tra trạng thái follow.", err);
+        }
+      }
+
+
+
     };
     fetchPost();
   }, [slug, editor]);
 
   if (!editor) return <p>Loading...</p>;
+  console.log("📦 Post data before follow:", post);
 
+  const handleFollowToggle = async () => {
+    if (!token) return alert("⚠️ Bạn cần đăng nhập để theo dõi tác giả.");
+
+    const targetId = post?.user?.id || post?.userId;
+    if (!targetId) {
+      console.warn("❌ Không tìm thấy ID người dùng trong post:", post);
+      return;
+    }
+
+    try {
+      setLoadingFollow(true);
+
+      if (!isFollowing) {
+        // ✅ FOLLOW
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/me/followings`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ followingId: Number(targetId) }),
+        });
+
+        const result = await res.json();
+        console.log("Follow API result:", result);
+
+        if (!res.ok) {
+          if (result.error === "You have followed this user") {
+            console.warn("⚠️ Already followed, updating state.");
+            setIsFollowing(true);
+            return;
+          }
+          throw new Error(result.message || result.error || "Follow failed");
+        }
+
+        setIsFollowing(true);
+      } else {
+        // ✅ UNFOLLOW
+        const res = await fetch(
+          `${import.meta.env.VITE_API_URL}/me/followings/${targetId}`,
+          {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        const result = await res.json().catch(() => ({}));
+        console.log("Unfollow API result:", result);
+
+        if (!res.ok) throw new Error(result.message || result.error || "Unfollow failed");
+        setIsFollowing(false);
+      }
+    } catch (err) {
+      alert("❌ Lỗi: " + err.message);
+    } finally {
+      setLoadingFollow(false);
+    }
+  };
+
+
+
+
+  if (!editor) return <p>Loading...</p>;
   return (
     editor &&
     post && (
@@ -120,9 +214,26 @@ const ReadOnlyContent = ({ slug }) => {
                 className="rounded-full size-8"
               />
               <p>{post.user.Profile.name}</p>
-              <button className="ring rounded-full py-1.5 px-3 cursor-pointer">
-                Follow
+
+              {/* ✅ Nút Follow / Unfollow */}
+              <button
+                onClick={handleFollowToggle}
+                disabled={loadingFollow}
+                className={`ring rounded-full py-1.5 px-3 cursor-pointer transition ${isFollowing
+                  ? "bg-gray-100 text-gray-700 border hover:bg-gray-200" // ✅ kiểu "Unfollow"
+                  : "bg-black text-white hover:opacity-80" // ✅ kiểu "Follow"
+                  }`}
+              >
+                {loadingFollow
+                  ? "Loading..."
+                  : isFollowing
+                    ? "Unfollow" // ✅ đổi chữ thành Unfollow khi đã theo dõi
+                    : "Follow"}
               </button>
+
+
+
+
               <p>&middot;</p>
               <p>{new Date(post.createdAt).toLocaleDateString("vi-VN")}</p>
             </div>

@@ -17,6 +17,9 @@ import Library from "./Library";
 import Read from "./Read";
 import Articles from "../components/Articles";
 import EditProfile from "./EditProfile"
+import Articles from "../components/Articles"; import Following from "./Following";
+import FollowingList from "./FollowingList";
+import FollowersList from "./FollowersList";
 
 const routes = [
   {
@@ -128,6 +131,29 @@ const routes = [
           </ProtectedRoute>
         ),
       },
+      {
+        path: "/following",
+        element: (
+          <ProtectedRoute>
+            <Following />
+          </ProtectedRoute>
+        ),
+        children: [
+          {
+            index: true,
+            element: <FollowingList />,
+          },
+          {
+            path: "followings",
+            element: <FollowingList />,
+          },
+          {
+            path: "followers",
+            element: <FollowersList />,
+          },
+        ],
+      },
+
     ],
   },
 ];

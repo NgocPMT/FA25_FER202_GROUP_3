@@ -62,7 +62,7 @@ export default function Article({ data }) {
       <>
         {title.slice(0, 65)}
         <br />
-        {title.slice(50, 100)}...
+        {title.slice(65)}...
       </>
     );
   };
@@ -95,18 +95,11 @@ export default function Article({ data }) {
             className="text-base sm:text-lg md:text-[17px] lg:text-xl font-semibold mb-1 
              hover:underline cursor-pointer leading-snug 
              whitespace-pre-line break-words line-clamp-2 
-             max-w-full sm:max-w-[300px] md:max-w-[40px] lg:max-w-[500px]"
+             max-w-full sm:max-w-[300px] md:max-w-[400px] lg:max-w-[500px]"
           >
             {formatTitle(title)}
           </h2>
-
-
-
         </Link>
-
-
-
-
         <p className="text-gray-600 mb-3 line-clamp-2">
           {getPreviewText(content)}
         </p>

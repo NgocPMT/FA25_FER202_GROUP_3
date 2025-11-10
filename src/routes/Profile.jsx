@@ -2,7 +2,8 @@ import { RxAvatar } from "react-icons/rx";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import axios from "axios";
-import { BsBookmark, BsBookmarkFill, BsThreeDots } from "react-icons/bs";
+import { BsBookmark, BsBookmarkFill, BsThreeDots, BsTrash } from "react-icons/bs";
+import SidebarProfile from "../components/SidebarProfile";
 
 const Profile = () => {
   const token = localStorage.getItem("token");
@@ -22,8 +23,7 @@ const Profile = () => {
   const [savedPosts, setSavedPosts] = useState([]);
   const [isFollowing, setIsFollowing] = useState(false);
 
-
-  // ✅ Hàm rút gọn tiêu đề
+  // Hàm rút gọn tiêu đề
   const formatTitle = (title) => {
     if (!title) return "Untitled";
     if (title.length <= 50) return title;
@@ -45,15 +45,13 @@ const Profile = () => {
   };
 
   useEffect(() => {
-    getProfile().then(() => {
-      if (username && profile.id) {
-        checkIfFollowing(profile.id);
-      }
+    getProfile().then((res) => {
+      const userId = res?.data?.userId;
+      if (userId) checkIfFollowing(userId);
     });
     getFollower();
     setPage(1);
     getSavedPosts();
-    checkFollowStatus();
   }, [username]);
 
   useEffect(() => {
@@ -67,6 +65,7 @@ const Profile = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProfile(res.data);
+      return res;
     } catch (error) {
       console.error("Error profile:", error.response?.data || error.message);
     }
@@ -92,11 +91,9 @@ const Profile = () => {
       const route = username
         ? `users/user/${username}/posts?page=${currentPage}&limit=${limit}`
         : `me/posts?page=${currentPage}&limit=${limit}`;
-
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/${route}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
       const data = res.data;
       setPosts(data);
       setHasNext(data.length === limit);
@@ -104,6 +101,21 @@ const Profile = () => {
       console.log("Error get posts:", err);
     }
     setLoading(false);
+  }
+
+  async function deletePost(postId) {
+    if (!window.confirm("Bạn có chắc muốn xóa bài viết này không?")) return;
+    try {
+      await axios.delete(`${import.meta.env.VITE_API_URL}/posts/${postId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setPosts((prev) => prev.filter((p) => p.id !== postId));
+      // alert("Đã xóa bài viết thành công!");
+    } catch (err) {
+      console.error("Delete post error:", err.response?.data || err.message);
+      alert("Không thể xóa bài viết. Vui lòng thử lại!");
+    }
   }
 
   async function getSavedPosts() {
@@ -121,7 +133,6 @@ const Profile = () => {
   async function toggleSave(postId) {
     try {
       const isSaved = savedPosts.some((p) => p.postId === postId);
-
       if (isSaved) {
         await axios.delete(
           `${import.meta.env.VITE_API_URL}/me/saved-posts/${postId}`,
@@ -144,16 +155,15 @@ const Profile = () => {
   async function checkIfFollowing(profileId) {
     try {
       const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/me/followers?page=1&limit=1000`,
+        `${import.meta.env.VITE_API_URL}/me/followings?page=1&limit=1000`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      const data = res.data.followings || res.data;
+      console.log("data followings:", data);
 
-      // Dữ liệu có thể là mảng follower objects
-      const data = res.data.followers || res.data;
-
-      // Kiểm tra xem có người dùng nào trùng ID với profile hiện tại không
+      // Kiểm tra xem mình (người đăng nhập) có đang follow user này không
       const alreadyFollow = Array.isArray(data)
-        ? data.some((f) => f.followingId === profileId || f.followedById === profileId)
+        ? data.some((f) => f.followingId === Number(profile.userId))
         : false;
 
       setIsFollowing(alreadyFollow);
@@ -163,38 +173,40 @@ const Profile = () => {
   }
 
   async function toggleFollow() {
-    if (!profile?.id) return;
+    console.log("profile.userId: ", profile.userId);
+    console.log("isfollowing: ", isFollowing);
+    if (!profile?.userId) {
+      console.warn("Missing userId in profile:", profile);
+      return;
+    }
     try {
       if (isFollowing) {
-        // ❌ Unfollow
+        // Unfollow
         await axios.delete(
-          `${import.meta.env.VITE_API_URL}/users/${profile.id}/unfollow`,
+          `${import.meta.env.VITE_API_URL}/me/followings/${profile.userId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setIsFollowing(false);
         setFollower((prev) => Math.max(0, prev - 1));
       } else {
-        // ✅ Follow
+        // Follow
         await axios.post(
-          `${import.meta.env.VITE_API_URL}/users/${profile.id}/follow`,
-          {},
+          `${import.meta.env.VITE_API_URL}/me/followings`,
+          { followingId: Number(profile.userId) }, // Đúng field
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setIsFollowing(true);
         setFollower((prev) => prev + 1);
       }
     } catch (err) {
-      console.log("Toggle follow error:", err);
+      console.error("Toggle follow error:", err.response?.data || err.message);
     }
   }
 
-
   return (
     <div className="grid grid-cols-[1fr_auto] gap-12">
-      {/* Main content */}
       <div className="p-10 lg:pl-32 transition-all duration-300 z-10">
         <div className="py-10 space-y-4">
-          {/* Avatar (mobile) */}
           <div className="flex items-center gap-3 mb-8 md:hidden">
             {profile.avatarUrl ? (
               <img
@@ -212,7 +224,6 @@ const Profile = () => {
             {profile.name}'s Posts
           </h1>
 
-          {/* Danh sách bài viết */}
           <div className="space-y-8">
             {loading ? (
               <p className="text-gray-400 text-center">Loading...</p>
@@ -228,9 +239,7 @@ const Profile = () => {
                   key={post.id}
                   className="flex md:flex-row flex-col justify-between border-b border-gray-100 pb-6 min-h-[120px]"
                 >
-                  {/* ✅ Bên trái - phần text */}
                   <div className="flex flex-col justify-between flex-1 pr-4">
-                    {/* Tiêu đề */}
                     <div>
                       <Link
                         to={`/posts/${post.slug}`}
@@ -240,7 +249,6 @@ const Profile = () => {
                       </Link>
                     </div>
 
-                    {/* ✅ Ngày tháng + nút luôn nằm dưới */}
                     <div className="mt-auto pt-4 flex justify-between items-center">
                       <span className="text-gray-700 text-sm">
                         {post.createdAt
@@ -272,12 +280,20 @@ const Profile = () => {
                             }}
                           />
                         )}
-                        <BsThreeDots className="cursor-pointer hover:text-black" />
+                        {!username && (
+                          <BsTrash
+                            className="cursor-pointer hover:text-red-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              deletePost(post.id);
+                            }}
+                          />
+                        )}
                       </div>
                     </div>
                   </div>
 
-                  {/* ✅ Bên phải - ảnh (nếu có, nếu không vẫn giữ không gian) */}
                   <div className="w-40 h-28 mt-4 md:mt-0 flex-shrink-0 flex items-center justify-center bg-gray-50 rounded-md overflow-hidden">
                     {post.coverImageUrl ? (
                       <img
@@ -286,7 +302,6 @@ const Profile = () => {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      // placeholder nhẹ giúp giữ cân bằng khi không có ảnh
                       <div className="w-full h-full flex items-center justify-center">
                         No cover
                       </div>
@@ -310,9 +325,7 @@ const Profile = () => {
               >
                 Prev
               </button>
-
               <span className="px-3 py-1 opacity-70">{page}</span>
-
               <button
                 onClick={() => setPage((p) => p + 1)}
                 className={`px-3 py-1 rounded-full bg-white transition ${!hasNext
@@ -328,42 +341,13 @@ const Profile = () => {
       </div>
 
       {/* Sidebar */}
-      <div className="max-md:hidden top-14 right-0 h-[calc(100%-56px)] w-64 lg:w-96 border-l border-gray-200 p-4">
-        <div className="mx-2 my-3 flex flex-col items-start">
-          {profile.avatarUrl ? (
-            <img
-              src={profile.avatarUrl}
-              alt="Avatar"
-              className="w-16 h-16 object-cover rounded-full"
-            />
-          ) : (
-            <RxAvatar className="w-16 h-16 text-black" />
-          )}
-          <h5 className="my-2 font-bold">{profile.name}</h5>
-          <h5 className="mb-2 text-gray-600">{follower} followers</h5>
-          <p className="text-xs text-gray-600">{profile.bio}</p>
-
-          {username ? (
-            <button
-              onClick={toggleFollow}
-              className={`mt-7 px-4 py-2 text-sm rounded-2xl cursor-pointer transition 
-      ${isFollowing
-                  ? "bg-white border border-gray-300 text-black hover:bg-gray-100"
-                  : "bg-black text-white hover:opacity-80"}`}
-            >
-              {isFollowing ? "Following" : "Follow"}
-            </button>
-          ) : (
-            <Link
-              to="/profile/edit"
-              className="mt-7 text-sm text-green-700 hover:text-violet-900"
-            >
-              Edit Profile
-            </Link> 
-          )}
-
-        </div>
-      </div>
+      <SidebarProfile
+        profile={profile}
+        follower={follower}
+        isFollowing={isFollowing}
+        toggleFollow={toggleFollow}
+        username={username}
+      />
     </div>
   );
 };

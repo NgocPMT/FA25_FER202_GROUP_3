@@ -23,6 +23,7 @@ import { VscReactions } from "react-icons/vsc";
 import { CiBookmark } from "react-icons/ci";
 import { IoIosMore } from "react-icons/io";
 import { useLoader } from "@/context/LoaderContext";
+import { Link } from "react-router";
 
 const ReadOnlyContent = ({ slug }) => {
   const [post, setPost] = useState(null);
@@ -166,14 +167,12 @@ const ReadOnlyContent = ({ slug }) => {
       const reacted = data.PostReaction.find(
         (reaction) => reaction.userId === userId
       );
-      setReactedType(reacted.reactionType.name);
+      setReactedType(reacted?.reactionType.name);
 
       if (editor && data.content) {
         editor.commands.setContent(data.content);
       }
 
-      // ✅ Kiểm tra xem đã follow user này chưa (dùng userId)
-      // ✅ Kiểm tra xem đã follow user này chưa
       if (token && post.userId) {
         try {
           const resFollow = await fetch(
@@ -273,14 +272,21 @@ const ReadOnlyContent = ({ slug }) => {
           <div className="simple-editor-title-wrapper">
             <h1 className="simple-editor-title">{post.title}</h1>
             <div className="mt-5 flex gap-3 items-center text-sm">
-              <img
-                src={
-                  post?.user?.Profile?.avatarUrl ||
-                  "https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-icon.webp"
-                }
-                className="rounded-full size-8"
-              />
-              <p>{post.user.Profile.name}</p>
+              <Link
+                className="flex items-center gap-3 group"
+                to={`/profile/${post.user.username}`}
+              >
+                <img
+                  src={
+                    post?.user?.Profile?.avatarUrl ||
+                    "https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-icon.webp"
+                  }
+                  className="rounded-full size-8"
+                />
+                <p className="group-hover:underline">
+                  {post.user.Profile.name}
+                </p>
+              </Link>
 
               {/* ✅ Nút Follow / Unfollow */}
               <button

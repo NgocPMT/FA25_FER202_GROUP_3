@@ -159,7 +159,6 @@ function PostItem({ list, onUnsave }) {
               onClick={() => onUnsave(list.postId || post.id)}
               title="Remove from Library"
             />
-            <BsThreeDots className="cursor-pointer hover:text-black" />
           </div>
         </div>
       </div>

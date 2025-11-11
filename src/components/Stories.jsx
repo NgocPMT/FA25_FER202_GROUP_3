@@ -21,41 +21,55 @@ export default function Stories() {
     published: 0,
     submissions: 0,
   });
-  const [isUserPaging, setIsUserPaging] = useState(false);
+  const [total, setTotal] = useState(0);
+  const [hasNext, setHasNext] = useState(false);
   const listTopRef = useRef(null);
+  const token = localStorage.getItem("token");
 
-  // 🧭 Fetch toàn bộ stories (1 lần)
   useEffect(() => {
     const fetchStories = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem("token");
-        if (!token)
-          throw new Error("⚠️ Bạn chưa đăng nhập, vui lòng đăng nhập lại.");
+        setError(null);
 
-        // 🧩 Fetch tất cả bài viết luôn (không phân trang server)
+        if (!token)
+          throw new Error("You are not logged in, please log in again.");
+
         const res = await fetch(
-          `${import.meta.env.VITE_API_URL}/me/posts?page=1&limit=99999`,
+          `${import.meta.env.VITE_API_URL}/me/posts?page=${page}&limit=${limit}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        if (!res.ok) throw new Error("API fetch failed");
+        if (!res.ok) throw new Error("Unable to load article list.");
 
         const raw = await res.json();
-        const data = Array.isArray(raw) ? raw : raw.data || raw.posts || [];
+        const data = Array.isArray(raw)
+          ? raw
+          : raw.data || raw.posts || raw.items || [];
 
-        // 🧠 Sort tất cả bài theo ngày mới nhất
+        const totalCount = raw.total || data.length;
+
+        const getTime = (p) => {
+          const dateStr = p.publishedAt || p.updatedAt || p.createdAt;
+          return dateStr ? new Date(dateStr).getTime() : 0;
+        };
+
+        const sorted = [...data].sort((a, b) => getTime(b) - getTime(a));
+
+        console.table(
+          sorted.map((p) => ({
+            id: p.id,
+            title: p.title,
+            date: p.publishedAt || p.updatedAt || p.createdAt,
+          }))
+        );
+
         const normalize = (s) => (s ? s.toLowerCase().trim() : "");
-        const sortByDateDesc = (arr) =>
-          arr.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-        const drafts = sortByDateDesc(
-          data.filter((p) => normalize(p.status) === "draft")
+        const drafts = sorted.filter((p) => normalize(p.status) === "draft");
+        const published = sorted.filter(
+          (p) => normalize(p.status) === "published" || !p.status
         );
-        const published = sortByDateDesc(
-          data.filter((p) => normalize(p.status) === "published" || !p.status)
-        );
-        const submissions = sortByDateDesc(
-          data.filter((p) => normalize(p.status) === "submission")
+        const submissions = sorted.filter(
+          (p) => normalize(p.status) === "submission"
         );
 
         setStories({ drafts, published, submissions });
@@ -64,64 +78,67 @@ export default function Stories() {
           published: published.length,
           submissions: submissions.length,
         });
+        setHasNext(data.length === limit);
+        setTotal(totalCount);
       } catch (err) {
-        setError(err.message || "Không thể tải dữ liệu.");
+        setError(err.message || "Unable to load data.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchStories();
-  }, []);
+  }, [page, token]);
 
-  // Cuộn lên đầu khi đổi trang
-  useEffect(() => {
-    if (!isUserPaging) return;
-    if (listTopRef.current)
-      listTopRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-    setIsUserPaging(false);
-  }, [page]);
+  const handleDeletePost = async (postId) => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/posts/${postId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-  // Ẩn menu khi click ngoài
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target))
-        setMenuOpen(null);
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+      if (!response.ok) {
+        const errorData = await response.json();
+        alert(errorData.message || "Failed to delete post!");
+        return;
+      }
 
-  // Tabs hiển thị
-  const tabs = [
-    { name: "Drafts", count: counts.drafts },
-    { name: "Published", count: counts.published },
-    { name: "Submissions", count: counts.submissions },
-  ];
+      setStories((prev) => ({
+        drafts: prev.drafts.filter((p) => p.id !== postId),
+        published: prev.published.filter((p) => p.id !== postId),
+        submissions: prev.submissions.filter((p) => p.id !== postId),
+      }));
 
-  // Lấy danh sách theo tab
+      setMenuOpen(null);
+    } catch {
+      alert("Unexpected error occurred.");
+    }
+  };
+
+  const tabs = [{ name: "Published", count: counts.published }];
+
   const currentList =
     activeTab === "Drafts"
       ? stories.drafts
       : activeTab === "Submissions"
-      ? stories.submissions
-      : stories.published;
-
-  // Phân trang ở client
-  const start = (page - 1) * limit;
-  const end = start + limit;
-  const paginatedList = currentList.slice(start, end);
-
-  const totalPages = Math.ceil(currentList.length / limit);
+        ? stories.submissions
+        : stories.published;
 
   return (
     <div className="max-w-5xl mx-auto relative">
       <h1 className="text-3xl font-semibold mb-6">Stories</h1>
 
       {error && <div className="text-center text-red-500 mb-4">{error}</div>}
-      {loading && <div className="text-center text-gray-500 mb-4">⏳ Đang tải...</div>}
+      {loading && (
+        <div className="text-center text-gray-500 mb-4">⏳ Đang tải...</div>
+      )}
 
-      {/* Tabs */}
       <div className="flex space-x-6 border-b border-gray-200 mb-6">
         {tabs.map((tab) => (
           <button
@@ -130,32 +147,28 @@ export default function Stories() {
               setActiveTab(tab.name);
               setPage(1);
             }}
-            className={`pb-2 text-sm font-medium ${
-              activeTab === tab.name
-                ? "border-b-2 border-black text-black"
-                : "text-gray-500 hover:text-black"
-            }`}
+            className={`pb-2 text-sm font-medium ${activeTab === tab.name
+              ? "border-b-2 border-black text-black"
+              : "text-gray-500 hover:text-black"
+              }`}
           >
-            {tab.name} ({tab.count})
+            {tab.name} ({tab.count}/{total})
           </button>
         ))}
       </div>
 
-      {/* Danh sách bài viết */}
       <div className="mt-8" ref={listTopRef}>
         <div className="grid grid-cols-[2fr_1fr_1fr] text-sm text-gray-500 pb-3">
           <span>Latest</span>
-          <span>Publication</span>
           <span>Status</span>
         </div>
 
-        {paginatedList.length > 0 ? (
-          paginatedList.map((p) => (
+        {currentList.length > 0 ? (
+          currentList.map((p) => (
             <div
               key={p.id}
               className="grid grid-cols-[2fr_1fr_1fr] border-b border-gray-200 py-6 items-center relative"
             >
-              {/* Left */}
               <div className="flex items-center space-x-4 overflow-hidden pr-10">
                 {p.coverImageUrl && (
                   <img
@@ -171,28 +184,27 @@ export default function Stories() {
                   >
                     {p.title || "Untitled"}
                   </Link>
-
                   <p className="text-sm text-gray-500 truncate">
-                    {new Date(p.createdAt).toLocaleDateString("vi-VN")}
+                    {new Date(
+                      p.publishedAt || p.updatedAt || p.createdAt
+                    ).toLocaleDateString("vi-VN")}
                   </p>
                   <div className="flex items-center gap-4 text-gray-500 text-sm mt-2">
+
                     <span className="flex items-center gap-1">
                       <BsStarFill className="text-yellow-500" />{" "}
-                      {p.reactions ?? 0}
+                      {Array.isArray(p.PostReaction) ? p.PostReaction.length : p.reactions ?? 0}
                     </span>
+
                     <span className="flex items-center gap-1">
-                      <BsChat /> {p.comments ?? 0}
+                      <BsChat />{" "}
+                      {Array.isArray(p.comments) ? p.comments.length : p.comments ?? 0}
                     </span>
                   </div>
+
                 </div>
               </div>
 
-              {/* Publication */}
-              <div className="text-gray-600 truncate text-sm px-2">
-                {p.publication?.name || "None"}
-              </div>
-
-              {/* Status + Menu */}
               <div
                 className="relative flex items-center justify-between"
                 ref={menuRef}
@@ -201,33 +213,18 @@ export default function Stories() {
                   {p.status || "Published"}
                 </span>
                 <button
-                  onClick={() =>
-                    setMenuOpen(menuOpen === p.id ? null : p.id)
-                  }
+                  onClick={() => setMenuOpen(menuOpen === p.id ? null : p.id)}
                   className="p-2 hover:bg-gray-100 rounded-full"
                 >
                   <HiOutlineDotsHorizontal size={20} />
                 </button>
 
                 {menuOpen === p.id && (
-                  <div
-                    className="absolute right-0 top-8 bg-white border rounded-lg shadow-md z-10 w-36 text-sm"
-                    onClick={(e) => e.stopPropagation()}
-                  >
+                  <div className="absolute right-0 top-8 bg-white border rounded-lg shadow-md z-10 w-36 text-sm">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        console.log("Edit clicked", p.id);
-                      }}
-                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                    >
-                      Edit
-                    </button>
-
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        console.log("Delete clicked", p.id);
+                        handleDeletePost(p.id);
                       }}
                       className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
                     >
@@ -243,21 +240,18 @@ export default function Stories() {
             <p className="text-lg font-medium">
               You haven’t published any stories yet.
             </p>
-            <p className="text-sm mt-1">Start writing and share your first story!</p>
+            <p className="text-sm mt-1">
+              Start writing and share your first story!
+            </p>
           </div>
         )}
       </div>
 
-      {/* Pagination */}
       <div className="flex justify-center mt-6 gap-3">
         <button
-          onClick={() => {
-            setIsUserPaging(true);
-            setPage((p) => Math.max(1, p - 1));
-          }}
-          className={`px-3 py-1 rounded-full bg-white border transition hover:opacity-70 ${
-            page === 1 ? "invisible" : ""
-          }`}
+          onClick={() => setPage((p) => Math.max(1, p - 1))}
+          disabled={page === 1}
+          className="px-3 py-1 rounded-full bg-white border transition hover:opacity-70 disabled:opacity-40"
         >
           Prev
         </button>
@@ -265,15 +259,9 @@ export default function Stories() {
         <span className="px-3 py-1 text-gray-600 font-medium">{page}</span>
 
         <button
-          onClick={() => {
-            if (page < totalPages) {
-              setIsUserPaging(true);
-              setPage((p) => p + 1);
-            }
-          }}
-          className={`px-3 py-1 rounded-full bg-white border transition hover:opacity-70 ${
-            page >= totalPages ? "invisible" : ""
-          }`}
+          onClick={() => setPage((p) => p + 1)}
+          disabled={!hasNext}
+          className="px-3 py-1 rounded-full bg-white border transition hover:opacity-70 disabled:opacity-40"
         >
           Next
         </button>

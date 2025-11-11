@@ -50,6 +50,9 @@ const Navbar = ({ onToggleSideNav }) => {
   };
 
   useEffect(() => {
+    const controller = new AbortController(); // Create an AbortController
+    const signal = controller.signal; // Get its signal
+
     const validateToken = async () => {
       if (!token) {
         setIsValidToken(false);
@@ -63,6 +66,7 @@ const Navbar = ({ onToggleSideNav }) => {
           {
             method: "GET",
             headers: { Authorization: `Bearer ${token}` },
+            signal, // Attach the abort signal
           }
         );
 
@@ -72,27 +76,56 @@ const Navbar = ({ onToggleSideNav }) => {
         setIsValidToken(data.valid);
 
         if (!data.valid) localStorage.removeItem("token");
-      } catch {
-        setIsValidToken(false);
+      } catch (error) {
+        // Ignore AbortError (when request is canceled)
+        if (error.name !== "AbortError") {
+          setIsValidToken(false);
+        }
       } finally {
-        hideLoader();
+        // Hide loader only if not aborted
+        if (!signal.aborted) hideLoader();
       }
     };
 
     validateToken();
+
+    // Cleanup function: abort fetch when unmounting or token changes
+    return () => {
+      controller.abort();
+    };
   }, [token]);
 
   useEffect(() => {
+    const controller = new AbortController(); // Create controller
+    const signal = controller.signal; // Get its signal
+
     const fetchProfile = async () => {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/me/profile`, {
-        method: "GET",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      setProfile(data);
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/me/profile`, {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+          signal, // Attach abort signal
+        });
+
+        if (!res.ok) return;
+
+        const data = await res.json();
+        setProfile(data);
+      } catch (error) {
+        // Ignore AbortError (user navigated away, etc.)
+        if (error.name !== "AbortError") {
+          console.error("Error fetching profile:", error);
+        }
+      }
     };
+
     fetchProfile();
-  }, []);
+
+    // Cleanup — abort fetch if component unmounts
+    return () => {
+      controller.abort();
+    };
+  }, [token]);
 
   const toggleAvatarDropdownShow = () => {
     setIsAvatarDropdownShow(!isAvatarDropdownShow);
@@ -197,7 +230,7 @@ const Navbar = ({ onToggleSideNav }) => {
           )}
         </div>
 
-        {token || isValidToken ? (
+        {token && isValidToken ? (
           <div className="flex items-center gap-2">
             <Link
               to="/write"

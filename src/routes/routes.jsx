@@ -20,6 +20,7 @@ import Articles from "../components/Articles";
 import Following from "./Following";
 import FollowingList from "./FollowingList";
 import FollowersList from "./FollowersList";
+import Edit from "./Edit";
 
 const routes = [
   {
@@ -41,6 +42,14 @@ const routes = [
     element: (
       <ProtectedRoute>
         <Write />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/posts/:slug/edit",
+    element: (
+      <ProtectedRoute>
+        <Edit />
       </ProtectedRoute>
     ),
   },
@@ -71,6 +80,14 @@ const routes = [
         element: (
           <ProtectedRoute>
             <UsernameInputPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/profile",
+        element: (
+          <ProtectedRoute>
+            <Profile />
           </ProtectedRoute>
         ),
       },

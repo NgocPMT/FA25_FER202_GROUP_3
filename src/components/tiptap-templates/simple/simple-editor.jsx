@@ -160,6 +160,7 @@ export const SimpleEditor = React.forwardRef(
       isAvatarDropdownShow,
       toggleAvatarDropdownShow,
       logOut,
+      content,
     },
     ref
   ) => {
@@ -171,6 +172,7 @@ export const SimpleEditor = React.forwardRef(
     const editor = useEditor({
       immediatelyRender: false,
       shouldRerenderOnTransaction: false,
+      content: content ? content : "",
       editorProps: {
         attributes: {
           autocomplete: "off",
@@ -232,7 +234,7 @@ export const SimpleEditor = React.forwardRef(
             </Link>
             <div className="flex items-center gap-4">
               <button
-                onClick={handlePublish}
+                onClick={() => handlePublish(editor.isEmpty)}
                 className="bg-green-700 text-white px-3 py-1 rounded-full text-sm cursor-pointer hover:bg-green-800"
               >
                 Publish

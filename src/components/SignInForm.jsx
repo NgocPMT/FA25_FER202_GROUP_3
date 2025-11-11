@@ -5,6 +5,7 @@ import { FcGoogle } from "react-icons/fc";
 import { MdAccountCircle } from "react-icons/md";
 import { useNavigate } from "react-router";
 import { useLoader } from "@/context/LoaderContext";
+import { toast } from "react-toastify";
 
 const SignInForm = () => {
   const [isAccount, setIsAccount] = useState(false);
@@ -61,7 +62,7 @@ const SignInForm = () => {
       });
       if (!res.ok) {
         const data = await res.json();
-        console.log(data);
+        toast.error(data.error);
         return;
       }
 
@@ -69,9 +70,10 @@ const SignInForm = () => {
       localStorage.setItem("token", data.token);
       localStorage.setItem("username", data.user.username);
       localStorage.setItem("userId", data.user.id);
+      toast.success(data.message);
       navigate("/home");
     } catch (err) {
-      console.log(err);
+      toast.error(err);
     } finally {
       hideLoader();
     }

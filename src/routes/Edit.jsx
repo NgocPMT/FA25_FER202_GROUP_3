@@ -6,6 +6,7 @@ import { IoWarning } from "react-icons/io5";
 import { useNavigate, useParams } from "react-router";
 import Modal from "@/components/Modal";
 import { useLoader } from "@/context/LoaderContext";
+import { toast } from "react-toastify";
 
 const Edit = () => {
   const [isAvatarDropdownShow, setIsAvatarDropdownShow] = useState(false);
@@ -142,7 +143,7 @@ const Edit = () => {
       }
 
       const data = await response.json();
-      console.log("Post saved:", data);
+      toast.success(data.message);
       navigate("/home");
     } finally {
       hideLoader();

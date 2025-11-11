@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { HiOutlineDotsHorizontal } from "react-icons/hi";
 import { BsStarFill, BsChat } from "react-icons/bs";
 import { Link } from "react-router-dom";
+import { toast } from "react-toastify";
 
 export default function Stories() {
   const [activeTab, setActiveTab] = useState("Published");
@@ -33,7 +34,6 @@ export default function Stories() {
         if (!token)
           throw new Error("⚠️ Bạn chưa đăng nhập, vui lòng đăng nhập lại.");
 
-        // 🧩 Fetch tất cả bài viết luôn (không phân trang server)
         const res = await fetch(
           `${import.meta.env.VITE_API_URL}/me/posts?page=1&limit=99999`,
           { headers: { Authorization: `Bearer ${token}` } }
@@ -43,7 +43,6 @@ export default function Stories() {
         const raw = await res.json();
         const data = Array.isArray(raw) ? raw : raw.data || raw.posts || [];
 
-        // 🧠 Sort tất cả bài theo ngày mới nhất
         const normalize = (s) => (s ? s.toLowerCase().trim() : "");
         const sortByDateDesc = (arr) =>
           arr.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -54,15 +53,11 @@ export default function Stories() {
         const published = sortByDateDesc(
           data.filter((p) => normalize(p.status) === "published" || !p.status)
         );
-        const submissions = sortByDateDesc(
-          data.filter((p) => normalize(p.status) === "submission")
-        );
 
-        setStories({ drafts, published, submissions });
+        setStories({ drafts, published });
         setCounts({
           drafts: drafts.length,
           published: published.length,
-          submissions: submissions.length,
         });
       } catch (err) {
         setError(err.message || "Không thể tải dữ liệu.");
@@ -74,7 +69,6 @@ export default function Stories() {
     fetchStories();
   }, []);
 
-  // Cuộn lên đầu khi đổi trang
   useEffect(() => {
     if (!isUserPaging) return;
     if (listTopRef.current)
@@ -97,41 +91,30 @@ export default function Stories() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error("Error deleting post:", errorData);
-        alert(errorData.message || "Failed to delete post!");
+        toast.error(errorData);
         return;
       }
 
       setStories((prev) => ({
         drafts: prev.drafts.filter((p) => p.id !== postId),
         published: prev.published.filter((p) => p.id !== postId),
-        submissions: prev.submissions.filter((p) => p.id !== postId),
       }));
 
-      // Close the menu
+      toast.success("Deleted successfully.");
       setMenuOpen(null);
     } catch (error) {
-      console.error("Error deleting post:", error);
-      alert("An unexpected error occurred.");
+      toast.error("Error deleting post:", error);
     }
   };
 
-  // Tabs hiển thị
   const tabs = [
     // { name: "Drafts", count: counts.drafts },
     { name: "Published", count: counts.published },
-    // { name: "Submissions", count: counts.submissions },
   ];
 
-  // Lấy danh sách theo tab
   const currentList =
-    activeTab === "Drafts"
-      ? stories.drafts
-      : activeTab === "Submissions"
-      ? stories.submissions
-      : stories.published;
+    activeTab === "Drafts" ? stories.drafts : stories.published;
 
-  // Phân trang ở client
   const start = (page - 1) * limit;
   const end = start + limit;
   const paginatedList = currentList.slice(start, end);
@@ -167,11 +150,9 @@ export default function Stories() {
         ))}
       </div>
 
-      {/* Danh sách bài viết */}
       <div className="mt-8" ref={listTopRef}>
         <div className="grid grid-cols-[2fr_1fr_1fr] text-sm text-gray-500 pb-3">
           <span>Latest</span>
-          {/* <span>Publication</span> */}
           <span>Status</span>
         </div>
 
@@ -235,21 +216,15 @@ export default function Stories() {
 
                 {menuOpen === p.id && (
                   <div className="absolute right-0 top-8 bg-white border rounded-lg shadow-md z-10 w-36 text-sm">
-                    {/* <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        console.log("Edit clicked", p.id);
-                      }}
+                    <Link
+                      to={`/posts/${p.slug}/edit`}
                       className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                     >
                       Edit
-                    </button> */}
+                    </Link>
 
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeletePost(p.id);
-                      }}
+                      onClick={() => handleDeletePost(p.id)}
                       className="block w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
                     >
                       Delete

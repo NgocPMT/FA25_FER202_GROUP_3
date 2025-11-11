@@ -4,6 +4,7 @@ import { MdAccountCircle } from "react-icons/md";
 import { Link, useNavigate } from "react-router";
 import FormField from "./FormField";
 import { useLoader } from "@/context/LoaderContext";
+import { toast } from "react-toastify";
 
 const SignUpForm = () => {
   const [username, setUsername] = useState("");
@@ -89,13 +90,14 @@ const SignUpForm = () => {
         }),
       });
       const data = await res.json();
-      if (data.errors) {
-        console.log(data.errors);
+      if (data.error) {
+        toast.error(data.error);
       } else {
+        toast.success(data.message);
         navigate("/sign-in");
       }
     } catch (err) {
-      console.log(err);
+      toast.error(err);
     } finally {
       hideLoader();
     }

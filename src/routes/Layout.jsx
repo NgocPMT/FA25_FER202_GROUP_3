@@ -5,13 +5,11 @@ import { useState, useEffect } from "react";
 import "../css/Layout.css";
 
 const Layout = () => {
-  // 🔹 Đổi 1024 → 1270
   const [showSideNav, setShowSideNav] = useState(window.innerWidth >= 1270);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1270);
 
   useEffect(() => {
     const handleResize = () => {
-      // 🔹 Đổi 1024 → 1270
       const mobile = window.innerWidth < 1270;
       setIsMobile(mobile);
       setShowSideNav(!mobile);
@@ -29,7 +27,7 @@ const Layout = () => {
         <Navbar onToggleSideNav={() => setShowSideNav((v) => !v)} />
       </div>
 
-      {/* Overlay mờ khi mở sidebar trên màn nhỏ */}
+      {/* sidebar moblie */}
       {isMobile && (
         <button
           className={`fixed inset-0 bg-black/10 z-40 transition-opacity duration-300 ease-in-out lg:hidden ${
@@ -39,7 +37,7 @@ const Layout = () => {
         ></button>
       )}
 
-      {/* Sidebar trái */}
+      {/* Sidebar left*/}
       <div
         className={`fixed top-14 left-0 h-[calc(100%-56px)] w-60 border-r border-gray-200 bg-white p-4 overflow-y-auto z-50
         transform transition-all duration-300 ease-in-out ${
@@ -51,7 +49,7 @@ const Layout = () => {
         <SideNavbar />
       </div>
 
-      {/* Nội dung chính */}
+      {/* main */}
       <main
         className={`pt-16 transition-all duration-300 relative z-10
         ${!isMobile && showSideNav ? "ml-60" : "mx-4"}`}

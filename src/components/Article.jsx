@@ -69,7 +69,6 @@ export default function Article({ data }) {
 
   return (
     <div className="pb-6 border-b border-gray-200 lg:mx-10 px-0">
-      {/* 🔹 Avatar ở trên */}
       <div className="flex items-center gap-2 mb-2">
         <Link
           to={`/profile/${user?.username ?? "unknown"}`}
@@ -88,7 +87,6 @@ export default function Article({ data }) {
           </span>
         </Link>
       </div>
-      {/* Title + Ảnh cùng hàng */}
       <div className="flex justify-between items-start">
         {/* LEFT */}
         <div className="flex-1 pr-4">

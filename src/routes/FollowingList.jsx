@@ -7,7 +7,7 @@ export default function FollowingList() {
     const [error, setError] = useState(null);
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
-    const limit = 3;
+    const limit = 20;
 
     const token = localStorage.getItem("token");
 

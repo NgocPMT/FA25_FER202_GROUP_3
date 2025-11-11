@@ -89,14 +89,14 @@ const Articles = () => {
   const isSearching = !!keyword;
 
   return (
-    <div className="px-6 py-4">
+    <div className="py-4">
       {isSearching && (
         <h1 className=" text-4xl font-semibold mb-10 text-gray-500">
           Result for <span className="text-black">{keyword}</span>
         </h1>
       )}
 
-      <div className="flex items-center justify-between mb-6 pl-10">
+      <div className="flex items-center justify-between mb-6 pl-5 lg:pl-10">
         <div className="flex items-center gap-2 text-sm">
           <span><b>Display</b></span>
           <select
@@ -113,7 +113,8 @@ const Articles = () => {
         </div>
       </div>
 
-      <div className="space-y-8 px-10">
+      <div className="space-y-8 px-4 sm:px-0 lg:px-0 w-full">
+
         {articles.length === 0 ? (
           <p className="text-gray-500 italic">
             {isSearching
@@ -132,8 +133,8 @@ const Articles = () => {
           onClick={handlePrev}
           disabled={!hasPrev}
           className={`px-3 py-1  ${hasPrev
-              ? "hover:bg-gray-50 cursor-pointer"
-              : "opacity-50 cursor-not-allowed"
+            ? "hover:bg-gray-50 cursor-pointer"
+            : "opacity-50 cursor-not-allowed"
             }`}
         >
           Prev
@@ -145,8 +146,8 @@ const Articles = () => {
           onClick={handleNext}
           disabled={!hasNext}
           className={`px-3 py-1  ${hasNext
-              ? "hover:bg-gray-50 cursor-pointer"
-              : "opacity-50 cursor-not-allowed"
+            ? "hover:bg-gray-50 cursor-pointer"
+            : "opacity-50 cursor-not-allowed"
             }`}
         >
           Next

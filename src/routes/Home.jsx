@@ -8,6 +8,9 @@ const Home = () => {
   const token = localStorage.getItem("token");
 
   useEffect(() => {
+    const controller = new AbortController(); // Create AbortController
+    const signal = controller.signal; // Extract its signal
+
     const validateToken = async () => {
       if (!token) {
         setIsValidToken(false);
@@ -16,6 +19,7 @@ const Home = () => {
 
       try {
         showLoader();
+
         const res = await fetch(
           `${import.meta.env.VITE_API_URL}/validate-token`,
           {
@@ -23,29 +27,43 @@ const Home = () => {
             headers: {
               Authorization: `Bearer ${token}`,
             },
+            signal, // Attach the signal so the fetch can be aborted
           }
         );
+
         if (!res.ok) {
           const data = await res.json();
+          console.log("Token invalid:", data);
           setIsValidToken(false);
           localStorage.removeItem("token");
-          console.log(data);
+          return; // Exit early if not ok
         }
 
         const data = await res.json();
-
         setIsValidToken(data.valid);
 
-        if (data.valid === false) localStorage.removeItem("token");
+        if (data.valid === false) {
+          localStorage.removeItem("token");
+        }
       } catch (error) {
-        console.error("Error validating token:", error);
-        setIsValidToken(false);
+        // If the request was aborted, ignore it
+        if (error.name === "AbortError") {
+          console.log("Token validation aborted");
+        } else {
+          console.error("Error validating token:", error);
+          setIsValidToken(false);
+        }
       } finally {
-        hideLoader();
+        // Only hide loader if not aborted
+        if (!signal.aborted) hideLoader();
       }
     };
 
     validateToken();
+
+    return () => {
+      controller.abort();
+    };
   }, [token]);
 
   if (token && isValidToken === true) return <Navigate to="/home" />;

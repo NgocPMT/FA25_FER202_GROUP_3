@@ -94,7 +94,7 @@ export default function Notification() {
               <NotificationItem
                 key={n.id}
                 avatar={n.avatarUrl}
-                message={n.message}
+                message={n.message}    
                 time={n.time}
                 isLast={index === filteredNotifications.length - 1}
                 read={n.read}

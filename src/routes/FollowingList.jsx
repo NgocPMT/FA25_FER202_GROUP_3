@@ -8,7 +8,7 @@ export default function FollowingList() {
     const [message, setMessage] = useState(null);
     const [page, setPage] = useState(1);
     const [hasNext, setHasNext] = useState(true);
-    const [isEmptyPage, setIsEmptyPage] = useState(false); // ✅ thêm cờ cho trang rỗng
+    const [isEmptyPage, setIsEmptyPage] = useState(false);
     const limit = 3;
 
     const token = localStorage.getItem("token");

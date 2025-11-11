@@ -13,23 +13,21 @@ export default function FollowersList() {
 
   const token = localStorage.getItem("token");
 
-  // 🟩 Fetch followers mỗi lần đổi trang
   useEffect(() => {
     const fetchFollowers = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        if (!token) throw new Error("⚠️ You are not logged in.");
+        if (!token) throw new Error("You are not logged in.");
 
         let res = await fetch(
           `${import.meta.env.VITE_API_URL}/me/followers?page=${page}&limit=${limit}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        // 🧩 Nếu backend chưa hỗ trợ query, fallback gọi không có query
         if (res.status === 500) {
-          console.warn("⚠ Backend không hỗ trợ phân trang followers, fallback...");
+          // console.warn("⚠ Backend không hỗ trợ phân trang followers, fallback...");
           res = await fetch(`${import.meta.env.VITE_API_URL}/me/followers`, {
             headers: { Authorization: `Bearer ${token}` },
           });
@@ -38,7 +36,6 @@ export default function FollowersList() {
         if (!res.ok) throw new Error("Unable to load Followers list.");
 
         const data = await res.json();
-        console.log("✅ Followers API response:", data);
 
         const rawList = Array.isArray(data.data)
           ? data.data
@@ -56,12 +53,19 @@ export default function FollowersList() {
           )
           .filter((f) => f && f.id);
 
-        setFollowers(list);
+        const enrichedList = await Promise.all(
+          list.map(async (user) => {
+            if (!user.username) return user;
+            const profile = await fetchUserProfile(user.username, token);
+            return { ...user, ...profile };
+          })
+        );
 
-        // ✅ Nếu ít hơn limit → hết trang, không còn next
-        setHasNext(list.length === limit);
+
+        setFollowers(enrichedList);
+        setHasNext(enrichedList.length === limit);
       } catch (err) {
-        console.error("❌ Fetch error:", err);
+        console.error("Fetch error:", err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -71,7 +75,27 @@ export default function FollowersList() {
     fetchFollowers();
   }, [token, page]);
 
-  // 🟦 Fetch followings để biết ai đã follow lại
+  async function fetchUserProfile(username, token) {
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/users/user/${username}/profile`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      if (!res.ok) return {};
+      const data = await res.json();
+      return {
+        bio: data.bio || null,
+        avatarUrl: data.avatarUrl || null,
+        name: data.name || username,
+      };
+    } catch {
+      return {};
+    }
+  }
+
+
   useEffect(() => {
     const fetchFollowings = async () => {
       try {
@@ -93,7 +117,6 @@ export default function FollowersList() {
     fetchFollowings();
   }, [token]);
 
-  // 🟨 Follow / Unfollow toggle
   const handleToggleFollow = async (userId, isFollowing) => {
     try {
       setMessage(null);
@@ -110,7 +133,7 @@ export default function FollowersList() {
         if (!res.ok) throw new Error("Unfollow failed.");
 
         setFollowingIds((prev) => prev.filter((id) => id !== userId));
-        setMessage("✅ Unfollowed successfully!");
+        setMessage("Unfollowed successfully!");
       } else {
         const res = await fetch(`${import.meta.env.VITE_API_URL}/me/followings`, {
           method: "POST",
@@ -125,42 +148,36 @@ export default function FollowersList() {
         if (!res.ok) throw new Error(data.message || "Follow back failed.");
 
         setFollowingIds((prev) => [...prev, userId]);
-        setMessage("✅ Followed back!");
+        setMessage("Followed back!");
       }
     } catch (err) {
-      console.error("❌ Toggle follow error:", err);
-      setMessage("❌ " + err.message);
+      console.error("Toggle follow error:", err);
+      setMessage(" " + err.message);
     } finally {
       setTimeout(() => setMessage(null), 1000);
     }
   };
 
-  // 🧭 UI render
   return (
     <div className="max-w-5xl mx-auto px-6 py-10">
-      {/* 🟦 Message */}
       {message && (
         <div className="text-center mb-4 text-sm text-blue-600 bg-blue-50 border border-blue-200 rounded-md py-2">
           {message}
         </div>
       )}
 
-      {/* 🟥 Error */}
       {error && !loading && (
         <div className="text-center mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md py-2">
           {error}
         </div>
       )}
 
-      {/* ⏳ Loading */}
       {loading && <p className="text-gray-500">Loading list...</p>}
 
-      {/* ❌ Empty */}
       {!loading && followers.length === 0 && !error && (
         <p className="text-gray-500 text-center">No followers yet.</p>
       )}
 
-      {/* ✅ List */}
       {followers.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-8">
           {followers.map((user) => {
@@ -171,7 +188,7 @@ export default function FollowersList() {
                 className="flex items-center justify-between border border-gray-200 p-4 rounded-lg hover:shadow-md transition w-full max-w-[320px] mx-auto"
               >
                 <Link
-                  to={`/users/${user.username}`}
+                  to={`/profile/${user.username}`}
                   className="flex items-center gap-3 w-[75%] overflow-hidden"
                 >
                   <img
@@ -183,12 +200,12 @@ export default function FollowersList() {
                     className="w-12 h-12 rounded-full object-cover border flex-shrink-0"
                   />
                   <div className="flex flex-col min-w-0">
-                    <span className="font-medium text-gray-800 truncate hover:underline">
+                    <span className="font-medium text-gray-800 hover:underline block leading-tight">
                       {user.username || "Unknown user"}
                     </span>
-                    <span className="text-gray-500 text-sm truncate">
+                    <p className="text-gray-500 text-sm mt-0.5 line-clamp-2 break-words">
                       {user.bio || "No bio"}
-                    </span>
+                    </p>
                   </div>
                 </Link>
 
@@ -207,7 +224,6 @@ export default function FollowersList() {
         </div>
       )}
 
-      {/* 🧭 Pagination */}
       {followers.length > 0 && (
         <div className="flex justify-center items-center gap-3 mt-6">
           <button

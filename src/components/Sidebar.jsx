@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { BsStarFill } from "react-icons/bs";
-
+import { BsBookmark } from "react-icons/bs";
 const topics = [
   "Writing",
   "Cryptocurrency",
@@ -262,9 +261,12 @@ export default function RightSidebar() {
       {/* READING LIST + FOOTER */}
       <section className="border-t pt-4 text-xs text-gray-500 space-y-2">
         <h2 className="text-sm font-semibold mb-2">Reading list</h2>
-        <p>
-          Click the 📌 on any story to easily add it to your reading list or a
-          custom list that you can share.
+        <p className="flex items-center flex-wrap">
+          Click the
+          <span className="inline-flex items-center mx-1">
+            <BsBookmark className="inline-block cursor-pointer hover:text-black" />
+          </span>
+          on any story to easily add it to your reading list or a custom list that you can share.
         </p>
         <div className="mt-3 space-x-2 flex flex-wrap text-[11px]">
           {[

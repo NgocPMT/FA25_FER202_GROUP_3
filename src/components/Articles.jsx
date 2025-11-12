@@ -1,8 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Article from "../components/Article";
+import axios from 'axios'
+import useSavedPosts from "../hooks/useSavedPosts";
 
 const Articles = () => {
+  const token = localStorage.getItem("token");
+
+  // Save post function
+  const { toggleSave, savedIds } = useSavedPosts();
+
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -88,6 +95,11 @@ const Articles = () => {
 
   const isSearching = !!keyword;
 
+  // delete post
+  function handleDeletePost(deletedId) {
+    setArticles((prev) => prev.filter((p) => p.id !== deletedId));
+  }
+
   return (
     <div className="px-6 py-4">
       {isSearching && (
@@ -121,10 +133,17 @@ const Articles = () => {
               : "There are no posts yet."}
           </p>
         ) : (
-          articles.map((post) => <Article key={post.id} data={post} />)
+          articles.map((post) => {
+            const saved = savedIds.has(post.id);
+            return <Article
+              key={post.id}
+              data={post}
+              isSaved={saved}
+              onSave={() => toggleSave(post.id)}
+              onDelete={handleDeletePost} />
+          })
         )}
       </div>
-
 
       {/* pagination */}
       <div className="flex items-center justify-center gap-3 mt-8">
@@ -132,8 +151,8 @@ const Articles = () => {
           onClick={handlePrev}
           disabled={!hasPrev}
           className={`px-3 py-1  ${hasPrev
-              ? "hover:bg-gray-50 cursor-pointer"
-              : "opacity-50 cursor-not-allowed"
+            ? "hover:bg-gray-50 cursor-pointer"
+            : "opacity-50 cursor-not-allowed"
             }`}
         >
           Prev
@@ -145,8 +164,8 @@ const Articles = () => {
           onClick={handleNext}
           disabled={!hasNext}
           className={`px-3 py-1  ${hasNext
-              ? "hover:bg-gray-50 cursor-pointer"
-              : "opacity-50 cursor-not-allowed"
+            ? "hover:bg-gray-50 cursor-pointer"
+            : "opacity-50 cursor-not-allowed"
             }`}
         >
           Next

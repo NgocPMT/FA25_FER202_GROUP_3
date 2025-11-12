@@ -158,7 +158,7 @@ const Navbar = ({ onToggleSideNav }) => {
           </Link>
         </div>
 
-        <div className="relative w-full max-w-xs">
+        <div className="relative w-full max-w-xs hidden md:block">
           <IoSearchOutline className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg pointer-events-none" />
           <input
             type="text"
@@ -229,6 +229,64 @@ const Navbar = ({ onToggleSideNav }) => {
             </div>
           )}
         </div>
+
+
+        {showSearch && (
+          <div className="fixed inset-0 bg-white z-[60] flex flex-col p-4 animate-fadeIn">
+            <div className="flex items-center justify-between mb-4">
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleSearchEnter}
+                className="flex-1 border rounded-full px-4 py-2 focus:outline-none bg-gray-50"
+              />
+              <button
+                className="ml-2 p-2 rounded-full hover:bg-gray-100"
+                onClick={() => setShowSearch(false)}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="mt-2">
+              <h3 className="text-xs font-semibold text-gray-500 mb-2">Recent searches</h3>
+              {searchHistory.length === 0 ? (
+                <p className="text-gray-400 text-sm">No recent searches</p>
+              ) : (
+                <div className="space-y-2">
+                  {searchHistory.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="flex justify-between items-center p-2 rounded hover:bg-gray-100 cursor-pointer"
+                      onClick={() => {
+                        saveSearchHistory(item);
+                        setSearchQuery(item);
+                        setShowSearch(false);
+                        navigate(`/home?query=${encodeURIComponent(item)}&page=1&limit=5`);
+                      }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <IoSearchOutline className="text-gray-400" />
+                        <span>{item}</span>
+                      </div>
+                      <button
+                        className="text-gray-400 hover:text-red-500"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeHistoryItem(item);
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {token && isValidToken ? (
           <div className="flex items-center gap-2">

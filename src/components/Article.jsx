@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { BsStarFill, BsChat, BsBookmark, BsThreeDots } from "react-icons/bs";
 import { Link } from "react-router-dom";
+
 
 export default function Article({ data }) {
   const {
@@ -16,6 +17,11 @@ export default function Article({ data }) {
 
   const postReactions = PostReaction?.length || 0;
   const postComments = comments?.length || 0;
+
+
+  //image
+  const [isImageError, setIsImageError] = useState(false);
+
 
   const extractTextRecursively = (node) => {
     if (!node) return "";
@@ -117,14 +123,23 @@ export default function Article({ data }) {
 
         {/* RIGHT */}
         <div className="relative flex-shrink-0">
-          <img
-            src={coverImageUrl}
-            alt={title}
-            className="object-cover rounded-sm -ml-3
-        w-[90px] h-[60px]
-        sm:w-40 sm:h-[100px]
-        lg:w-40 lg:h-[100px]"
-          />
+
+          <Link
+            to={`/posts/${slug}`}
+            className="block relative w-[90px] h-[60px] sm:w-40 sm:h-[100px] lg:w-40 lg:h-[100px]"
+          >
+            {!isImageError && coverImageUrl ? (
+              <img
+                src={coverImageUrl}
+                alt={title}
+                className="object-cover rounded-sm -ml-3 w-full h-full hover:opacity-90 transition"
+                onError={() => setIsImageError(true)}
+              />
+            ) : (
+              // if erro image or no image
+              <div className="w-full h-full rounded-sm -ml-3 bg-transparent cursor-pointer" />
+            )}
+          </Link>
           <div className="hidden xl:flex absolute top-25 right-60 gap-3 text-gray-500">
             <BsBookmark className="cursor-pointer hover:text-black" />
             <BsThreeDots className="cursor-pointer hover:text-black" />

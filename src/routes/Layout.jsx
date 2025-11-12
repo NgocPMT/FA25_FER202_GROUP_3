@@ -7,6 +7,7 @@ import "../css/Layout.css";
 const Layout = () => {
   const [showSideNav, setShowSideNav] = useState(window.innerWidth >= 1024);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+  const [isCommentOpen, setIsCommentOpen] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -47,10 +48,11 @@ const Layout = () => {
       </div>
 
       <main
-        className={`pt-16 transition-all duration-300 relative z-10
-    ${!isMobile && showSideNav ? "ml-60" : "mx-4"}`}
+        className={`pt-16 transition-all duration-300 relative ${
+          isCommentOpen ? "z-[9999]" : "z-10"
+        } ${!isMobile && showSideNav ? "ml-60" : "mx-4"}`}
       >
-        <Outlet />
+        <Outlet context={{ setIsCommentOpen }} />
       </main>
     </div>
   );

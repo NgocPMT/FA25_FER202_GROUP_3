@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { useOutletContext } from "react-router";
+import CommentPost from "@/components/CommentPost";
 import { EditorContent, EditorContext, useEditor } from "@tiptap/react";
 import { StarterKit } from "@tiptap/starter-kit";
 import { Image } from "@tiptap/extension-image";
@@ -26,6 +28,8 @@ import { useLoader } from "@/context/LoaderContext";
 import { Link } from "react-router";
 
 const ReadOnlyContent = ({ slug }) => {
+  const { setIsCommentOpen: setLayoutCommentOpen } = useOutletContext();
+  const [isCommentOpen, setIsCommentOpen] = useState(false);
   const [post, setPost] = useState(null);
   const [showMore, setShowMore] = useState(false);
   const [reactions, setReactions] = useState(null);
@@ -199,7 +203,7 @@ const ReadOnlyContent = ({ slug }) => {
   }, [slug, editor, reactedType]);
 
   if (!editor) return <p>Loading...</p>;
-  console.log("📦 Post data before follow:", post);
+  // console.log("📦 Post data before follow:", post);
 
   const handleFollowToggle = async () => {
     if (!token) return alert("⚠️ Bạn cần đăng nhập để theo dõi tác giả.");
@@ -346,7 +350,13 @@ const ReadOnlyContent = ({ slug }) => {
                 <ReactionCount keyword="sad" />
                 <ReactionCount keyword="wow" />
                 <ReactionCount keyword="angry" />
-                <p className="hover:text-black transition cursor-pointer flex gap-2 items-center">
+                <p
+                  onClick={() => {
+                    setIsCommentOpen(true);
+                    setLayoutCommentOpen?.(true);
+                  }}
+                  className="hover:text-black transition cursor-pointer flex gap-2 items-center"
+                >
                   <FaRegComments className="size-5" />
                   <span>{post.comments.length}</span>
                 </p>
@@ -385,6 +395,14 @@ const ReadOnlyContent = ({ slug }) => {
             className="simple-editor-content"
           />
         </EditorContext.Provider>
+        <CommentPost
+          isOpen={isCommentOpen}
+          onClose={() => {
+            setIsCommentOpen(false);
+            setLayoutCommentOpen?.(false);
+          }}
+          postId={post.id}
+        />
       </div>
     )
   );

@@ -45,7 +45,6 @@ export default function Article({ data }) {
   const formatTitle = (title) => {
     if (!title) return "Untitled";
 
-
     if (title.length <= 50) return title;
 
     if (title.length <= 100) {
@@ -69,7 +68,6 @@ export default function Article({ data }) {
 
   return (
     <div className="flex justify-between items-start border-b border-gray-200 pb-6">
-
       {/* Left */}
       <div className="flex-1 pr-4">
         <div className="flex items-center gap-2 mb-1">
@@ -99,13 +97,7 @@ export default function Article({ data }) {
           >
             {formatTitle(title)}
           </h2>
-
-
-
         </Link>
-
-
-
 
         <p className="text-gray-600 mb-3 line-clamp-2">
           {getPreviewText(content)}
@@ -119,10 +111,12 @@ export default function Article({ data }) {
             <BsStarFill className="text-yellow-500" />
             {postReactions}
           </span>
-          <span className="flex items-center gap-1">
+          <Link
+            to={`/posts/${slug}`}
+            className="flex items-center gap-1 hover:text-black"
+          >
             <BsChat /> {postComments}
-          </span>
-
+          </Link>
         </div>
       </div>
 
@@ -139,9 +133,7 @@ export default function Article({ data }) {
           <BsBookmark className="cursor-pointer hover:text-black" />
           <BsThreeDots className="cursor-pointer hover:text-black" />
         </div>
-
       </div>
-
     </div>
   );
 }

@@ -43,6 +43,14 @@ const ReadOnlyContent = ({ slug }) => {
   const [isFollowing, setIsFollowing] = useState(false); // ✅ trạng thái follow
   const [loadingFollow, setLoadingFollow] = useState(false);
 
+  const refreshComments = async (postId) => {
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/posts/${postId}/comments`
+    );
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  };
+
   useEffect(() => {
     document.body.classList.add("page-no-scroll");
     return () => {
@@ -402,6 +410,22 @@ const ReadOnlyContent = ({ slug }) => {
             setLayoutCommentOpen?.(false);
           }}
           postId={post.id}
+          postAuthorId={post.userId}
+          onCommentChange={(action, commentId) => {
+            setPost((prev) => {
+              let updatedComments = prev.comments || [];
+
+              if (action === "add") {
+                updatedComments = [...updatedComments, { id: commentId }];
+              } else if (action === "delete") {
+                updatedComments = updatedComments.filter(
+                  (c) => c.id !== commentId
+                );
+              }
+
+              return { ...prev, comments: updatedComments };
+            });
+          }}
         />
       </div>
     )

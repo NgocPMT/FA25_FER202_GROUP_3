@@ -12,7 +12,7 @@ export default function StatStories() {
   const [followersCount, setFollowersCount] = useState(0);
 
   const [page, setPage] = useState(1);
-  const limit = 5;
+  const [limit] = useState(5);
 
   const [selectedSort, setSelectedSort] = useState("Latest");
   const [openSort, setOpenSort] = useState(false);
@@ -21,6 +21,8 @@ export default function StatStories() {
 
   const [today, setToday] = useState(new Date());
   const [isUserPaging, setIsUserPaging] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [hasNext, setHasNext] = useState(true);
 
   const [lifetimeStart, setLifetimeStart] = useState(null);
 
@@ -135,15 +137,20 @@ export default function StatStories() {
   // Get all stories
   useEffect(() => {
     async function fetchStories() {
+      setLoading(true);
       try {
         const token = localStorage.getItem("token");
 
         const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/me/posts?page=1&limit=999999`,
+          `${
+            import.meta.env.VITE_API_URL
+          }/me/posts?page=${page}&limit=${limit}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        const formatted = res.data.map((post) => {
+        const data = res.data;
+
+        const formatted = data.map((post) => {
           const d = new Date(post.createdAt);
           return {
             id: post._id || post.id,
@@ -157,18 +164,22 @@ export default function StatStories() {
         });
 
         setStories(formatted);
+        setHasNext(data.length === limit); // nếu ít hơn limit => hết trang
 
         if (formatted.length > 0) {
           const earliest = Math.min(...formatted.map((s) => s.dateValue));
           setLifetimeStart(new Date(earliest));
         }
-      } catch {
+      } catch (err) {
+        console.error("❌ Fetch stories failed:", err);
         setStories([]);
+        setHasNext(false);
       }
+      setLoading(false);
     }
 
     fetchStories();
-  }, []);
+  }, [page]);
 
   // Close dropdown when clicking out
   useEffect(() => {
@@ -223,7 +234,7 @@ export default function StatStories() {
       {/* Story list */}
       <div ref={listTopRef}>
         <StoryListStat
-          stories={sortedStories.slice((page - 1) * limit, page * limit)}
+          stories={stories}
           sortRef={sortRef}
           openSort={openSort}
           setOpenSort={setOpenSort}
@@ -237,37 +248,33 @@ export default function StatStories() {
       </div>
 
       {/* Pagination */}
-      <div className="flex justify-center mt-6 gap-3">
-        <button
-          onClick={() => {
-            setIsUserPaging(true);
-            setPage((p) => Math.max(1, p - 1));
-          }}
-          className={`px-3 py-1 rounded-full bg-white transition opacity-30 hover:opacity-60 ${
-            page === 1
-              ? "invisible"
-              : "cursor-pointer opacity-40 hover:opacity-60"
-          }`}
-        >
-          Prev
-        </button>
+      {stories.length > 0 && (
+        <div className="flex justify-center mt-6 gap-3">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            className={`px-3 py-1 rounded-full bg-white transition ${
+              page === 1
+                ? "invisible"
+                : "cursor-pointer opacity-40 hover:opacity-60"
+            }`}
+          >
+            Prev
+          </button>
 
-        <span className="px-3 py-1 opacity-70">{page}</span>
+          <span className="px-3 py-1 opacity-70">{page}</span>
 
-        <button
-          onClick={() => {
-            setIsUserPaging(true);
-            setPage((p) => p + 1);
-          }}
-          className={`px-3 py-1 rounded-full bg-white transition opacity-30 hover:opacity-60 ${
-            page * limit >= sortedStories.length
-              ? "invisible"
-              : "cursor-pointer opacity-40 hover:opacity-60"
-          }`}
-        >
-          Next
-        </button>
-      </div>
+          <button
+            onClick={() => setPage((p) => p + 1)}
+            className={`px-3 py-1 rounded-full bg-white transition ${
+              !hasNext
+                ? "invisible"
+                : "cursor-pointer opacity-40 hover:opacity-60"
+            }`}
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 }

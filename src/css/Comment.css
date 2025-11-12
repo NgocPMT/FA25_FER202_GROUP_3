@@ -1,12 +1,12 @@
 .comment-wrapper {
   position: relative;
   display: -webkit-box;
-  -webkit-line-clamp: unset; /* bỏ clamp vì ta cắt theo ký tự */
+  -webkit-line-clamp: unset;
   -webkit-box-orient: vertical;
   overflow: visible;
   word-break: break-word;
   white-space: pre-line;
-  line-height: 1.4em; /* khoảng cách dòng rất đẹp */
+  line-height: 1.4em;
   max-height: none;
 }
 

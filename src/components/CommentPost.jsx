@@ -3,7 +3,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import CommentContent from "../components/CommentContent";
 import "../css/Comment.css";
 
-export default function CommentPost({ isOpen, onClose, postId }) {
+export default function CommentPost({
+  isOpen,
+  onClose,
+  postId,
+  postAuthorId,
+  onCommentChange,
+}) {
   const textareaRef = useRef(null);
   const sortRef = useRef(null);
   const [openSort, setOpenSort] = useState(false);
@@ -14,6 +20,11 @@ export default function CommentPost({ isOpen, onClose, postId }) {
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [extraSpace, setExtraSpace] = useState(false);
+  const commentListRef = useRef(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [targetDeleteId, setTargetDeleteId] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   const [user, setUser] = useState({
     id: "",
     name: "",
@@ -24,11 +35,21 @@ export default function CommentPost({ isOpen, onClose, postId }) {
     const handleClickOutside = (e) => {
       if (!e.target.closest(".menu-comment")) {
         setOpenMenuId(null);
+        setExtraSpace(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (extraSpace && commentListRef.current) {
+      commentListRef.current.scrollTo({
+        top: commentListRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }, [extraSpace]);
 
   useEffect(() => {
     function handleClickOutside(e) {
@@ -65,6 +86,8 @@ export default function CommentPost({ isOpen, onClose, postId }) {
 
         const data = await res.json();
         console.log("🧍‍♂️ Profile data:", data);
+
+        // ✅ Cập nhật thông tin user
         setUser({
           id: data.userId || data.id || "",
           name: data.name || data.username || "User",
@@ -73,14 +96,25 @@ export default function CommentPost({ isOpen, onClose, postId }) {
             "https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-icon.webp",
         });
 
-        const expandKey = `commentExpanded_${data.id}_${postId}`;
-        const draftKey = `commentDraft_${data.id}_${postId}`;
+        // ✅ Bảo vệ: chỉ xử lý khi có userId
+        const userId = data.userId || data.id;
+        if (!userId) {
+          console.warn("⚠️ Missing userId, skip draft restore");
+          return;
+        }
+
+        // ✅ Tạo key cố định
+        const expandKey = `commentExpanded_${userId}_${postId}`;
+        const draftKey = `commentDraft_${userId}_${postId}`;
         const timeKey = `${draftKey}_time`;
 
         const savedExpanded = localStorage.getItem(expandKey);
         const savedDraft = localStorage.getItem(draftKey);
         const savedTime = localStorage.getItem(timeKey);
 
+        console.log("🎯 Draft key:", draftKey, "=>", savedDraft);
+
+        // ✅ Có draft hợp lệ → khôi phục
         if (savedDraft && savedTime) {
           const diffHours =
             (Date.now() - parseInt(savedTime)) / (1000 * 60 * 60);
@@ -93,21 +127,18 @@ export default function CommentPost({ isOpen, onClose, postId }) {
             } else {
               setIsExpanded(false);
             }
+            return; // ✅ Dừng ở đây, không reset nữa
           } else {
+            // ✅ Quá 12 tiếng thì mới xóa
             localStorage.removeItem(draftKey);
             localStorage.removeItem(timeKey);
             localStorage.removeItem(expandKey);
-            setCommentText("");
-            setIsExpanded(false);
-          }
-        } else {
-          if (savedExpanded === "true") {
-            setIsExpanded(false);
-            setTimeout(() => setIsExpanded(true), 50);
-          } else {
-            setIsExpanded(false);
           }
         }
+
+        // ❗ Nếu không có draft hợp lệ thì chỉ reset state, không xóa localStorage lung tung
+        setCommentText("");
+        setIsExpanded(savedExpanded === "true");
       } catch (err) {
         console.error("❌ Error getting profile:", err);
       }
@@ -145,7 +176,20 @@ export default function CommentPost({ isOpen, onClose, postId }) {
           ...c,
           user: c.user || { name: "Anonymous" },
         }));
-        setComments(cleanedData);
+
+        const latestComment = cleanedData.reduce((latest, current) => {
+          return new Date(current.createdAt) > new Date(latest.createdAt)
+            ? current
+            : latest;
+        }, cleanedData[0]);
+
+        const reordered = [
+          latestComment,
+          ...cleanedData.filter((c) => c.id !== latestComment.id),
+        ];
+
+        setComments(reordered);
+        setSort("relevant");
       }
     } catch (err) {
       console.warn("⚠️ Error when getting comment:", err);
@@ -195,14 +239,26 @@ export default function CommentPost({ isOpen, onClose, postId }) {
 
       if (!res.ok) throw new Error("Comments cannot be submitted.");
       const createdOrUpdated = await res.json();
+      const newComment = createdOrUpdated.comment || createdOrUpdated;
+      if (!newComment.user) {
+        newComment.user = {
+          id: user.id,
+          name: user.name,
+          avatarUrl: user.avatar,
+        };
+      }
 
       if (editingId) {
         setComments((prev) =>
-          prev.map((c) => (c.id === editingId ? createdOrUpdated : c))
+          prev.map((c) => (c.id === editingId ? newComment : c))
         );
         setEditingId(null);
       } else {
-        setComments((prev) => [createdOrUpdated, ...prev]);
+        setComments((prev) => [newComment, ...prev]);
+      }
+
+      if (onCommentChange) {
+        onCommentChange(editingId ? "update" : "add", newComment.id);
       }
 
       setCommentText("");
@@ -210,8 +266,6 @@ export default function CommentPost({ isOpen, onClose, postId }) {
       const draftKey = `commentDraft_${user.id}_${postId}`;
       localStorage.removeItem(draftKey);
       localStorage.removeItem(`${draftKey}_time`);
-
-      if (sort === "relevant") setSort("recent");
     } catch (err) {
       console.error("❌ Error sending comment:", err);
       alert("Comment could not be submitted. Please try again later.");
@@ -220,27 +274,35 @@ export default function CommentPost({ isOpen, onClose, postId }) {
     }
   };
 
-  const handleDelete = async (commentId) => {
-    if (!confirm("Are you sure you want to delete this comment?")) return;
+  const handleDelete = async () => {
+    if (!targetDeleteId) return;
     const token = localStorage.getItem("token");
-    if (!token) return alert("You need to log in to delete.");
+    if (!token) return alert("⚠️ You need to log in to delete.");
 
+    setDeleting(true);
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/posts/${postId}/comments/${commentId}`,
+        `${
+          import.meta.env.VITE_API_URL
+        }/posts/${postId}/comments/${targetDeleteId}`,
         {
           method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
+      if (!res.ok) throw new Error("Comment cannot be deleted.");
 
-      if (!res.ok) throw new Error("Không thể xoá bình luận.");
-      setComments((prev) => prev.filter((c) => c.id !== commentId));
+      setComments((prev) => prev.filter((c) => c.id !== targetDeleteId));
+      setShowDeleteModal(false);
+
+      if (onCommentChange) {
+        onCommentChange("delete", targetDeleteId);
+      }
     } catch (err) {
-      console.error("❌ Error while deleting:", err);
-      alert("Comment cannot be deleted.");
+      alert("⚠️ Delete failed, please try again.");
+    } finally {
+      setDeleting(false);
+      setTargetDeleteId(null);
     }
   };
 
@@ -478,49 +540,84 @@ export default function CommentPost({ isOpen, onClose, postId }) {
             </div>
 
             {/* lấy id comment */}
-            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-5">
-              {comments.map((c) => {
-                console.log(c.id);
-                if (!c.id) {
-                  console.warn("⚠️ Comment missing id:", c);
-                  return null;
-                }
-                const displayName =
-                  c.user?.Profile?.name ||
-                  c.user?.name ||
-                  c.user?.username ||
-                  "Anonymous";
+            <div
+              ref={commentListRef}
+              className={`flex-1 overflow-y-auto px-4 py-3 space-y-5 transition-all duration-300 ${
+                extraSpace ? "pb-24" : "pb-4"
+              }`}
+            >
+              {comments
+                .filter((c) => c && c.id)
+                .map((c) => {
+                  if (!c.id) {
+                    console.warn("⚠️ Comment missing id:", c);
+                    return null;
+                  }
+                  const displayName =
+                    c.user?.Profile?.name ||
+                    c.user?.name ||
+                    c.user?.username ||
+                    "Anonymous";
 
-                const displayAvatar =
-                  c.user?.Profile?.avatarUrl ||
-                  c.user?.avatarUrl ||
-                  "https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-icon.webp";
+                  const displayAvatar =
+                    c.user?.Profile?.avatarUrl ||
+                    c.user?.avatarUrl ||
+                    "https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-icon.webp";
 
-                const isOwner =
-                  String(user.id) === String(c.user?.id) ||
-                  String(user.id) === String(c.user?.userId) ||
-                  String(user.id) === String(c.user?.Profile?.userId);
+                  const isOwner =
+                    String(user.id) === String(c.user?.id) ||
+                    String(user.id) === String(c.user?.userId) ||
+                    String(user.id) === String(c.user?.Profile?.userId);
 
-                return (
-                  <div key={c.id}>
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-2">
-                        <img
-                          src={displayAvatar}
-                          alt="avatar"
-                          className="size-6 rounded-full object-cover"
-                        />
-                        <p className="text-sm font-semibold">{displayName}</p>
-                        <span className="text-xs text-gray-500">
-                          {formatDate(c)}
-                        </span>
-                      </div>
+                  const isAuthorComment =
+                    String(c.user?.id) === String(postAuthorId) ||
+                    String(c.user?.userId) === String(postAuthorId);
 
-                      {isOwner && (
+                  return (
+                    <div
+                      key={c.id}
+                      className={`p-3 rounded-lg ${
+                        isAuthorComment
+                          ? "text-black"
+                          : "bg-gray-50 text-gray-900"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-start gap-2">
+                          <img
+                            src={displayAvatar}
+                            alt="avatar"
+                            className="w-8 h-8 rounded-full object-cover border border-white mt-0.5"
+                          />
+
+                          <div className="flex flex-col">
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-semibold">
+                                {displayName}
+                              </p>
+                              {isAuthorComment && (
+                                <span className="text-xs bg-green-700 text-white px-2 py-0.5 rounded-md">
+                                  Author
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-xs text-gray-500 mt-0.5">
+                              {formatDate(c)}
+                            </span>
+                          </div>
+                        </div>
+
                         <div className="relative menu-comment">
                           <button
                             onClick={() => {
-                              setOpenMenuId(openMenuId === c.id ? null : c.id);
+                              const newId = openMenuId === c.id ? null : c.id;
+                              setOpenMenuId(newId);
+
+                              const isLastComment =
+                                comments[comments.length - 1]?.id === c.id;
+                              setExtraSpace(
+                                newId && isLastComment ? true : false
+                              );
                             }}
                             className="text-gray-500 hover:text-black px-2 cursor-pointer"
                           >
@@ -528,65 +625,117 @@ export default function CommentPost({ isOpen, onClose, postId }) {
                           </button>
 
                           {openMenuId === c.id && (
-                            <div className="absolute right-0 top-5 bg-white border border-gray-200 rounded-lg shadow-lg z-10 w-36">
-                              <button
-                                onClick={() => {
-                                  setEditingId(c.id);
-                                  setCommentText(c.content);
-                                  setIsExpanded(true);
-                                  setTimeout(
-                                    () => textareaRef.current?.focus(),
-                                    50
-                                  );
-                                  setOpenMenuId(null);
-                                }}
-                                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
-                              >
-                                Edit respond
-                              </button>
+                            <div className="absolute right-0 top-5 bg-white border border-gray-200 rounded-lg shadow-lg z-10 w-40 animate-fadeIn">
+                              {isOwner ? (
+                                <>
+                                  <button
+                                    onClick={() => {
+                                      setEditingId(c.id);
+                                      setCommentText(c.content);
+                                      setIsExpanded(true);
+                                      setTimeout(
+                                        () => textareaRef.current?.focus(),
+                                        50
+                                      );
+                                      setOpenMenuId(null);
+                                    }}
+                                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                                  >
+                                    Edit respond
+                                  </button>
 
-                              <button
-                                onClick={() => {
-                                  setOpenMenuId(null);
-                                  handleDelete(c.id);
-                                }}
-                                className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 cursor-pointer"
-                              >
-                                Delete respond
-                              </button>
+                                  <button
+                                    onClick={() => {
+                                      setOpenMenuId(null);
+                                      setTargetDeleteId(c.id);
+                                      setShowDeleteModal(true);
+                                    }}
+                                    className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 cursor-pointer"
+                                  >
+                                    Delete respond
+                                  </button>
+                                </>
+                              ) : (
+                                <>
+                                  <button
+                                    onClick={() => {
+                                      setOpenMenuId(null);
+                                      // console.log("🚩 Report comment:", c.id);
+                                    }}
+                                    className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 cursor-pointer"
+                                  >
+                                    Report respond
+                                  </button>
+                                </>
+                              )}
                             </div>
                           )}
                         </div>
-                      )}
-                    </div>
+                      </div>
 
-                    <CommentContent
-                      content={c.content}
-                      showFull={c.showFull}
-                      oonExpand={() =>
-                        setComments((prev) =>
-                          prev.map((item) =>
-                            item.id === c.id
-                              ? { ...item, showFull: true }
-                              : item
-                          )
-                        )
-                      }
-                    />
+                      {/* Nội dung comment */}
+                      <div className="mb-3">
+                        <CommentContent
+                          content={c.content}
+                          showFull={c.showFull}
+                          onExpand={() =>
+                            setComments((prev) =>
+                              prev.map((item) =>
+                                item.id === c.id
+                                  ? { ...item, showFull: true }
+                                  : item
+                              )
+                            )
+                          }
+                        />
+                      </div>
 
-                    <div className="flex items-center gap-4 text-xs text-gray-500">
-                      <span>
-                        {c.repliesCount || 0} replies{" "}
-                        <button className="underline ml-1 hover:text-black">
+                      {/* Footer replies */}
+                      <div className="mt-3 flex items-center gap-4 text-xs text-gray-500">
+                        {c.repliesCount > 0 && (
+                          <span>{c.repliesCount} replies</span>
+                        )}
+
+                        <button className="underline ml-1 hover:text-gray-700 cursor-pointer">
                           Reply
                         </button>
-                      </span>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
             </div>
           </motion.div>
+        )}
+        {showDeleteModal && (
+          <div className="fixed inset-0 z-[999] bg-black/40 flex items-center justify-center">
+            <div className="bg-white rounded-xl shadow-2xl p-6 w-[320px] text-center">
+              <h2 className="text-lg font-semibold text-gray-900 mb-2">
+                Delete comment?
+              </h2>
+              <p className="text-sm text-gray-500 mb-6">
+                This action cannot be undone.
+              </p>
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="px-4 py-2 text-sm rounded-lg bg-gray-100 hover:bg-gray-200 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className={`px-4 py-2 text-sm rounded-lg text-white transition ${
+                    deleting
+                      ? "bg-red-400 cursor-not-allowed"
+                      : "bg-red-600 hover:bg-red-700"
+                  }`}
+                >
+                  {deleting ? "Deleting..." : "Delete"}
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </AnimatePresence>
     </>

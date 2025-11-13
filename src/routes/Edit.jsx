@@ -18,6 +18,7 @@ const Edit = () => {
   const editorRef = useRef(null);
   const navigate = useNavigate();
   const { showLoader, hideLoader } = useLoader();
+  const [draftId, setDraftId] = useState(null);
 
   const { slug } = useParams();
 
@@ -41,6 +42,7 @@ const Edit = () => {
 
         setPost(data);
         setTitle(data.title);
+        setDraftId(data.id);
       } catch (err) {
         if (err.name !== "AbortError") {
           console.error("Fetch error:", err);
@@ -150,6 +152,86 @@ const Edit = () => {
     }
   };
 
+  const handleAutoSave = async (isEmpty, signal) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        setModalMessage("You must login before posting");
+        openModal();
+        return;
+      }
+
+      const tokenRes = await fetch(
+        `${import.meta.env.VITE_API_URL}/validate-token`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          signal,
+        }
+      );
+      const tokenValidation = await tokenRes.json();
+
+      if (!tokenValidation.valid) {
+        setModalMessage("You must login before posting");
+        openModal();
+        return;
+      }
+
+      const content = editorRef.current?.getContent();
+      const coverImageUrl = extractFirstImageURL(content);
+
+      if (!title || (title.trim().length === 0 && !content) || isEmpty) {
+        return;
+      }
+
+      if (title.length < 2 || title.length > 255) {
+        setModalMessage("Title must be in from 2 to 255 characters");
+        openModal();
+        return;
+      }
+
+      const body = draftId
+        ? JSON.stringify({
+            id: draftId,
+            title,
+            content: JSON.stringify(content),
+            coverImageUrl,
+          })
+        : JSON.stringify({
+            title,
+            content: JSON.stringify(content),
+            coverImageUrl,
+          });
+      toast.info("Saving...");
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/posts/drafts`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body,
+        }
+      );
+
+      if (!response.ok) {
+        const err = await response.json();
+        setModalMessage(err.error);
+        openModal();
+        return;
+      }
+
+      const data = await response.json();
+      toast.success(data.message);
+    } finally {
+      hideLoader();
+    }
+  };
+
   const extractFirstImageURL = (jsonContent) => {
     if (!jsonContent || !jsonContent.content) return null;
 
@@ -175,6 +257,7 @@ const Edit = () => {
             title={title}
             onTitleChange={handleTittleChange}
             handlePublish={handleSave}
+            handleAutoSave={handleAutoSave}
             isAvatarDropdownShow={isAvatarDropdownShow}
             toggleAvatarDropdownShow={toggleAvatarDropdownShow}
             logOut={logOut}

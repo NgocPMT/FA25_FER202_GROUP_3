@@ -72,7 +72,8 @@ import "@/components/tiptap-templates/simple/simple-editor.scss";
 
 import { Input } from "@/components/tiptap-ui-primitive/input";
 import { RxAvatar } from "react-icons/rx";
-import { Link } from "react-router";
+import { MdOutlineMoreHoriz } from "react-icons/md";
+import { Link, useLocation } from "react-router";
 
 const MainToolbarContent = ({ onHighlighterClick, onLinkClick, isMobile }) => {
   return (
@@ -157,6 +158,7 @@ export const SimpleEditor = React.forwardRef(
       title,
       onTitleChange,
       handlePublish,
+      handleAutoSave,
       isAvatarDropdownShow,
       toggleAvatarDropdownShow,
       logOut,
@@ -168,6 +170,9 @@ export const SimpleEditor = React.forwardRef(
     const { height } = useWindowSize();
     const [mobileView, setMobileView] = React.useState("main");
     const toolbarRef = React.useRef(null);
+    const location = useLocation();
+    const previousPath = React.useRef(location.pathname);
+    const lastSegment = location.pathname.split("/").filter(Boolean).pop();
 
     const editor = useEditor({
       immediatelyRender: false,
@@ -214,6 +219,31 @@ export const SimpleEditor = React.forwardRef(
       getContent: () => editor?.getJSON(),
     }));
 
+    React.useEffect(() => {
+      if (!handleAutoSave || !editor) return;
+
+      let controller = new AbortController();
+      let signal = controller.signal;
+
+      let prevContent = JSON.stringify(editor.getJSON());
+
+      const autoSave = async () => {
+        const currentContent = JSON.stringify(editor.getJSON());
+
+        if (currentContent !== prevContent) {
+          prevContent = currentContent;
+          await handleAutoSave(editor.isEmpty, signal);
+        }
+      };
+
+      const timer = setInterval(autoSave, 10000);
+
+      return () => {
+        controller.abort();
+        clearInterval(timer);
+      };
+    }, [handleAutoSave, editor]);
+
     const rect = useCursorVisibility({
       editor,
       overlayHeight: toolbarRef.current?.getBoundingClientRect().height ?? 0,
@@ -244,13 +274,46 @@ export const SimpleEditor = React.forwardRef(
                   onClick={toggleAvatarDropdownShow}
                   className="w-full h-full rounded-full flex items-center justify-center text-white font-bold cursor-pointer flex-shrink-0 overflow-hidden"
                 >
-                  <RxAvatar className="w-full h-full text-black" />
+                  <MdOutlineMoreHoriz className="w-full h-full text-black" />
                 </button>
                 {isAvatarDropdownShow && (
-                  <div className="bg-white top-10 right-0 absolute w-fit z-50">
+                  <div className="bg-white top-10 right-0 absolute w-fit z-50 text-sm px-3 py-1 ring ring-gray-300 shadow-lg rounded-sm">
+                    <div className="mb-2">
+                      <Link
+                        to="/home"
+                        className="cursor-pointer hover:bg-gray-400 p-1 whitespace-nowrap text-end inline-block w-full"
+                      >
+                        Home
+                      </Link>
+                      <Link
+                        to="/library"
+                        className="cursor-pointer hover:bg-gray-400 p-1 whitespace-nowrap text-end inline-block w-full"
+                      >
+                        Library
+                      </Link>
+                      <Link
+                        to="/profile"
+                        className="cursor-pointer hover:bg-gray-400 p-1 whitespace-nowrap text-end inline-block w-full"
+                      >
+                        Profile
+                      </Link>
+                      <Link
+                        to="/stories"
+                        className="cursor-pointer hover:bg-gray-400 p-1 whitespace-nowrap text-end inline-block w-full"
+                      >
+                        Stories
+                      </Link>
+                      <Link
+                        to="/following"
+                        className="cursor-pointer hover:bg-gray-400 p-1 whitespace-nowrap text-end inline-block w-full"
+                      >
+                        Followings
+                      </Link>
+                      <hr />
+                    </div>
                     <button
                       onClick={logOut}
-                      className="cursor-pointer hover:bg-gray-400 p-1 whitespace-nowrap"
+                      className="cursor-pointer hover:bg-gray-400 p-1 whitespace-nowrap text-end inline-block w-full"
                     >
                       Log out
                     </button>

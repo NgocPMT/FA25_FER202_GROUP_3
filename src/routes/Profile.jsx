@@ -79,9 +79,16 @@ const Profile = () => {
       const res = await axios.get(`${import.meta.env.VITE_API_URL}/${route}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      const newRoute = username
+        ? `users/user/${username}/posts?page=${currentPage+1}&limit=${limit}`
+        : `me/posts?page=${currentPage+1}&limit=${limit}`;
+      const nextPost = await axios.get(`${import.meta.env.VITE_API_URL}/${newRoute}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const data = res.data;
       setPosts(data);
-      setHasNext(data.length === limit);
+      console.log("next: ", nextPost.data);
+      setHasNext(data.length === limit && nextPost.data.length != 0);
     } catch (err) {
       console.log("Error get posts:", err);
     }

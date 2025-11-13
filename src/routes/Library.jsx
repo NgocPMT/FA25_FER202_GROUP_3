@@ -25,9 +25,13 @@ const Library = () => {
         `${import.meta.env.VITE_API_URL}/me/saved-posts?page=${currentPage}&limit=${limit}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      const next = await axios.get(
+        `${import.meta.env.VITE_API_URL}/me/saved-posts?page=${currentPage+1}&limit=${limit}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       const data = res.data;
       setReadlist(data);
-      setHasNext(data.length === limit);
+      setHasNext(data.length === limit && next.data.length != 0);
     } catch (err) {
       console.log("Failed to get readlist:", err);
     }

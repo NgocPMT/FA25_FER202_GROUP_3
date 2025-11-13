@@ -1,10 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Article from "../components/Article";
+import useSavedPosts from "../hooks/useSavedPosts";
 
 const Articles = () => {
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Save post function
+  const { toggleSave, savedIds } = useSavedPosts();
 
   // lấy query params
   const searchParams = useMemo(
@@ -88,6 +92,11 @@ const Articles = () => {
 
   const isSearching = !!keyword;
 
+  // delete post
+  function handleDeletePost(deletedId) {
+    setArticles((prev) => prev.filter((p) => p.id !== deletedId));
+  }
+
   return (
     <div className="py-4">
       {isSearching && (
@@ -122,7 +131,15 @@ const Articles = () => {
               : "There are no posts yet."}
           </p>
         ) : (
-          articles.map((post) => <Article key={post.id} data={post} />)
+          articles.map((post) => {
+            const saved = savedIds.has(post.id);
+            return <Article
+              key={post.id}
+              data={post}
+              isSaved={saved}
+              onSave={() => toggleSave(post.id)}
+              onDelete={handleDeletePost} />
+          })
         )}
       </div>
 

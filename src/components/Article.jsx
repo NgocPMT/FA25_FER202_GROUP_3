@@ -1,9 +1,11 @@
-import React, { useState } from "react";
-import { BsStarFill, BsChat, BsBookmark, BsThreeDots } from "react-icons/bs";
+import React, { useState, useEffect } from "react";
+import { BsStarFill, BsChat, BsBookmark, BsThreeDots, BsBookmarkFill } from "react-icons/bs";
 import { Link } from "react-router-dom";
+import axios from 'axios'
 
+export default function Article({ data, isSaved, onSave, onDelete }) {
+  const currentUserId = JSON.parse(localStorage.getItem("userId"));
 
-export default function Article({ data }) {
   const {
     title,
     content,
@@ -18,10 +20,13 @@ export default function Article({ data }) {
   const postReactions = PostReaction?.length || 0;
   const postComments = comments?.length || 0;
 
-
   //image
   const [isImageError, setIsImageError] = useState(false);
 
+  // Menu for ThreeDots, Modal for delete button
+  const [showMenu, setShowMenu] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [postToDelete, setPostToDelete] = useState(null);
 
   const extractTextRecursively = (node) => {
     if (!node) return "";
@@ -72,6 +77,31 @@ export default function Article({ data }) {
       </>
     );
   };
+
+  // delete post
+  async function deletePost() {
+    const token = localStorage.getItem("token");
+    try {
+      await axios.delete(`${import.meta.env.VITE_API_URL}/posts/${postToDelete}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      onDelete(postToDelete);
+    } catch (err) {
+      console.error("Delete post error:", err.response?.data || err.message);
+    } finally {
+      setShowModal(false);
+      setPostToDelete(null)
+    }
+  }
+
+  useEffect(() => {
+    const handleClickOutside = () => setShowMenu(false);
+    document.addEventListener("click", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
 
   return (
     <div className="pb-6 border-b border-gray-200 lg:mx-10 px-0">
@@ -141,13 +171,85 @@ export default function Article({ data }) {
             )}
           </Link>
           <div className="hidden xl:flex absolute top-25 right-60 gap-3 text-gray-500">
-            <BsBookmark className="cursor-pointer hover:text-black" />
-            <BsThreeDots className="cursor-pointer hover:text-black" />
+            {isSaved ? (
+              <BsBookmarkFill
+                className="cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  onSave(data.id, isSaved);
+                }}
+              />
+            ) : (
+              <BsBookmark
+                className="cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  onSave(data.id, isSaved);
+                }}
+              />
+            )}
+            <div className="relative">
+              <BsThreeDots
+                className="cursor-pointer hover:text-black"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  setShowMenu((prev) => !prev);
+                }}
+              />
+
+              {showMenu && (
+                <div className="absolute right-0 mt-2 ring ring-gray-300 rounded-sm shadow-lg bg-white p-2 z-20 flex flex-col gap-3">
+                  {currentUserId === user?.id && (
+                    <button
+                      className="w-full text-start text-nowrap cursor-pointer text-gray-600 hover:text-black"
+                      onClick={() => {
+                        setPostToDelete(id);
+                        setShowModal(true);
+                      }}
+                    >
+                      Delete
+                    </button>
+                  )}
+                  <button className="w-full text-start text-nowrap text-red-600 hover:text-red-700 cursor-pointer">
+                    Report
+                  </button>
+                </div>
+              )}
+
+              {/* show modal confirm */}
+              {showModal && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black/30 z-50">
+                  <div className="bg-white rounded-lg shadow-lg p-6 w-80">
+                    <h3 className="text-lg font-semibold mb-3 text-gray-800">
+                      Delete Confirm
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-5">
+                      Are you sure to delete this post?
+                    </p>
+                    <div className="flex justify-end gap-3">
+                      <button
+                        onClick={() => setShowModal(false)}
+                        className="px-4 py-2 text-gray-600 hover:text-black"
+                      >
+                        Back
+                      </button>
+                      <button
+                        onClick={() => deletePost()}
+                        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
-
-
     </div>
   );
 }

@@ -1,5 +1,4 @@
 import { useState, useCallback } from "react";
-import axios from "axios";
 
 export default function useFollow() {
   const token = localStorage.getItem("token");
@@ -8,18 +7,36 @@ export default function useFollow() {
 
   const checkIfFollowing = useCallback(async (profileId) => {
     try {
-      const res = await axios.get(
+      const res = await fetch(
         `${import.meta.env.VITE_API_URL}/me/followings?page=1&limit=1000`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
       );
-      const data = res.data.followings || res.data;
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || "Failed to check following");
+      }
+
+      const json = await res.json();
+
+      // Backend có thể trả:
+      // { followings: [...] } hoặc [...]
+      const data = json.followings || json;
+
       const alreadyFollow = Array.isArray(data)
         ? data.some((f) => f.followingId === Number(profileId))
         : false;
 
       setIsFollowing(alreadyFollow);
+
     } catch (err) {
-      console.error("Error check following:", err.response?.data || err.message);
+      console.error("Error check following:", err.message);
     }
   }, [token]);
 
@@ -29,40 +46,82 @@ export default function useFollow() {
       const route = username
         ? `users/user/${username}/followers`
         : "me/followers";
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/${route}`, {
-        headers: { Authorization: `Bearer ${token}` },
+
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/${route}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
-      setFollowerCount(Array.isArray(res.data) ? res.data.length : 0);
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || "Failed to fetch followers");
+      }
+
+      const data = await res.json();
+
+      setFollowerCount(Array.isArray(data) ? data.length : 0);
+
     } catch (err) {
-      console.error("Error get followers:", err);
+      console.error("Error get followers:", err.message);
     }
   }, [token]);
 
   const toggleFollow = useCallback(async (profileId) => {
     if (!profileId) return;
+
     try {
       if (isFollowing) {
-        // Unfollow
-        await axios.delete(
+        // --- UNFOLLOW ---
+        const res = await fetch(
           `${import.meta.env.VITE_API_URL}/me/followings/${profileId}`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
         );
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.message || "Failed to unfollow");
+        }
+
         setIsFollowing(false);
         setFollowerCount((prev) => Math.max(0, prev - 1));
+
       } else {
-        // Follow
-        await axios.post(
+        // --- FOLLOW ---
+        const res = await fetch(
           `${import.meta.env.VITE_API_URL}/me/followings`,
-          { followingId: Number(profileId) },
-          { headers: { Authorization: `Bearer ${token}` } }
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ followingId: Number(profileId) }),
+          }
         );
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.message || "Failed to follow");
+        }
+
         setIsFollowing(true);
         setFollowerCount((prev) => prev + 1);
       }
+
     } catch (err) {
-      console.error("Toggle follow error:", err.response?.data || err.message);
+      console.error("Toggle follow error:", err.message);
     }
   }, [isFollowing, token]);
+
 
   return {
     isFollowing,

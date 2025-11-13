@@ -82,22 +82,6 @@ const Edit = () => {
       }
 
       showLoader();
-      const tokenRes = await fetch(
-        `${import.meta.env.VITE_API_URL}/validate-token`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      const tokenValidation = await tokenRes.json();
-
-      if (!tokenValidation.valid) {
-        setModalMessage("You must login before posting");
-        openModal();
-        return;
-      }
 
       const content = editorRef.current?.getContent();
       const coverImageUrl = extractFirstImageURL(content);

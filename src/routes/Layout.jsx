@@ -7,6 +7,7 @@ import "../css/Layout.css";
 const Layout = () => {
   const [showSideNav, setShowSideNav] = useState(window.innerWidth >= 1270);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1270);
+  const [isCommentOpen, setIsCommentOpen] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -30,7 +31,7 @@ const Layout = () => {
       {/* sidebar moblie */}
       {isMobile && (
         <button
-          className={`fixed inset-0 bg-black/10 z-40 transition-opacity duration-300 ease-in-out lg:hidden ${
+          className={`fixed inset-0 bg-black/10 z-40 transition-opacity duration-300 ease-in-out cursor-pointer ${
             showSideNav ? "opacity-100 visible" : "opacity-0 invisible"
           }`}
           onClick={() => setShowSideNav(false)}
@@ -51,10 +52,11 @@ const Layout = () => {
 
       {/* main */}
       <main
-        className={`pt-16 transition-all duration-300 relative z-10
-        ${!isMobile && showSideNav ? "ml-60" : "mx-4"}`}
+        className={`pt-16 relative ${isCommentOpen ? "z-100" : "z-10"} ${
+          !isMobile && showSideNav ? "ml-60" : "mx-4"
+        }`}
       >
-        <Outlet />
+        <Outlet context={{ setIsCommentOpen, isCommentOpen }} />
       </main>
     </div>
   );

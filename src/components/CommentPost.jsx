@@ -1,6 +1,9 @@
 import React, { useEffect, useState, useRef } from "react";
+import { Link } from "react-router-dom";
+import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
 import CommentContent from "../components/CommentContent";
+import { Star, Flame, Gem } from "lucide-react";
 import "../css/Comment.css";
 
 export default function CommentPost({
@@ -163,6 +166,24 @@ export default function CommentPost({
     return () => clearTimeout(timeout);
   }, [commentText, user, postId]);
 
+  const fetchPostCount = async (userId) => {
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/users/user/${userId}/posts`
+      );
+
+      const data = await res.json();
+
+      // Có thể backend trả mảng hoặc trả {posts: []}
+      const posts = Array.isArray(data) ? data : data.posts || [];
+
+      return posts.length; // số bài viết
+    } catch (err) {
+      console.warn("⚠️ Error fetching post count:", err);
+      return 0;
+    }
+  };
+
   const fetchComments = async () => {
     try {
       const res = await fetch(
@@ -176,6 +197,7 @@ export default function CommentPost({
           ...c,
           user: c.user || { name: "Anonymous" },
         }));
+
         const latestComment = cleanedData.reduce((latest, current) => {
           return new Date(current.createdAt) > new Date(latest.createdAt)
             ? current
@@ -187,7 +209,25 @@ export default function CommentPost({
           ...cleanedData.filter((c) => c.id !== latestComment.id),
         ];
 
-        setComments(reordered);
+        // ✨ lấy danh sách userId duy nhất
+        const users = [...new Set(reordered.map((c) => c.user.id))];
+
+        // ✨ lấy số bài viết từng user
+        const counts = {};
+        for (const id of users) {
+          counts[id] = await fetchPostCount(id);
+        }
+
+        // ✨ thêm postCount vào mỗi comment.user
+        const withPostCount = reordered.map((c) => ({
+          ...c,
+          user: {
+            ...c.user,
+            postCount: counts[c.user.id] || 0,
+          },
+        }));
+
+        setComments(withPostCount);
         setSort("relevant");
       }
     } catch (err) {
@@ -275,10 +315,15 @@ export default function CommentPost({
 
   const handleDelete = async () => {
     if (!targetDeleteId) return;
+
     const token = localStorage.getItem("token");
-    if (!token) return alert("⚠️ You need to log in to delete.");
+    if (!token) {
+      toast.error("You need to log in to delete.");
+      return;
+    }
 
     setDeleting(true);
+
     try {
       const res = await fetch(
         `${
@@ -289,7 +334,11 @@ export default function CommentPost({
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      if (!res.ok) throw new Error("Comment cannot be deleted.");
+
+      if (!res.ok) {
+        toast.error("Failed to delete comment.");
+        throw new Error("Comment cannot be deleted.");
+      }
 
       setComments((prev) => prev.filter((c) => c.id !== targetDeleteId));
       setShowDeleteModal(false);
@@ -297,8 +346,11 @@ export default function CommentPost({
       if (onCommentChange) {
         onCommentChange("delete", targetDeleteId);
       }
+
+      toast.success("Comment deleted successfully!");
     } catch (err) {
-      alert("⚠️ Delete failed, please try again.");
+      toast.error("Delete failed, please try again.");
+      console.error(err);
     } finally {
       setDeleting(false);
       setTargetDeleteId(null);
@@ -308,21 +360,29 @@ export default function CommentPost({
   const formatDate = (comment) => {
     const d = new Date(comment.createdAt || comment.date);
     const now = new Date();
-    const diffTime = now - d;
+    const diffTime = Math.max(0, now - d);
 
     const diffMinutes = diffTime / (1000 * 60);
     const diffHours = diffTime / (1000 * 60 * 60);
     const diffDays = diffTime / (1000 * 60 * 60 * 24);
 
+    if (diffMinutes < 1) {
+      return "Just now";
+    }
+
     if (diffMinutes < 60) {
       return `${Math.floor(diffMinutes)} minutes ago`;
-    } else if (diffHours < 24) {
-      return `${Math.floor(diffHours)} hour ago`;
-    } else if (diffDays < 2) {
-      return `${Math.floor(diffDays)} day ago`;
-    } else {
-      return `${d.getDate()} Th${d.getMonth() + 1}`;
     }
+
+    if (diffHours < 24) {
+      return `${Math.floor(diffHours)} hour ago`;
+    }
+
+    if (diffDays < 2) {
+      return `${Math.floor(diffDays)} day ago`;
+    }
+
+    return `${d.getDate()} Th${d.getMonth() + 1}`;
   };
 
   useEffect(() => {
@@ -358,7 +418,7 @@ export default function CommentPost({
         animate={{ opacity: isOpen ? 1 : 0 }}
         transition={{ duration: 0.3 }}
         className={`fixed inset-0 bg-black/10 z-40 cursor-pointer ${
-          isOpen ? "visible" : "invisible"
+          isOpen ? " opacity-100 visible" : "opacity-0 invisible"
         }`}
       />
 
@@ -371,10 +431,10 @@ export default function CommentPost({
             transition={{ type: "spring", stiffness: 100, damping: 20 }}
             className="fixed top-0 right-0 h-full w-[400px] bg-white shadow-2xl z-50 flex flex-col"
           >
-            <div className="relative mt-15 p-4">
+            <div className="relative  p-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold">
-                  Responses ({comments ? comments.length : 0}){" "}
+                  Responses ({comments.filter((c) => c && c.id).length})
                 </h2>
                 <button
                   onClick={onClose}
@@ -563,44 +623,90 @@ export default function CommentPost({
                     c.user?.avatarUrl ||
                     "https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-icon.webp";
 
-                  const isOwner =
-                    String(user.id) === String(c.user?.id) ||
-                    String(user.id) === String(c.user?.userId) ||
-                    String(user.id) === String(c.user?.Profile?.userId);
+                  const isOwner = String(user.id) === String(c.user?.id);
 
                   const isAuthorComment =
-                    String(c.user?.id) === String(postAuthorId) ||
-                    String(c.user?.userId) === String(postAuthorId);
+                    String(c.user?.id) === String(postAuthorId);
+
+                  const isAuthorOfPost =
+                    String(user.id) === String(postAuthorId);
 
                   return (
                     <div
                       key={c.id}
                       className={`p-3 rounded-lg ${
-                        isAuthorComment
-                          ? "text-black"
-                          : "bg-gray-50 text-gray-900"
+                        isAuthorComment ? "text-black" : "text-gray-900"
                       }`}
                     >
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-start gap-2">
-                          <img
-                            src={displayAvatar}
-                            alt="avatar"
-                            className="w-8 h-8 rounded-full object-cover border border-white mt-0.5"
-                          />
+                          <Link
+                            to={`/profile/${
+                              c.user?.username || c.user?.id || c.user?.userId
+                            }`}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <img
+                              src={displayAvatar}
+                              alt="avatar"
+                              className="w-8 h-8 rounded-full object-cover border border-white mt-0.5 cursor-pointer"
+                            />
+                          </Link>
+
                           <div className="flex flex-col">
                             <div className="flex items-center gap-2">
-                              <p className="text-sm font-semibold">
-                                {displayName}
-                              </p>
-                              {isAuthorComment && (
+                              <Link
+                                to={`/profile/${
+                                  c.user?.username ||
+                                  c.user?.id ||
+                                  c.user?.userId
+                                }`}
+                                onClick={(e) => e.stopPropagation()}
+                                className="hover:underline"
+                              >
+                                <p className="text-sm font-semibold cursor-pointer">
+                                  {displayName}
+                                </p>
+                              </Link>
+
+                              {isOwner && !isAuthorOfPost && (
+                                <span className="text-xs bg-gray-200 text-gray-500 px-1 py-0.4 rounded-md">
+                                  You
+                                </span>
+                              )}
+
+                              {isOwner && isAuthorOfPost && (
                                 <span className="text-xs bg-green-700 text-white px-2 py-0.5 rounded-md">
                                   Author
                                 </span>
                               )}
+
+                              {!isOwner && isAuthorComment && (
+                                <span className="text-xs bg-green-700 text-white px-2 py-0.5 rounded-md">
+                                  Author
+                                </span>
+                              )}
+
+                              {c.user?.postCount >= 15 && (
+                                <Gem className="w-4 h-4 text-blue-500" />
+                              )}
+
+                              {c.user?.postCount >= 10 &&
+                                c.user?.postCount < 15 && (
+                                  <Flame className="w-4 h-4 text-red-500" />
+                                )}
+
+                              {c.user?.postCount >= 5 &&
+                                c.user?.postCount < 10 && (
+                                  <Star className="w-4 h-4 text-yellow-500" />
+                                )}
                             </div>
-                            <span className="text-xs text-gray-500 mt-0.5">
+                            <span className="text-xs text-gray-500 mt-0.5 flex items-center gap-2">
                               {formatDate(c)}
+
+                              {c.updatedAt && c.updatedAt !== c.createdAt && (
+                                <span className="text-gray-400">(edited)</span>
+                              )}
                             </span>
                           </div>
                         </div>

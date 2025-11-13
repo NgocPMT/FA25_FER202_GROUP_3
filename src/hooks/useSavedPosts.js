@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback } from "react";
-import axios from "axios";
 
 export default function useSavedPosts() {
   const token = localStorage.getItem("token");
@@ -7,36 +6,82 @@ export default function useSavedPosts() {
 
   const getSavedPosts = useCallback(async () => {
     try {
-      const res = await axios.get(
+      const res = await fetch(
         `${import.meta.env.VITE_API_URL}/me/saved-posts?page=1&limit=100`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
       );
-      setSavedPosts(res.data.posts || res.data);
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || "Failed to get saved posts");
+      }
+
+      const data = await res.json();
+
+      // backend có thể trả:
+      // { posts: [...] } hoặc trực tiếp [...]
+      setSavedPosts(data.posts || data);
+
     } catch (err) {
-      console.log("Error get saved posts:", err);
+      console.log("Error get saved posts:", err.message);
     }
   }, [token]);
 
   const toggleSave = useCallback(async (postId) => {
     try {
       const isSaved = savedPosts.some((p) => p.postId === postId);
+
       if (isSaved) {
-        await axios.delete(
+        // --- UNSAVE ---
+        const res = await fetch(
           `${import.meta.env.VITE_API_URL}/me/saved-posts/${postId}`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
         );
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.message || "Failed to unsave post");
+        }
+
       } else {
-        await axios.post(
+        // --- SAVE ---
+        const res = await fetch(
           `${import.meta.env.VITE_API_URL}/me/saved-posts`,
-          { postId },
-          { headers: { Authorization: `Bearer ${token}` } }
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ postId }),
+          }
         );
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.message || "Failed to save post");
+        }
       }
+
       await getSavedPosts();
+
     } catch (err) {
-      console.log("Toggle save error:", err);
+      console.log("Toggle save error:", err.message);
     }
   }, [savedPosts, token, getSavedPosts]);
+
 
   useEffect(() => {
     getSavedPosts();

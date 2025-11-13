@@ -23,10 +23,12 @@ import { VscReactions } from "react-icons/vsc";
 import { CiBookmark } from "react-icons/ci";
 import { IoIosMore } from "react-icons/io";
 import { useLoader } from "@/context/LoaderContext";
+import CommentPost from "@/components/CommentPost";
 import { Link } from "react-router";
 
 const ReadOnlyContent = ({ slug }) => {
   const [post, setPost] = useState(null);
+  const [isCommentOpen, setIsCommentOpen] = useState(false);
   const [showMore, setShowMore] = useState(false);
   const [reactions, setReactions] = useState(null);
   const [isReactionShow, setIsReactionShow] = useState(false);
@@ -38,6 +40,24 @@ const ReadOnlyContent = ({ slug }) => {
   console.log(reactedType);
   const [isFollowing, setIsFollowing] = useState(false); // ✅ trạng thái follow
   const [loadingFollow, setLoadingFollow] = useState(false);
+
+  const openCommentSidebar = () => {
+    setIsCommentOpen(true);
+  };
+
+  const handleCommentChange = (action, id) => {
+    if (action === "add") {
+      setPost((prev) => ({
+        ...prev,
+        comments: [...prev.comments, { id }],
+      }));
+    } else if (action === "delete") {
+      setPost((prev) => ({
+        ...prev,
+        comments: prev.comments.filter((c) => c.id !== id),
+      }));
+    }
+  };
 
   useEffect(() => {
     document.body.classList.add("page-no-scroll");
@@ -265,128 +285,139 @@ const ReadOnlyContent = ({ slug }) => {
 
   if (!editor) return <p>Loading...</p>;
   return (
-    editor &&
-    post && (
-      <div className="simple-editor-wrapper mt-6">
-        <EditorContext.Provider value={{ editor }}>
-          <div className="simple-editor-title-wrapper">
-            <h1 className="simple-editor-title">{post.title}</h1>
-            <div className="mt-5 flex gap-3 items-center text-sm">
-              <Link
-                className="flex items-center gap-3 group"
-                to={`/profile/${post.user.username}`}
-              >
-                <img
-                  src={
-                    post?.user?.Profile?.avatarUrl ||
-                    "https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-icon.webp"
-                  }
-                  className="rounded-full size-8"
-                />
-                <p className="group-hover:underline">
-                  {post.user.Profile.name}
-                </p>
-              </Link>
+    <>
+      {editor && post && (
+        <div className="simple-editor-wrapper mt-6">
+          <EditorContext.Provider value={{ editor }}>
+            <div className="simple-editor-title-wrapper">
+              <h1 className="simple-editor-title">{post.title}</h1>
+              <div className="mt-5 flex gap-3 items-center text-sm">
+                <Link
+                  className="flex items-center gap-3 group"
+                  to={`/profile/${post.user.username}`}
+                >
+                  <img
+                    src={
+                      post?.user?.Profile?.avatarUrl ||
+                      "https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-icon.webp"
+                    }
+                    className="rounded-full size-8"
+                  />
+                  <p className="group-hover:underline">
+                    {post.user.Profile.name}
+                  </p>
+                </Link>
 
-              {/* ✅ Nút Follow / Unfollow */}
-              <button
-                onClick={handleFollowToggle}
-                disabled={loadingFollow}
-                className={`ring rounded-full py-1.5 px-3 cursor-pointer transition ${
-                  isFollowing
-                    ? "bg-gray-100 text-gray-700 border hover:bg-gray-200" // ✅ kiểu "Unfollow"
-                    : "bg-black text-white hover:opacity-80" // ✅ kiểu "Follow"
-                }`}
-              >
-                {loadingFollow
-                  ? "Loading..."
-                  : isFollowing
-                  ? "Unfollow" // ✅ đổi chữ thành Unfollow khi đã theo dõi
-                  : "Follow"}
-              </button>
+                {/* ✅ Nút Follow / Unfollow */}
+                <button
+                  onClick={handleFollowToggle}
+                  disabled={loadingFollow}
+                  className={`ring rounded-full py-1.5 px-3 cursor-pointer transition ${
+                    isFollowing
+                      ? "bg-gray-100 text-gray-700 border hover:bg-gray-200" // ✅ kiểu "Unfollow"
+                      : "bg-black text-white hover:opacity-80" // ✅ kiểu "Follow"
+                  }`}
+                >
+                  {loadingFollow
+                    ? "Loading..."
+                    : isFollowing
+                    ? "Unfollow" // ✅ đổi chữ thành Unfollow khi đã theo dõi
+                    : "Follow"}
+                </button>
 
-              <p>&middot;</p>
-              <p>{new Date(post.createdAt).toLocaleDateString("vi-VN")}</p>
-            </div>
-            <div className="mt-10 flex gap-3 items-center justify-between text-xs border-t border-b border-gray-300 py-3">
-              <div className="flex gap-3 text-gray-600">
-                {reactions && !reactedType && (
+                <p>&middot;</p>
+                <p>{new Date(post.createdAt).toLocaleDateString("vi-VN")}</p>
+              </div>
+              <div className="mt-10 flex gap-3 items-center justify-between text-xs border-t border-b border-gray-300 py-3">
+                <div className="flex gap-3 text-gray-600">
+                  {reactions && !reactedType && (
+                    <div className="relative">
+                      <button
+                        onClick={toggleReactionShow}
+                        className=" hover:text-black transition cursor-pointer flex items-center"
+                      >
+                        <VscReactions className="size-6" />
+                      </button>
+                      {isReactionShow && (
+                        <div className="absolute left-0 p-2 ring ring-gray-300 rounded-sm shadow-lg bg-white flex gap-3 items-center w-fit z-20">
+                          {reactions.map((reaction) => (
+                            <button
+                              key={reaction.id}
+                              onClick={() => handleReaction(reaction.id)}
+                              className="p-2 group cursor-pointer"
+                            >
+                              <img
+                                src={reaction.reactionImageUrl}
+                                alt={reaction.name}
+                                className="size-5 inline-block transition-all group-hover:-translate-y-0.5"
+                              />
+                              <p className="text-gray-700 mt-2">
+                                {reaction.name}
+                              </p>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  <ReactionCount keyword="like" />
+                  <ReactionCount keyword="love" />
+                  <ReactionCount keyword="haha" />
+                  <ReactionCount keyword="sad" />
+                  <ReactionCount keyword="wow" />
+                  <ReactionCount keyword="angry" />
+                  <button
+                    onClick={openCommentSidebar}
+                    className="hover:text-black transition cursor-pointer flex gap-2 items-center"
+                  >
+                    <FaRegComments className="size-5" />
+                    <span>{post.comments.length}</span>
+                  </button>
+                </div>
+                <div className="flex gap-3 text-gray-600">
+                  <button className=" hover:text-black transition cursor-pointer">
+                    <CiBookmark className="size-5" />
+                  </button>
                   <div className="relative">
                     <button
-                      onClick={toggleReactionShow}
-                      className=" hover:text-black transition cursor-pointer flex items-center"
+                      className="hover:text-black transition cursor-pointer"
+                      onClick={toggleShowMore}
                     >
-                      <VscReactions className="size-6" />
+                      <IoIosMore className="size-5" />
                     </button>
-                    {isReactionShow && (
-                      <div className="absolute left-0 p-2 ring ring-gray-300 rounded-sm shadow-lg bg-white flex gap-3 items-center w-fit z-20">
-                        {reactions.map((reaction) => (
-                          <button
-                            key={reaction.id}
-                            onClick={() => handleReaction(reaction.id)}
-                            className="p-2 group cursor-pointer"
-                          >
-                            <img
-                              src={reaction.reactionImageUrl}
-                              alt={reaction.name}
-                              className="size-5 inline-block transition-all group-hover:-translate-y-0.5"
-                            />
-                            <p className="text-gray-700 mt-2">
-                              {reaction.name}
-                            </p>
-                          </button>
-                        ))}
+                    {showMore && (
+                      <div className="absolute ring ring-gray-300 rounded-sm shadow-lg bg-white p-2 right-0 w-fit z-20 flex flex-col gap-3">
+                        <button
+                          onClick={handleRemoveReaction}
+                          className="w-full text-start text-nowrap cursor-pointer text-gray-600 hover:text-black"
+                        >
+                          Remove reaction
+                        </button>
+                        <button className="w-full text-start text-nowrap text-red-600 hover:text-red-700 cursor-pointer">
+                          Report this post
+                        </button>
                       </div>
                     )}
                   </div>
-                )}
-                <ReactionCount keyword="like" />
-                <ReactionCount keyword="love" />
-                <ReactionCount keyword="haha" />
-                <ReactionCount keyword="sad" />
-                <ReactionCount keyword="wow" />
-                <ReactionCount keyword="angry" />
-                <p className="hover:text-black transition cursor-pointer flex gap-2 items-center">
-                  <FaRegComments className="size-5" />
-                  <span>{post.comments.length}</span>
-                </p>
-              </div>
-              <div className="flex gap-3 text-gray-600">
-                <button className=" hover:text-black transition cursor-pointer">
-                  <CiBookmark className="size-5" />
-                </button>
-                <div className="relative">
-                  <button
-                    className="hover:text-black transition cursor-pointer"
-                    onClick={toggleShowMore}
-                  >
-                    <IoIosMore className="size-5" />
-                  </button>
-                  {showMore && (
-                    <div className="absolute ring ring-gray-300 rounded-sm shadow-lg bg-white p-2 right-0 w-fit z-20 flex flex-col gap-3">
-                      <button
-                        onClick={handleRemoveReaction}
-                        className="w-full text-start text-nowrap cursor-pointer text-gray-600 hover:text-black"
-                      >
-                        Remove reaction
-                      </button>
-                      <button className="w-full text-start text-nowrap text-red-600 hover:text-red-700 cursor-pointer">
-                        Report this post
-                      </button>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
-          </div>
-          <EditorContent
-            editor={editor}
-            role="presentation"
-            className="simple-editor-content"
-          />
-        </EditorContext.Provider>
-      </div>
-    )
+            <EditorContent
+              editor={editor}
+              role="presentation"
+              className="simple-editor-content"
+            />
+          </EditorContext.Provider>
+        </div>
+      )}
+      <CommentPost
+        isOpen={isCommentOpen}
+        onClose={() => setIsCommentOpen(false)}
+        postId={post?.id}
+        postAuthorId={post?.userId}
+        onCommentChange={handleCommentChange}
+      />
+    </>
   );
 };
 

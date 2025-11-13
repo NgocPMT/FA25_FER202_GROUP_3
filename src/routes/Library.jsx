@@ -59,10 +59,17 @@ const Library = () => {
 
       const nextData = await nextRes.json();
 
+      // Nếu trang rỗng và không phải trang đầu → lùi về trang trước
+      if (data.length === 0 && currentPage > 1) {
+        setPage((p) => p - 1);
+        setLoading(false);
+        return;
+      }
 
-      // --- Cập nhật UI ---
+      // Cập nhật UI
       setReadlist(data);
       setHasNext(data.length === limit && nextData.length !== 0);
+
 
     } catch (err) {
       console.log("Failed to get readlist:", err.message);

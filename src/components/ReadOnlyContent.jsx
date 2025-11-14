@@ -35,7 +35,6 @@ const ReadOnlyContent = ({ slug }) => {
   const [showMore, setShowMore] = useState(false);
   const [reactions, setReactions] = useState(null);
   const [isReactionShow, setIsReactionShow] = useState(false);
-  const { showLoader, hideLoader } = useLoader();
   const token = localStorage.getItem("token");
   const userId =
     localStorage.getItem("userId") && parseInt(localStorage.getItem("userId"));
@@ -80,6 +79,7 @@ const ReadOnlyContent = ({ slug }) => {
       const data = await res.json();
 
       setReactions(data.reactions);
+      console.log(data.reactions);
     };
 
     fetchReactions();
@@ -90,7 +90,6 @@ const ReadOnlyContent = ({ slug }) => {
   };
 
   const handleReaction = async (reactionTypeId) => {
-    showLoader();
     const res = await fetch(
       `${import.meta.env.VITE_API_URL}/posts/${post.id}/reactions`,
       {
@@ -104,20 +103,38 @@ const ReadOnlyContent = ({ slug }) => {
     );
     const reacted = await res.json();
     setReactedType(reacted.reacted.reactionType.name);
-    hideLoader();
+    setPost((prev) => ({
+      ...prev,
+      PostReaction: [...prev.PostReaction, reacted.reacted],
+    }));
+    toast.success(reacted.message);
   };
 
   const handleRemoveReaction = async () => {
-    showLoader();
-    await fetch(`${import.meta.env.VITE_API_URL}/posts/${post.id}/reactions`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      method: "DELETE",
-    });
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/posts/${post.id}/reactions`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        method: "DELETE",
+      }
+    );
+    if (!res.ok) {
+      const data = await res.json();
+      toast.error(data.error);
+    }
+    const data = await res.json();
+    toast.success(data.message);
+    setPost((prev) => ({
+      ...prev,
+      PostReaction: prev.PostReaction.filter(
+        (reaction) => reaction.id !== data.unreacted.id
+      ),
+    }));
+
     setReactedType(null);
-    hideLoader();
   };
 
   const ReactionCount = ({ keyword }) => {
@@ -203,6 +220,7 @@ const ReadOnlyContent = ({ slug }) => {
         if (signal.aborted) return;
 
         setPost(data);
+        console.log(data);
 
         const reacted = data.PostReaction.find(
           (reaction) => reaction.userId === userId

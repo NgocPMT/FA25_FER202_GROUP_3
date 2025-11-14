@@ -5,6 +5,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import useLogOut from "../hooks/useLogOut";
 import { useLoader } from "@/context/LoaderContext";
 import { IoSearchOutline } from "react-icons/io5";
+import { toast } from "react-toastify";
 
 const Navbar = ({ onToggleSideNav }) => {
   const [showSearch, setShowSearch] = useState(false);
@@ -136,6 +137,7 @@ const Navbar = ({ onToggleSideNav }) => {
   }, [token]);
 
   useEffect(() => {
+    if (!token) return;
     const controller = new AbortController(); // Create controller
     const signal = controller.signal; // Get its signal
 
@@ -147,7 +149,11 @@ const Navbar = ({ onToggleSideNav }) => {
           signal, // Attach abort signal
         });
 
-        if (!res.ok) return;
+        if (!res.ok) {
+          const data = await res.json();
+          toast.error(data.error);
+          return;
+        }
 
         const data = await res.json();
         setProfile(data);

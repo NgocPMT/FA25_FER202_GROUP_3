@@ -24,8 +24,9 @@ import { CiBookmark } from "react-icons/ci";
 import { IoIosMore } from "react-icons/io";
 import { useLoader } from "@/context/LoaderContext";
 import CommentPost from "@/components/CommentPost";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { useOutletContext } from "react-router";
+import { toast } from "react-toastify";
 
 const ReadOnlyContent = ({ slug }) => {
   const { setIsCommentOpen, isCommentOpen } = useOutletContext();
@@ -39,9 +40,9 @@ const ReadOnlyContent = ({ slug }) => {
   const userId =
     localStorage.getItem("userId") && parseInt(localStorage.getItem("userId"));
   const [reactedType, setReactedType] = useState(null);
-  console.log(reactedType);
   const [isFollowing, setIsFollowing] = useState(false); // ✅ trạng thái follow
   const [loadingFollow, setLoadingFollow] = useState(false);
+  const navigate = useNavigate();
 
   const openCommentSidebar = () => {
     setIsCommentOpen(true);
@@ -102,8 +103,6 @@ const ReadOnlyContent = ({ slug }) => {
       }
     );
     const reacted = await res.json();
-    console.log(reacted.reacted.reactionType.name);
-
     setReactedType(reacted.reacted.reactionType.name);
     hideLoader();
   };
@@ -181,54 +180,91 @@ const ReadOnlyContent = ({ slug }) => {
   });
 
   useEffect(() => {
+    const controller = new AbortController();
+    const signal = controller.signal;
+
     const fetchPost = async () => {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/posts/${slug}`);
-      const data = await res.json();
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_API_URL}/posts/${slug}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+            signal,
+          }
+        );
 
-      setPost(data);
-      const reacted = data.PostReaction.find(
-        (reaction) => reaction.userId === userId
-      );
-      setReactedType(reacted?.reactionType.name);
+        if (!res.ok) {
+          const data = await res.json();
+          toast.error(data.error);
+          return navigate("/home");
+        }
 
-      if (editor && data.content) {
-        editor.commands.setContent(data.content);
-      }
+        const data = await res.json();
+        if (signal.aborted) return;
 
-      if (token && post.userId) {
-        try {
-          const resFollow = await fetch(
-            `${import.meta.env.VITE_API_URL}/me/followings?page=1&limit=9999`,
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
-          const data = await resFollow.json();
-          const list = Array.isArray(data)
-            ? data.map((item) => item.following)
-            : Array.isArray(data.data)
-            ? data.data.map((item) => item.following)
-            : [];
+        setPost(data);
 
-          console.log("👀 Current followings:", list);
-          setIsFollowing(
-            list.some((u) => Number(u.id) === Number(post.userId))
-          );
-        } catch (err) {
-          console.warn("Không thể kiểm tra trạng thái follow.", err);
+        const reacted = data.PostReaction.find(
+          (reaction) => reaction.userId === userId
+        );
+        setReactedType(reacted?.reactionType.name);
+
+        if (!signal.aborted && editor && data.content) {
+          editor.commands.setContent(data.content);
+        }
+
+        // --- Fetch follow status only if logged in ---
+        if (token && data.userId) {
+          try {
+            const resFollow = await fetch(
+              `${import.meta.env.VITE_API_URL}/me/followings?page=1&limit=9999`,
+              {
+                headers: { Authorization: `Bearer ${token}` },
+                signal,
+              }
+            );
+
+            const followData = await resFollow.json();
+            if (signal.aborted) return;
+
+            const list = Array.isArray(followData)
+              ? followData.map((item) => item.following)
+              : Array.isArray(followData.data)
+              ? followData.data.map((item) => item.following)
+              : [];
+
+            setIsFollowing(
+              list.some((u) => Number(u.id) === Number(data.userId))
+            );
+          } catch (err) {
+            if (err.name !== "AbortError") {
+              console.warn("Không thể kiểm tra trạng thái follow.", err);
+            }
+          }
+        }
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          console.error("Lỗi fetch post", err);
         }
       }
     };
-    fetchPost();
-  }, [slug, editor, reactedType]);
 
-  if (!editor) return <p>Loading...</p>;
-  console.log("📦 Post data before follow:", post);
+    fetchPost();
+
+    return () => {
+      controller.abort(); // cleanup → stop all pending fetches
+    };
+  }, [slug, editor]);
 
   const handleFollowToggle = async () => {
-    if (!token) return alert("⚠️ Bạn cần đăng nhập để theo dõi tác giả.");
+    if (!token) {
+      toast.error("You must login to follow authors");
+    }
 
     const targetId = post?.user?.id || post?.userId;
     if (!targetId) {
       console.warn("❌ Không tìm thấy ID người dùng trong post:", post);
+      toast.error("Something went wrong please try again");
       return;
     }
 
@@ -272,7 +308,6 @@ const ReadOnlyContent = ({ slug }) => {
           }
         );
         const result = await res.json().catch(() => ({}));
-        console.log("Unfollow API result:", result);
 
         if (!res.ok)
           throw new Error(result.message || result.error || "Unfollow failed");

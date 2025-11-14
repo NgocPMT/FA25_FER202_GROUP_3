@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import NotificationItem from "../components/NotificationItem";
 import Sidebar from "../components/Sidebar";
+import { toast } from "react-toastify";
 
 export default function Notification() {
   const [notifications, setNotifications] = useState([]);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
-  const [filter, setFilter] = useState("all");
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -22,6 +22,7 @@ export default function Notification() {
 
         if (!res.ok) throw new Error("Failed to fetch notifications");
         const data = await res.json();
+        console.log(data);
         setNotifications(data);
       } catch (err) {
         console.error("❌ Error fetch notifications:", err);
@@ -37,15 +38,27 @@ export default function Notification() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const markAllAsRead = () => {
-    const updated = notifications.map((n) => ({ ...n, read: true }));
+  const markAllAsRead = async () => {
+    const token = localStorage.getItem("token");
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/me/notifications/read`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        method: "PUT",
+      }
+    );
+    if (!res.ok) {
+      const data = await res.json();
+      toast.error(data.error);
+      return;
+    }
+    const data = await res.json();
+    toast.success(data.message);
+    const updated = notifications.map((n) => ({ ...n, isRead: true }));
     setNotifications(updated);
   };
-
-  const filteredNotifications =
-    filter === "all"
-      ? notifications
-      : notifications.filter((n) => n.type === "response");
 
   return (
     <div className="grid grid-cols-[1fr_auto]">
@@ -65,39 +78,16 @@ export default function Notification() {
           </button>
         </div>
 
-        <div className="flex border-b mt-4 text-sm font-medium">
-          <button
-            className={`px-6 py-3 border-b-2 cursor-pointer ${
-              filter === "all"
-                ? "border-amber-500 text-amber-600"
-                : "border-transparent text-gray-500 hover:text-amber-600 hover:border-amber-400"
-            }`}
-            onClick={() => setFilter("all")}
-          >
-            All
-          </button>
-          <button
-            className={`px-6 py-3 border-b-2 cursor-pointer ${
-              filter === "response"
-                ? "border-amber-500 text-amber-600"
-                : "border-transparent text-gray-500 hover:text-amber-600 hover:border-amber-400"
-            }`}
-            onClick={() => setFilter("response")}
-          >
-            Responses
-          </button>
-        </div>
-
         <div className="overflow-y-auto flex-1">
-          {filteredNotifications.length > 0 ? (
-            filteredNotifications.map((n, index) => (
+          {notifications.length > 0 ? (
+            notifications.map((n, index) => (
               <NotificationItem
                 key={n.id}
                 avatar={n.avatarUrl}
-                message={n.message}    
+                message={n.message}
                 time={n.time}
-                isLast={index === filteredNotifications.length - 1}
-                read={n.read}
+                isLast={index === notifications.length - 1}
+                read={n.isRead}
               />
             ))
           ) : (

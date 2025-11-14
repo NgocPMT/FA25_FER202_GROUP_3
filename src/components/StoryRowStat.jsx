@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router";
 
 export default function StoryRowStat({ story }) {
   return (
@@ -14,12 +15,20 @@ export default function StoryRowStat({ story }) {
 
       {/* Story Info */}
       <div className="text-left">
-        <p className="story-title font-semibold text-gray-900">{story.title}</p>
+        <Link
+          to={`/posts/${story.slug}`}
+          className="story-title font-semibold text-gray-900 cursor-pointer"
+        >
+          {story.title}
+        </Link>
         <p className="text-sm text-gray-500">
           {story.readTime} · {story.date} ·{" "}
-          <a href="#" className="underline hover:text-gray-800">
+          <Link
+            to={`/posts/${story.slug}`}
+            className="underline hover:text-gray-800 cursor-pointer"
+          >
             View story
-          </a>
+          </Link>
         </p>
       </div>
 

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
 import CommentContent from "../components/CommentContent";
-import { Star, Flame, Gem } from "lucide-react";
+// import { Star, Flame, Gem } from "lucide-react";
 import "../css/Comment.css";
 
 export default function CommentPost({
@@ -15,25 +15,30 @@ export default function CommentPost({
 }) {
   const textareaRef = useRef(null);
   const sortRef = useRef(null);
+  const commentListRef = useRef(null);
+
   const [openSort, setOpenSort] = useState(false);
-  const [comments, setComments] = useState([]);
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [sort, setSort] = useState("relevant");
-  const [commentText, setCommentText] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [editingId, setEditingId] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [extraSpace, setExtraSpace] = useState(false);
-  const commentListRef = useRef(null);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const [comments, setComments] = useState([]);
+  const [sort, setSort] = useState("relevant");
+  const [commentText, setCommentText] = useState("");
+  const [editingId, setEditingId] = useState(null);
   const [targetDeleteId, setTargetDeleteId] = useState(null);
+
+  const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
   const [user, setUser] = useState({
     id: "",
     name: "",
     avatar: "",
   });
 
+  // Close comment menu (...)
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (!e.target.closest(".menu-comment")) {
@@ -45,6 +50,7 @@ export default function CommentPost({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // last comment automatically scroll to the bottom
   useEffect(() => {
     if (extraSpace && commentListRef.current) {
       commentListRef.current.scrollTo({
@@ -54,15 +60,16 @@ export default function CommentPost({
     }
   }, [extraSpace]);
 
+  // Close Sort dropdown
   useEffect(() => {
-    function handleClickOutside(e) {
+    const handleClickOutside = (e) => {
       if (sortRef.current && !sortRef.current.contains(e.target)) {
         setOpenSort(false);
       }
-    }
-    function handleVisibilityChange() {
+    };
+    const handleVisibilityChange = () => {
       if (document.hidden) setOpenSort(false);
-    }
+    };
     document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
@@ -71,26 +78,18 @@ export default function CommentPost({
     };
   }, []);
 
-  // phục hồi dữ liệu nháp
+  // Restore draft + extended state
   useEffect(() => {
-    localStorage.setItem("testDraft", "Test comment content");
-    console.log(localStorage.getItem("testDraft"));
-
     const token = localStorage.getItem("token");
     if (!token || !postId) return;
-    console.log("Post ID:", postId);
 
     const fetchProfile = async () => {
       try {
         const res = await fetch(`${import.meta.env.VITE_API_URL}/me/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        if (!res.ok) throw new Error("Failed to fetch profile");
-
         const data = await res.json();
-        console.log("🧍‍♂️ Profile data:", data);
 
-        // ✅ Cập nhật thông tin user
         setUser({
           id: data.userId || data.id || "",
           name: data.name || data.username || "User",
@@ -99,47 +98,31 @@ export default function CommentPost({
             "https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-icon.webp",
         });
 
-        // ✅ Bảo vệ: chỉ xử lý khi có userId
         const userId = data.userId || data.id;
-        if (!userId) {
-          console.warn("⚠️ Missing userId, skip draft restore");
-          return;
-        }
+        if (!userId) return;
 
-        // ✅ Tạo key cố định
         const expandKey = `commentExpanded_${userId}_${postId}`;
         const draftKey = `commentDraft_${userId}_${postId}`;
         const timeKey = `${draftKey}_time`;
 
-        const savedExpanded = localStorage.getItem(expandKey);
         const savedDraft = localStorage.getItem(draftKey);
         const savedTime = localStorage.getItem(timeKey);
+        const savedExpanded = localStorage.getItem(expandKey);
 
-        console.log("🎯 Draft key:", draftKey, "=>", savedDraft);
-
-        // ✅ Có draft hợp lệ → khôi phục
         if (savedDraft && savedTime) {
           const diffHours =
             (Date.now() - parseInt(savedTime)) / (1000 * 60 * 60);
+
           if (diffHours < 12) {
             setCommentText(savedDraft);
-
-            if (savedExpanded === "true") {
-              setIsExpanded(false);
-              setTimeout(() => setIsExpanded(true), 50);
-            } else {
-              setIsExpanded(false);
-            }
-            return; // ✅ Dừng ở đây, không reset nữa
-          } else {
-            // ✅ Quá 12 tiếng thì mới xóa
-            localStorage.removeItem(draftKey);
-            localStorage.removeItem(timeKey);
-            localStorage.removeItem(expandKey);
+            setIsExpanded(savedExpanded === "true");
+            return;
           }
+          localStorage.removeItem(draftKey);
+          localStorage.removeItem(timeKey);
+          localStorage.removeItem(expandKey);
         }
 
-        // ❗ Nếu không có draft hợp lệ thì chỉ reset state, không xóa localStorage lung tung
         setCommentText("");
         setIsExpanded(savedExpanded === "true");
       } catch (err) {
@@ -150,10 +133,11 @@ export default function CommentPost({
     fetchProfile();
   }, [postId]);
 
-  // Lưu bản nháp người dùng nhập
+  // Auto-save comment draft
   useEffect(() => {
     if (!user?.id || !postId) return;
     const draftKey = `commentDraft_${user.id}_${postId}`;
+
     const timeout = setTimeout(() => {
       if (commentText.trim()) {
         localStorage.setItem(draftKey, commentText);
@@ -163,34 +147,36 @@ export default function CommentPost({
         localStorage.removeItem(`${draftKey}_time`);
       }
     }, 800);
+
     return () => clearTimeout(timeout);
   }, [commentText, user, postId]);
 
-  const fetchPostCount = async (userId) => {
-    try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/users/user/${userId}/posts`
-      );
+  // // Lấy số bài viết của 1 user để hiển thị huy hiệu (Star/Flame/Gem)
+  // const fetchPostCount = async (userId) => {
+  //   try {
+  //     const res = await fetch(
+  //       `${import.meta.env.VITE_API_URL}/users/user/${userId}/posts`
+  //     );
 
-      const data = await res.json();
+  //     const data = await res.json();
 
-      // Có thể backend trả mảng hoặc trả {posts: []}
-      const posts = Array.isArray(data) ? data : data.posts || [];
+  //     const posts = Array.isArray(data) ? data : data.posts || [];
 
-      return posts.length; // số bài viết
-    } catch (err) {
-      console.warn("⚠️ Error fetching post count:", err);
-      return 0;
-    }
-  };
+  //     return posts.length;
+  //   } catch (err) {
+  //     console.warn("⚠️ Error fetching post count:", err);
+  //     return 0;
+  //   }
+  // };
 
+  // Get the list of comments, put the newest comment at the top
   const fetchComments = async () => {
     try {
       const res = await fetch(
         `${import.meta.env.VITE_API_URL}/posts/${postId}/comments`
       );
       const data = await res.json();
-      console.log("🔥 Comments data:", data);
+      // console.log("🔥 Comments data:", data);
 
       if (Array.isArray(data)) {
         const cleanedData = data.map((c) => ({
@@ -209,25 +195,23 @@ export default function CommentPost({
           ...cleanedData.filter((c) => c.id !== latestComment.id),
         ];
 
-        // ✨ lấy danh sách userId duy nhất
-        const users = [...new Set(reordered.map((c) => c.user.id))];
+        // const users = [...new Set(reordered.map((c) => c.user.id))];
 
-        // ✨ lấy số bài viết từng user
-        const counts = {};
-        for (const id of users) {
-          counts[id] = await fetchPostCount(id);
-        }
+        // const counts = {};
+        // for (const id of users) {
+        //   counts[id] = await fetchPostCount(id);
+        // }
 
-        // ✨ thêm postCount vào mỗi comment.user
-        const withPostCount = reordered.map((c) => ({
-          ...c,
-          user: {
-            ...c.user,
-            postCount: counts[c.user.id] || 0,
-          },
-        }));
+        // const withPostCount = reordered.map((c) => ({
+        //   ...c,
+        //   user: {
+        //     ...c.user,
+        //     postCount: counts[c.user.id] || 0,
+        //   },
+        // }));
 
-        setComments(withPostCount);
+        // setComments(withPostCount);
+        setComments(reordered);
         setSort("relevant");
       }
     } catch (err) {
@@ -235,12 +219,14 @@ export default function CommentPost({
     }
   };
 
+  // open comment fetch latest comments
   useEffect(() => {
     if (isOpen && postId) {
       fetchComments();
     }
   }, [isOpen, postId]);
 
+  // Reset textarea expansion animation when opening comment
   useEffect(() => {
     if (isOpen && isExpanded) {
       setIsExpanded(false);
@@ -249,7 +235,7 @@ export default function CommentPost({
     }
   }, [isOpen]);
 
-  // Tạo hoặc cập nhật comment
+  // Create or update a comment
   const handleRespond = async (e) => {
     e.preventDefault();
     if (!commentText.trim()) return;
@@ -313,6 +299,7 @@ export default function CommentPost({
     }
   };
 
+  // Delete comment
   const handleDelete = async () => {
     if (!targetDeleteId) return;
 
@@ -357,6 +344,7 @@ export default function CommentPost({
     }
   };
 
+  // Comment time format
   const formatDate = (comment) => {
     const d = new Date(comment.createdAt || comment.date);
     const now = new Date();
@@ -371,20 +359,24 @@ export default function CommentPost({
     }
 
     if (diffMinutes < 60) {
-      return `${Math.floor(diffMinutes)} minutes ago`;
+      const m = Math.floor(diffMinutes);
+      return m === 1 ? "1 minute ago" : `${m} minutes ago`;
     }
 
     if (diffHours < 24) {
-      return `${Math.floor(diffHours)} hour ago`;
+      const h = Math.floor(diffHours);
+      return h === 1 ? "1 hour ago" : `${h} hours ago`;
     }
 
     if (diffDays < 2) {
-      return `${Math.floor(diffDays)} day ago`;
+      const d = Math.floor(diffDays);
+      return d === 1 ? "1 day ago" : `${d} days ago`;
     }
 
     return `${d.getDate()} Th${d.getMonth() + 1}`;
   };
 
+  // Sort comments
   useEffect(() => {
     const sortedComments = [...comments].sort((a, b) => {
       if (sort === "recent") {
@@ -412,6 +404,7 @@ export default function CommentPost({
 
   return (
     <>
+      {/* overlay comment */}
       <motion.div
         onClick={onClose}
         initial={{ opacity: 0 }}
@@ -526,6 +519,7 @@ export default function CommentPost({
               </motion.div>
             </div>
 
+            {/* Sort comment */}
             <div className="p-4 border-b border-gray-300 relative z-10">
               <div className="flex items-center justify-between">
                 <div ref={sortRef} className="relative text-left">
@@ -598,7 +592,7 @@ export default function CommentPost({
               </div>
             </div>
 
-            {/* lấy id comment */}
+            {/* List of comments */}
             <div
               ref={commentListRef}
               className={`flex-1 overflow-y-auto px-4 py-3 space-y-5 transition-all duration-300 ${
@@ -687,7 +681,7 @@ export default function CommentPost({
                                 </span>
                               )}
 
-                              {c.user?.postCount >= 15 && (
+                              {/* {c.user?.postCount >= 15 && (
                                 <Gem className="w-4 h-4 text-blue-500" />
                               )}
 
@@ -699,7 +693,7 @@ export default function CommentPost({
                               {c.user?.postCount >= 5 &&
                                 c.user?.postCount < 10 && (
                                   <Star className="w-4 h-4 text-yellow-500" />
-                                )}
+                                )} */}
                             </div>
                             <span className="text-xs text-gray-500 mt-0.5 flex items-center gap-2">
                               {formatDate(c)}
@@ -777,7 +771,7 @@ export default function CommentPost({
                         </div>
                       </div>
 
-                      {/* Nội dung comment */}
+                      {/* Comment content */}
                       <div className="mb-3">
                         <CommentContent
                           content={c.content}

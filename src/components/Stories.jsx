@@ -60,14 +60,6 @@ export default function Stories() {
         if (!res.ok) throw new Error("Failed to load stories");
 
         const raw = await res.json();
-        console.log("📌 FIXED BACKEND PAGING:", raw);
-        console.log("📌 raw.data:", raw.data);
-        console.log("📌 raw.items:", raw.items);
-        console.log("📌 raw.posts:", raw.posts);
-        console.log("📌 raw array?:", Array.isArray(raw));
-
-        // const list = Array.isArray(raw) ? raw : raw.data ?? [];
-        // const totalCount = Number(raw.total) || list.length;
         const list =
           raw.data ?? raw.items ?? raw.posts ?? (Array.isArray(raw) ? raw : []);
 
@@ -88,6 +80,32 @@ export default function Stories() {
 
     fetchStories();
   }, [activeTab, page, limit]);
+
+  const handlePublishPost = async (slug) => {
+    try {
+      showLoader();
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/me/draft-posts/${slug}/publish`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const json = await res.json();
+
+      if (!res.ok) throw new Error(json.message);
+
+      toast.success("Publish successfully");
+      setStories(stories.filter((story) => story.slug !== slug));
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      hideLoader();
+    }
+  };
 
   const handleDeletePost = async (id) => {
     try {
@@ -193,6 +211,14 @@ export default function Stories() {
 
                 {menuOpen === p.id && (
                   <div className="absolute right-0 top-8 bg-white border shadow-md rounded-lg w-32">
+                    {activeTab === "Drafts" && (
+                      <button
+                        onClick={() => handlePublishPost(p.slug)}
+                        className="block w-full text-left px-4 py-2 text-green-600 hover:bg-gray-100"
+                      >
+                        Publish
+                      </button>
+                    )}
                     <Link
                       to={`/posts/${p.slug}/edit`}
                       className="block px-4 py-2 hover:bg-gray-100"

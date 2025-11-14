@@ -182,7 +182,7 @@ export default function FollowingList() {
                                     setTargetUser(user);
                                     setShowConfirm(true);
                                 }}
-                                className="text-sm border rounded-full px-3 py-1 hover:bg-gray-100 flex-shrink-0"
+                                className="text-sm border rounded-full px-3 py-1 hover:bg-gray-100 flex-shrink-0 cursor-pointer"
                             >
                                 Unfollow
                             </button>
@@ -197,7 +197,7 @@ export default function FollowingList() {
                     <button
                         onClick={() => setPage((p) => Math.max(1, p - 1))}
                         disabled={page === 1}
-                        className="px-3 py-1 border rounded-full hover:bg-gray-100 disabled:opacity-40"
+                        className="px-3 py-1 border rounded-full hover:bg-gray-100 disabled:opacity-40 cursor-pointer"
                     >
                         Prev
                     </button>
@@ -207,7 +207,7 @@ export default function FollowingList() {
                     <button
                         onClick={() => hasNext && setPage((p) => p + 1)}
                         disabled={!hasNext}
-                        className="px-3 py-1 border rounded-full hover:bg-gray-100 disabled:opacity-40"
+                        className="px-3 py-1 border rounded-full hover:bg-gray-100 disabled:opacity-40 cursor-pointer"
                     >
                         Next
                     </button>

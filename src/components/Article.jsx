@@ -19,6 +19,7 @@ export default function Article({ data, isSaved, onSave, onDelete }) {
     slug,
   } = data;
 
+
   const postReactions = PostReaction?.length || 0;
   const postComments = comments?.length || 0;
 
@@ -29,6 +30,12 @@ export default function Article({ data, isSaved, onSave, onDelete }) {
   const [showMenu, setShowMenu] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [postToDelete, setPostToDelete] = useState(null);
+
+
+  //report
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [postToReport, setPostToReport] = useState(null);
+
 
   const extractTextRecursively = (node) => {
     if (!node) return "";
@@ -110,6 +117,28 @@ export default function Article({ data, isSaved, onSave, onDelete }) {
     } finally {
       setShowModal(false);
       setPostToDelete(null);
+    }
+  }
+
+  //report 
+  async function reportPost() {
+    const token = localStorage.getItem("token");
+    try {
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/reported-posts`,
+        { postId: postToReport },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      alert("Reported successfully!");
+    } catch (err) {
+      console.error("Report error:", err.response?.data || err.message);
+      alert("Failed to report!");
+    } finally {
+      setShowReportModal(false);
+      setPostToReport(null);
     }
   }
 
@@ -233,9 +262,20 @@ export default function Article({ data, isSaved, onSave, onDelete }) {
                       Delete
                     </button>
                   )}
-                  <button className="w-full text-start text-nowrap text-red-600 hover:text-red-700 cursor-pointer">
+                  <button
+                    className="w-full text-start text-nowrap text-red-600 hover:text-red-700 cursor-pointer"
+                    onClick={() => {
+                      if (currentUserId === user?.id) {
+                        alert("You cannot report your own post!");
+                        return;
+                      }
+                      setPostToReport(data.id);
+                      setShowReportModal(true);
+                    }}
+                  >
                     Report
                   </button>
+
                 </div>
               )}
 
@@ -267,6 +307,34 @@ export default function Article({ data, isSaved, onSave, onDelete }) {
                     </div>
                   </div>
                 </ModalPortal>
+              )}
+              {showReportModal && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black/30 z-[9999]">
+                  <div className="bg-white rounded-lg shadow-lg p-6 w-80">
+                    <h3 className="text-lg font-semibold mb-3 text-gray-800">
+                      Report Post
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-5">
+                      Are you sure you want to report this post?
+                    </p>
+
+                    <div className="flex justify-end gap-3">
+                      <button
+                        onClick={() => setShowReportModal(false)}
+                        className="px-4 py-2 text-gray-600 hover:text-black"
+                      >
+                        Cancel
+                      </button>
+
+                      <button
+                        onClick={reportPost}
+                        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                      >
+                        Report
+                      </button>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           </div>

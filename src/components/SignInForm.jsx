@@ -60,25 +60,38 @@ const SignInForm = () => {
           password,
         }),
       });
+
+
+      const data = await res.json();
       if (!res.ok) {
         const data = await res.json();
         toast.error(data.error);
         return;
       }
 
-      const data = await res.json();
+      const role = (data.user.role || "user").toLowerCase();
+
+
       localStorage.setItem("token", data.token);
       localStorage.setItem("username", data.user.username);
       localStorage.setItem("userId", data.user.id);
+
+      //Admin
+      if (role === "admin") {
+        toast.success("Welcome admin!");
+        navigate("/admin/home");
+        return;
+      }
+
       toast.success(data.message);
       navigate("/home");
+
     } catch (err) {
-      toast.error(err);
+      toast.error(err.message);
     } finally {
       hideLoader();
     }
   };
-
   return (
     <>
       <div className="max-sm:min-w-lvw max-md:min-h-lvh md:p-12 sm:w-[40rem] flex flex-col justify-center items-center gap-6 md:gap-8">

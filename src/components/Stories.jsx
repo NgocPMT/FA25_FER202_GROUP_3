@@ -12,7 +12,6 @@ export default function Stories() {
 
   const token = localStorage.getItem("token");
 
-
   const params = useMemo(
     () => new URLSearchParams(location.search),
     [location.search]
@@ -20,11 +19,11 @@ export default function Stories() {
 
   const activeTab = params.get("tab") || "Published";
   const page = Math.max(1, Number(params.get("page")) || 1);
-  const limit = Math.max(1, Number(params.get("limit")) || 10);
+  const limit = Math.max(1, Number(params.get("limit")) || 5);
 
   const [stories, setStories] = useState([]);
-  const [total, setTotal] = useState(0);
   const [menuOpen, setMenuOpen] = useState(null);
+  const [hasNext, setHasNext] = useState(false);
 
   const updateQuery = (next) => {
     const q = new URLSearchParams(location.search);
@@ -70,19 +69,16 @@ export default function Stories() {
         // const list = Array.isArray(raw) ? raw : raw.data ?? [];
         // const totalCount = Number(raw.total) || list.length;
         const list =
-          raw.data ??
-          raw.items ??
-          raw.posts ??
-          (Array.isArray(raw) ? raw : []);
+          raw.data ?? raw.items ?? raw.posts ?? (Array.isArray(raw) ? raw : []);
 
         const totalCount =
           typeof raw.total === "number"
             ? raw.total
             : Array.isArray(list)
-              ? list.length
-              : 0;
+            ? list.length
+            : 0;
         setStories(list);
-        setTotal(totalCount);
+        setHasNext(totalCount === limit);
       } catch (err) {
         toast.error(err.message);
       } finally {
@@ -92,11 +88,6 @@ export default function Stories() {
 
     fetchStories();
   }, [activeTab, page, limit]);
-
-
-  const totalPages = Math.ceil(total / limit);
-  const hasPrev = page > 1;
-  const hasNext = stories.length === limit;
 
   const handleDeletePost = async (id) => {
     try {
@@ -113,7 +104,6 @@ export default function Stories() {
 
       toast.success("Deleted successfully");
 
-
       updateQuery({ page });
     } catch (err) {
       toast.error(err.message);
@@ -124,16 +114,16 @@ export default function Stories() {
     <div className="max-w-5xl mx-auto relative">
       <h1 className="text-3xl font-semibold mb-6">Stories</h1>
 
-      {/* Tabs */}
       <div className="flex space-x-6 border-b mb-6">
         {["Drafts", "Published"].map((t) => (
           <button
             key={t}
             onClick={() => updateQuery({ tab: t, page: 1 })}
-            className={`pb-2 text-sm font-medium ${activeTab === t
-              ? "border-b-2 border-black text-black"
-              : "text-gray-500 hover:text-black"
-              }`}
+            className={`pb-2 text-sm font-medium ${
+              activeTab === t
+                ? "border-b-2 border-black text-black"
+                : "text-gray-500 hover:text-black"
+            }`}
           >
             {t}
           </button>
@@ -195,9 +185,7 @@ export default function Stories() {
                 <span className="text-gray-600 text-xs">{p.status}</span>
 
                 <button
-                  onClick={() =>
-                    setMenuOpen(menuOpen === p.id ? null : p.id)
-                  }
+                  onClick={() => setMenuOpen(menuOpen === p.id ? null : p.id)}
                   className="p-2 hover:bg-gray-100 rounded-full"
                 >
                   <HiOutlineDotsHorizontal size={20} />
@@ -226,28 +214,25 @@ export default function Stories() {
       </div>
 
       {/* Pagination */}
-      {(hasPrev || hasNext) && (
-        <div className="flex justify-center mt-6 gap-3">
-          <button
-            onClick={() => updateQuery({ page: page - 1 })}
-            disabled={!hasPrev}
-            className="px-3 py-1 border rounded-full disabled:opacity-50"
-          >
-            Prev
-          </button>
+      <div className="flex justify-center mt-6 gap-3">
+        <button
+          onClick={() => updateQuery({ page: page - 1 })}
+          disabled={page <= 1}
+          className="px-3 py-1 border rounded-full disabled:opacity-50"
+        >
+          Prev
+        </button>
 
-          <span className="px-3 py-1 text-gray-600">{page}</span>
+        <span className="px-3 py-1 text-gray-600">{page}</span>
 
-          <button
-            onClick={() => updateQuery({ page: page + 1 })}
-            disabled={!hasNext}
-            className="px-3 py-1 border rounded-full disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
-      )}
-
+        <button
+          onClick={() => updateQuery({ page: page + 1 })}
+          disabled={!hasNext}
+          className="px-3 py-1 border rounded-full disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 }

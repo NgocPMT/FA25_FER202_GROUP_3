@@ -1,6 +1,6 @@
 import { RxAvatar } from "react-icons/rx";
 import { useEffect, useState, useMemo } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import SidebarProfile from "../components/SidebarProfile";
 import Article from "../components/Article"
 import useSavedPosts from "../hooks/useSavedPosts";
@@ -9,6 +9,8 @@ import useFollow from "../hooks/useFollow";
 const Profile = () => {
   const token = localStorage.getItem("token");
   const { username } = useParams();
+  const usernameToken = localStorage.getItem("username");
+  const userAccount = username === usernameToken ? null : username;
 
   // Function save post
   const { toggleSave, savedIds } = useSavedPosts();
@@ -28,7 +30,6 @@ const Profile = () => {
     bio: "text",
     userId: "null"
   });
-  // const [follower, setFollower] = useState(0);
 
   const [posts, setPosts] = useState([]);
   const [page, setPage] = useState(1);
@@ -38,7 +39,7 @@ const Profile = () => {
 
   useEffect(() => {
     getProfile().then((res) => {
-      const userId = res?.data?.userId;
+      const userId = res?.userId;
       if (userId) checkIfFollowing(userId);
     });
     getFollower(username);
@@ -69,11 +70,12 @@ const Profile = () => {
       const data = await res.json();
       setProfile(data);
 
-      return data; // vì axios trả res, fetch trả data 
+      return data;
     } catch (error) {
       console.error("Error profile:", error.message);
     }
   }
+
 
   async function getPosts(currentPage) {
     setLoading(true);
@@ -83,7 +85,7 @@ const Profile = () => {
         ? `users/user/${username}/posts?page=${currentPage}&limit=${limit}`
         : `me/posts?page=${currentPage}&limit=${limit}`;
 
-      // ---- Fetch trang hiện tại ----
+      // Fetch current page
       const res = await fetch(`${import.meta.env.VITE_API_URL}/${route}`, {
         method: "GET",
         headers: {
@@ -97,10 +99,9 @@ const Profile = () => {
         throw new Error(errData.message || "Failed to fetch posts");
       }
 
-      const data = await res.json(); // giống res.data
+      const data = await res.json();
 
-
-      // ---- Fetch trang kế tiếp để check hasNext ----
+      // Fetch next page
       const nextRoute = username
         ? `users/user/${username}/posts?page=${currentPage + 1}&limit=${limit}`
         : `me/posts?page=${currentPage + 1}&limit=${limit}`;
@@ -120,44 +121,69 @@ const Profile = () => {
 
       const nextData = await nextRes.json();
 
+      // Check if page is empty after delete
       if (data.length === 0 && currentPage > 1) {
         setPage((p) => p - 1);
         setLoading(false);
         return;
       }
 
-      // ---- Cập nhật UI ----
+      // Update UI
       setPosts(data);
       setHasNext(data.length === limit && nextData.length !== 0);
 
     } catch (err) {
       console.log("Error get posts:", err.message);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }
 
-
-  function handleDeletePost(deletedId) {
+  function handleDeletePost() {
     getPosts(page);
-    
   }
 
   return (
     <div className="grid grid-cols-[1fr_auto] gap-12">
       <div className="p-10 lg:pl-32 transition-all duration-300 z-10">
         <div className="py-10 space-y-4">
-          <div className="flex items-center gap-3 mb-8 md:hidden">
-            {profile.avatarUrl ? (
-              <img
-                src={profile.avatarUrl}
-                alt="Avatar"
-                className="w-16 h-16 object-cover rounded-full"
-              />
-            ) : (
-              <RxAvatar className="w-16 h-16 text-black" />
-            )}
-            <h5 className="my-2 font-bold text-xl">{profile.name}</h5>
+          {/* Mobile UI */}
+          <div className="flex items-center justify-between md:hidden mb-8">
+            <div className="flex items-center gap-3">
+              {profile.avatarUrl ? (
+                <img
+                  src={profile.avatarUrl}
+                  alt="Avatar"
+                  className="w-16 h-16 object-cover rounded-full"
+                />
+              ) : (
+                <RxAvatar className="w-16 h-16 text-black" />
+              )}
+
+              <h5 className="font-bold text-xl">{profile.name}</h5>
+            </div>
+
+            <div className="flex">
+              {userAccount ? (
+                <button
+                  onClick={() => toggleFollow(profile.userId)}
+                  className={`px-4 py-2 text-sm rounded-2xl cursor-pointer transition
+                    ${isFollowing
+                      ? "bg-white border border-gray-300 text-black hover:bg-gray-100"
+                      : "bg-black text-white hover:opacity-80"
+                    }`}
+                >
+                  {isFollowing ? "Following" : "Follow"}
+                </button>
+              ) : (
+                <Link
+                  to="/profile/edit"
+                  className="text-sm text-green-700 hover:text-violet-900"
+                >
+                  Edit Profile
+                </Link>
+              )}
+            </div>
           </div>
 
           <h1 className="font-bold text-4xl mb-12 max-md:hidden">
@@ -171,7 +197,7 @@ const Profile = () => {
               <p className="text-gray-500 text-center italic">
                 {username
                   ? `${profile.name} have no posts.`
-                  : "You haven't any posts yet."}
+                  : "You haven't write any posts yet."}
               </p>
             ) : (
               posts.map((post) => {

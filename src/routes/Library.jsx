@@ -20,7 +20,7 @@ const Library = () => {
     setLoading(true);
 
     try {
-      // --- Fetch trang hiện tại ---
+      // Fetch current page
       const res = await fetch(
         `${import.meta.env.VITE_API_URL}/me/saved-posts?page=${currentPage}&limit=${limit}`,
         {
@@ -39,8 +39,7 @@ const Library = () => {
 
       const data = await res.json();
 
-
-      // --- Fetch trang kế tiếp ---
+      // Fetch next page
       const nextRes = await fetch(
         `${import.meta.env.VITE_API_URL}/me/saved-posts?page=${currentPage + 1}&limit=${limit}`,
         {
@@ -59,17 +58,16 @@ const Library = () => {
 
       const nextData = await nextRes.json();
 
-      // Nếu trang rỗng và không phải trang đầu → lùi về trang trước
+      // Check if current page is empty after unsave/delete
       if (data.length === 0 && currentPage > 1) {
         setPage((p) => p - 1);
         setLoading(false);
         return;
       }
 
-      // Cập nhật UI
+      // Update UI
       setReadlist(data);
       setHasNext(data.length === limit && nextData.length !== 0);
-
 
     } catch (err) {
       console.log("Failed to get readlist:", err.message);
@@ -88,18 +86,16 @@ const Library = () => {
     }
   }
 
-  function handleDeletePost(deletedId) {
-    setReadlist((prev) => prev.filter((p) => p.id !== deletedId));
+  function handleDeletePost() {
+    getReadlist(page);
   }
 
   return (
     <div className="max-w-3xl mx-auto py-20 container">
-      {/* Header */}
       <div className="flex justify-between items-center mb-16">
         <h1 className="text-4xl font-bold text-gray-800 pb-2">Your Library</h1>
       </div>
-
-      {/* Danh sách bài viết */}
+      
       <div className="space-y-8">
         {readlist.length === 0 && !loading ? (
           <p className="text-gray-500 italic">Your library is empty.</p>

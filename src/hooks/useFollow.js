@@ -25,9 +25,6 @@ export default function useFollow() {
       }
 
       const json = await res.json();
-
-      // Backend có thể trả:
-      // { followings: [...] } hoặc [...]
       const data = json.followings || json;
 
       const alreadyFollow = Array.isArray(data)
@@ -76,7 +73,7 @@ export default function useFollow() {
 
     try {
       if (isFollowing) {
-        // --- UNFOLLOW ---
+        // Unfollow
         const res = await fetch(
           `${import.meta.env.VITE_API_URL}/me/followings/${profileId}`,
           {
@@ -99,7 +96,7 @@ export default function useFollow() {
         toast.success("Unfollow successfully!");
 
       } else {
-        // --- FOLLOW ---
+        // Follow
         const res = await fetch(
           `${import.meta.env.VITE_API_URL}/me/followings`,
           {

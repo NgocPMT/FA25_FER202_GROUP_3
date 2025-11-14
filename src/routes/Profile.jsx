@@ -1,10 +1,11 @@
 import { RxAvatar } from "react-icons/rx";
 import { useEffect, useState, useMemo } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import SidebarProfile from "../components/SidebarProfile";
 import Article from "../components/Article";
 import useSavedPosts from "../hooks/useSavedPosts";
 import useFollow from "../hooks/useFollow";
+import { toast } from "react-toastify";
 
 const Profile = () => {
   const token = localStorage.getItem("token");
@@ -35,6 +36,7 @@ const Profile = () => {
   const [limit] = useState(10);
   const [loading, setLoading] = useState(false);
   const [hasNext, setHasNext] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     getProfile().then((res) => {
@@ -67,7 +69,11 @@ const Profile = () => {
       }
 
       const data = await res.json();
-      // console.log(data);
+      if (!data) {
+        toast.error("this user have been banned");
+        navigate("/home");
+        return;
+      }
       setProfile(data);
 
       return data; // vì axios trả res, fetch trả data
@@ -148,7 +154,7 @@ const Profile = () => {
       <div className="p-10 lg:pl-32 transition-all duration-300 z-10">
         <div className="py-10 space-y-4">
           <div className="flex items-center gap-3 mb-8 md:hidden">
-            {profile.avatarUrl ? (
+            {profile?.avatarUrl ? (
               <img
                 src={profile.avatarUrl}
                 alt="Avatar"
@@ -157,11 +163,11 @@ const Profile = () => {
             ) : (
               <RxAvatar className="w-16 h-16 text-black" />
             )}
-            <h5 className="my-2 font-bold text-xl">{profile.name}</h5>
+            <h5 className="my-2 font-bold text-xl">{profile?.name}</h5>
           </div>
 
           <h1 className="font-bold text-4xl mb-12 max-md:hidden">
-            {profile.name}'s Posts
+            {profile?.name}'s Posts
           </h1>
 
           <div className="space-y-8">
@@ -170,7 +176,7 @@ const Profile = () => {
             ) : posts.length === 0 ? (
               <p className="text-gray-500 text-center italic">
                 {username
-                  ? `${profile.name} have no posts.`
+                  ? `${profile?.name} have no posts.`
                   : "You haven't any posts yet."}
               </p>
             ) : (

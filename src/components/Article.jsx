@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { BsStarFill, BsChat, BsBookmark, BsThreeDots, BsBookmarkFill } from "react-icons/bs";
+import {
+  BsStarFill,
+  BsChat,
+  BsBookmark,
+  BsThreeDots,
+  BsBookmarkFill,
+} from "react-icons/bs";
 import { Link } from "react-router-dom";
 import ModalPortal from "./ModalPortal";
 import { toast } from "react-toastify";
@@ -19,7 +25,6 @@ export default function Article({ data, isSaved, onSave, onDelete }) {
     slug,
   } = data;
 
-
   const postReactions = PostReaction?.length || 0;
   const postComments = comments?.length || 0;
 
@@ -31,11 +36,9 @@ export default function Article({ data, isSaved, onSave, onDelete }) {
   const [showModal, setShowModal] = useState(false);
   const [postToDelete, setPostToDelete] = useState(null);
 
-
   //report
   const [showReportModal, setShowReportModal] = useState(false);
   const [postToReport, setPostToReport] = useState(null);
-
 
   const extractTextRecursively = (node) => {
     if (!node) return "";
@@ -64,7 +67,6 @@ export default function Article({ data, isSaved, onSave, onDelete }) {
 
   const formatTitle = (title) => {
     if (!title) return "Untitled";
-
 
     if (title.length <= 50) return title;
 
@@ -105,43 +107,53 @@ export default function Article({ data, isSaved, onSave, onDelete }) {
 
       if (!res.ok) {
         const errorData = await res.json();
-        toast.error("Delete failed!")
+        toast.error("Delete failed!");
         throw new Error(errorData.message || "Delete failed");
       }
 
       onDelete(postToDelete);
-      toast.success("Deleted successfully!")
+      toast.success("Deleted successfully!");
     } catch (err) {
       console.error("Delete post error:", err.message);
-      toast.error("Delete failed!")
+      toast.error("Delete failed!");
     } finally {
       setShowModal(false);
       setPostToDelete(null);
     }
   }
 
-  //report 
+  //report
   async function reportPost() {
     const token = localStorage.getItem("token");
     try {
-      await axios.post(
+      const res = await fetch(
         `${import.meta.env.VITE_API_URL}/reported-posts`,
-        { postId: postToReport },
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          method: "POST",
+          body: JSON.stringify({
+            postId: postToReport,
+          }),
         }
       );
+      if (!res.ok) {
+        const data = await res.json();
+        toast.error(data.error);
+        return;
+      }
 
-      alert("Reported successfully!");
+      const data = await res.json();
+      toast.success(data.message);
     } catch (err) {
-      console.error("Report error:", err.response?.data || err.message);
-      alert("Failed to report!");
+      toast.error(`Failed to report: ${err.message}`);
     } finally {
       setShowReportModal(false);
       setPostToReport(null);
     }
   }
-
 
   useEffect(() => {
     const handleClickOutside = () => setShowMenu(false);
@@ -202,7 +214,6 @@ export default function Article({ data, isSaved, onSave, onDelete }) {
 
         {/* RIGHT */}
         <div className="relative flex-shrink-0">
-
           <Link
             to={`/posts/${slug}`}
             className="block relative w-[90px] h-[60px] sm:w-40 sm:h-[100px] lg:w-40 lg:h-[100px]"
@@ -265,17 +276,12 @@ export default function Article({ data, isSaved, onSave, onDelete }) {
                   <button
                     className="w-full text-start text-nowrap text-red-600 hover:text-red-700 cursor-pointer"
                     onClick={() => {
-                      if (currentUserId === user?.id) {
-                        alert("You cannot report your own post!");
-                        return;
-                      }
                       setPostToReport(data.id);
                       setShowReportModal(true);
                     }}
                   >
                     Report
                   </button>
-
                 </div>
               )}
 

@@ -34,14 +34,15 @@ export default function AdminNavbar() {
   return (
     <nav className="sticky top-0 z-50 bg-white border-b shadow-sm">
       <div className="flex items-center justify-between px-4 py-3 w-full">
-
         {/* --- LOGO --- */}
-        <Link to="/admin/home" className="font-lora font-bold text-2xl text-gray-900">
+        <Link
+          to="/admin/home"
+          className="font-lora font-bold text-2xl text-gray-900"
+        >
           Easium Admin
         </Link>
 
         <div className="flex items-center gap-4">
-
           {/* --- NOTIFICATION ICON --- */}
           <Link
             to="/admin/notifications"
@@ -68,13 +69,6 @@ export default function AdminNavbar() {
             {isAvatarDropdownShow && (
               <div className="absolute right-0 top-10 bg-white shadow border rounded-md w-40 overflow-hidden">
                 <button
-                  onClick={() => navigate(`/profile/${profile?.username}`)}
-                  className="block w-full text-left px-3 py-2 hover:bg-gray-100"
-                >
-                  View Profile
-                </button>
-
-                <button
                   onClick={logOut}
                   className="block w-full text-left px-3 py-2 hover:bg-red-100 text-red-600"
                 >
@@ -83,7 +77,6 @@ export default function AdminNavbar() {
               </div>
             )}
           </div>
-
         </div>
       </div>
     </nav>

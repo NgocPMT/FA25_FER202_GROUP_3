@@ -2,190 +2,189 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { IoSearchOutline } from "react-icons/io5";
 import { X } from "lucide-react";
+import { toast } from "react-toastify";
 
 export default function AdminReportedPosts() {
   const [reports, setReports] = useState([]);
 
   // INPUT STATES
   const [searchKeyword, setSearchKeyword] = useState("");
-  const [reporterInput, setReporterInput] = useState("");
-  const [dateStart, setDateStart] = useState("");
-  const [dateEnd, setDateEnd] = useState("");
+  const [authorInput, setAuthorInput] = useState("");
 
-  // FILTER States (chỉ áp dụng khi Enter hoặc nhấn Search)
-  const [filterTitle, setFilterTitle] = useState("");
-  const [filterReporter, setFilterReporter] = useState("");
-  const [filterStart, setFilterStart] = useState("");
-  const [filterEnd, setFilterEnd] = useState("");
+  // APPLIED SEARCH PARAMS (sent to API)
+  const [titleSearch, setTitleSearch] = useState("");
+  const [userSearch, setUserSearch] = useState("");
 
   // LỊCH SỬ (tối đa 5 mục)
-  const [reporterHistory, setReporterHistory] = useState(
-    JSON.parse(localStorage.getItem("reporterHistory") || "[]")
+  const [authorHistory, setAuthorHistory] = useState(
+    JSON.parse(localStorage.getItem("authorHistory") || "[]")
   );
   const [titleHistory, setTitleHistory] = useState(
     JSON.parse(localStorage.getItem("titleHistory") || "[]")
   );
 
   // Dropdown
-  const [showReporterDropdown, setShowReporterDropdown] = useState(false);
+  const [showAuthorDropdown, setShowAuthorDropdown] = useState(false);
   const [showTitleDropdown, setShowTitleDropdown] = useState(false);
 
-  // Fetch reports
+  // Pagination
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(5);
-  const [total, setTotal] = useState(0);
+  const [hasNext, setHasNext] = useState(false);
 
+  // Fetch reports from API with search params
   const fetchReports = async () => {
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/admin/reported-posts?page=${page}&limit=${limit}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      let url = `${
+        import.meta.env.VITE_API_URL
+      }/admin/reported-posts?page=${page}&limit=${limit}`;
+
+      if (titleSearch) {
+        url += `&titleSearch=${encodeURIComponent(titleSearch)}`;
+      }
+      if (userSearch) {
+        url += `&userSearch=${encodeURIComponent(userSearch)}`;
+      }
+
+      const res = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
 
       const data = await res.json();
       setReports(data.reportedPosts || []);
-      setTotal(data.total || 0);
+      setHasNext(data.reportedPosts.length === limit);
     } catch (err) {
       console.error("Error fetching reports:", err);
+      toast.error("Failed to fetch reports");
     }
   };
 
-
   useEffect(() => {
     fetchReports();
-  }, [page, limit]);
+  }, [page, limit, titleSearch, userSearch]);
 
-  const totalPages = Math.ceil(total / limit);
-
-
-  // Unique suggestion lists
-  const reporterList = [...new Set(reports.map((r) => r.user.username))];
-  const titleList = [...new Set(reports.map((r) => r.post.title))];
-
-  // Save history (max 5)
   const updateHistory = (key, list, value) => {
     const updated = [value, ...list.filter((x) => x !== value)].slice(0, 5);
     localStorage.setItem(key, JSON.stringify(updated));
     return updated;
   };
 
-  const saveReporterHistory = (name) =>
-    setReporterHistory((prev) => updateHistory("reporterHistory", prev, name));
+  const saveAuthorHistory = (name) =>
+    setAuthorHistory((prev) => updateHistory("authorHistory", prev, name));
 
   const saveTitleHistory = (title) =>
     setTitleHistory((prev) => updateHistory("titleHistory", prev, title));
 
   // Xóa lịch sử
   const removeHistoryItem = (type, value) => {
-    const list = type === "reporter" ? reporterHistory : titleHistory;
+    const list = type === "author" ? authorHistory : titleHistory;
     const updated = list.filter((x) => x !== value);
 
     localStorage.setItem(
-      type === "reporter" ? "reporterHistory" : "titleHistory",
+      type === "author" ? "authorHistory" : "titleHistory",
       JSON.stringify(updated)
     );
 
-    type === "reporter"
-      ? setReporterHistory(updated)
-      : setTitleHistory(updated);
+    type === "author" ? setAuthorHistory(updated) : setTitleHistory(updated);
   };
 
   const clearAllHistory = (type) => {
     localStorage.removeItem(
-      type === "reporter" ? "reporterHistory" : "titleHistory"
+      type === "author" ? "authorHistory" : "titleHistory"
     );
-    type === "reporter" ? setReporterHistory([]) : setTitleHistory([]);
+    type === "author" ? setAuthorHistory([]) : setTitleHistory([]);
   };
 
-  // APPLY FILTER (ENTER hoặc SEARCH BUTTON)
-  const applyTitleFilter = () => {
-    if (!searchKeyword.trim()) return; // ⛔ Không lưu khi rỗng
-    setFilterTitle(searchKeyword);
-    saveTitleHistory(searchKeyword);
+  // APPLY SEARCH (ENTER hoặc SEARCH BUTTON)
+  const applyTitleSearch = () => {
+    if (searchKeyword.trim() === "") {
+      setTitleSearch("");
+      return;
+    }
+    setTitleSearch(searchKeyword.trim());
+    saveTitleHistory(searchKeyword.trim());
     setShowTitleDropdown(false);
+    setPage(1); // Reset to first page when searching
   };
 
-  const applyReporterFilter = () => {
-    if (!reporterInput.trim()) return; // ⛔ Không lưu khi rỗng
-    setFilterReporter(reporterInput);
-    saveReporterHistory(reporterInput);
-    setShowReporterDropdown(false);
+  const applyAuthorSearch = () => {
+    if (authorInput.trim() === "") {
+      setUserSearch("");
+      return;
+    }
+    setUserSearch(authorInput.trim());
+    saveAuthorHistory(authorInput.trim());
+    setShowAuthorDropdown(false);
+    setPage(1); // Reset to first page when searching
   };
-  const handleTitleKeyDown = (e) => e.key === "Enter" && applyTitleFilter();
-  const handleReporterKeyDown = (e) => e.key === "Enter" && applyReporterFilter();
 
-  // FILTER LOGIC
-  const filteredReports = reports.filter((item) => {
-    const postTitle = item.post.title.toLowerCase();
-    const reporter = item.user.username.toLowerCase();
-
-    const matchesTitle =
-      !filterTitle || postTitle.includes(filterTitle.toLowerCase());
-
-    const matchesReporter =
-      !filterReporter || reporter.includes(filterReporter.toLowerCase());
-
-    const createdAt = new Date(item.createdAt);
-    const matchesStart = !filterStart || createdAt >= new Date(filterStart);
-    const matchesEnd = !filterEnd || createdAt <= new Date(new Date(filterEnd).setHours(23, 59, 59, 999));
-
-    return matchesTitle && matchesReporter && matchesStart && matchesEnd;
-  });
+  const handleTitleKeyDown = (e) => e.key === "Enter" && applyTitleSearch();
+  const handleAuthorKeyDown = (e) => e.key === "Enter" && applyAuthorSearch();
 
   const clearFilters = () => {
     setSearchKeyword("");
-    setReporterInput("");
-    setDateStart("");
-    setDateEnd("");
-    setFilterTitle("");
-    setFilterReporter("");
-    setFilterStart("");
-    setFilterEnd("");
+    setAuthorInput("");
+    setTitleSearch("");
+    setUserSearch("");
+    setPage(1);
   };
 
+  const handleClearReport = async (postId, userId) => {
+    if (!confirm("Are you sure you want to clear this report?")) return;
 
-const handleDeleteReport = async (postId) => {
-  if (!confirm("Are you sure you want to delete this post and its report?")) return;
+    try {
+      const token = localStorage.getItem("token");
 
-  try {
-    const token = localStorage.getItem("token");
+      await fetch(`${import.meta.env.VITE_API_URL}/admin/reported-posts`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ postId, userId }),
+      });
 
-    // 1. XÓA REPORT
-    await fetch(`${import.meta.env.VITE_API_URL}/admin/reported-posts`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ postId }),
-    });
+      toast.success("Report cleared successfully!");
+      fetchReports(); // Refresh list
+    } catch (err) {
+      toast.error("Failed to clear report. Please try again.");
+    }
+  };
 
-    
-    await fetch(`${import.meta.env.VITE_API_URL}/posts/${postId}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+  const handleDeletePost = async (postId, userId) => {
+    if (!confirm("Are you sure you want to delete this post and its report?"))
+      return;
 
-   
-    setReports((prev) => prev.filter((r) => r.postId !== postId));
+    try {
+      const token = localStorage.getItem("token");
 
-    alert("Post and report deleted successfully!");
+      await fetch(`${import.meta.env.VITE_API_URL}/posts/${postId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-  } catch (err) {
-    console.error("Delete error:", err);
-    alert("Failed to delete post. Please try again.");
-  }
-};
+      await fetch(`${import.meta.env.VITE_API_URL}/admin/reported-posts`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ postId, userId }),
+      });
+
+      toast.success("Post deleted successfully!");
+      fetchReports(); // Refresh list
+    } catch (err) {
+      toast.error("Failed to delete post. Please try again.");
+    }
+  };
 
   const formatTitle = (title) => {
     if (!title) return "Untitled";
-
 
     if (title.length <= 50) return title;
 
@@ -208,12 +207,12 @@ const handleDeleteReport = async (postId) => {
     );
   };
 
-
   // ====================== UI ====================== //
 
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-6">Reported Posts</h1>
+
       {/* LIMIT SELECT */}
       <select
         value={limit}
@@ -228,14 +227,14 @@ const handleDeleteReport = async (postId) => {
         <option value="20">20 / page</option>
         <option value="50">50 / page</option>
       </select>
+
       {/* FILTER BAR */}
       <div className="bg-white p-4 rounded-xl shadow mb-6 border flex flex-wrap items-center gap-3">
-
-        {/* REPORTER SEARCH */}
+        {/* AUTHOR SEARCH */}
         <div className="relative">
           <input
             type="text"
-            placeholder="Reporter"
+            placeholder="Author Username"
             className="
               px-4 py-2 
               border border-gray-300 
@@ -246,139 +245,70 @@ const handleDeleteReport = async (postId) => {
               focus:border-gray-400 
               focus:no-underline
             "
-            value={reporterInput}
-            onChange={(e) => setReporterInput(e.target.value)}
-            onFocus={() => setShowReporterDropdown(true)}
-            onBlur={() => setTimeout(() => setShowReporterDropdown(false), 150)}
-            onKeyDown={handleReporterKeyDown}
+            value={authorInput}
+            onChange={(e) => setAuthorInput(e.target.value)}
+            onFocus={() => setShowAuthorDropdown(true)}
+            onBlur={() => setTimeout(() => setShowAuthorDropdown(false), 150)}
+            onKeyDown={handleAuthorKeyDown}
           />
-
 
           {/* SEARCH BUTTON */}
           <button
-            onClick={applyReporterFilter}
+            onClick={applyAuthorSearch}
             className="absolute right-1 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black"
           >
             <IoSearchOutline size={18} />
           </button>
 
           {/* DROPDOWN */}
-          {showReporterDropdown && (reporterInput.trim() !== "" || reporterHistory.length > 0) && (
-            <div className="absolute bg-white border rounded shadow w-full z-20 max-h-60 overflow-auto">
+          {showAuthorDropdown &&
+            authorHistory.length > 0 &&
+            authorInput.trim() === "" && (
+              <div className="absolute bg-white border rounded shadow w-full z-20 max-h-60 overflow-auto">
+                <div className="flex justify-between px-3 py-1 text-xs text-gray-500">
+                  History
+                  <button
+                    onClick={() => clearAllHistory("author")}
+                    className="text-red-500 hover:underline"
+                  >
+                    Delete All
+                  </button>
+                </div>
 
-              {/* ---------- CASE 1: INPUT TRỐNG → SHOW HISTORY ---------- */}
-              {reporterInput.trim() === "" && reporterHistory.length > 0 && (
-                <>
-                  <div className="flex justify-between px-3 py-1 text-xs text-gray-500">
-                    History
+                {authorHistory.map((name, idx) => (
+                  <div
+                    key={idx}
+                    className="px-3 py-2 flex justify-between hover:bg-gray-100 cursor-pointer"
+                    onClick={() => {
+                      setAuthorInput(name);
+                      setUserSearch(name);
+                      setPage(1);
+                      saveAuthorHistory(name);
+                      setShowAuthorDropdown(false);
+                    }}
+                  >
+                    {name}
+
                     <button
-                      onClick={() => clearAllHistory("reporter")}
-                      className="text-red-500 hover:underline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeHistoryItem("author", name);
+                      }}
+                      className="text-gray-400 hover:text-red-500"
                     >
-                      Delete All
+                      <X size={14} />
                     </button>
                   </div>
-
-                  {reporterHistory.map((name, idx) => (
-                    <div
-                      key={idx}
-                      className="px-3 py-2 flex justify-between hover:bg-gray-100 cursor-pointer"
-                      onClick={() => {
-                        setReporterInput(name);
-                        setFilterReporter(name);
-                        saveReporterHistory(name);
-                        setShowReporterDropdown(false);
-                      }}
-                    >
-                      {name}
-
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeHistoryItem("reporter", name);
-                        }}
-                        className="text-gray-400 hover:text-red-500"
-                      >
-                        <X size={14} />
-                      </button>
-                    </div>
-                  ))}
-                </>
-              )}
-
-              {/* ---------- CASE 2: INPUT CÓ TEXT → SHOW SUGGESTION ---------- */}
-              {reporterInput.trim() !== "" && (
-                <>
-                  {reporterList
-                    .filter((name) =>
-                      name.toLowerCase().includes(reporterInput.toLowerCase())
-                    )
-                    .map((name, idx) => (
-                      <div
-                        key={idx}
-                        className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => {
-                          setReporterInput(name);
-                          setFilterReporter(name);
-                          saveReporterHistory(name);
-                          setShowReporterDropdown(false);
-                        }}
-                      >
-                        {name}
-                      </div>
-                    ))}
-
-                  {/* Nếu không có suggestion */}
-                  {reporterList.filter((name) =>
-                    name.toLowerCase().includes(reporterInput.toLowerCase())
-                  ).length === 0 && (
-                      <div className="px-3 py-2 text-gray-400 italic">Not Found</div>
-                    )}
-                </>
-              )}
-
-            </div>
-          )}
-        </div>
-
-        {/* DATE RANGE */}
-        <div className="flex items-center gap-2">
-          <input
-            type="date"
-            className="px-3 py-2 border rounded-lg bg-gray-50"
-            value={dateStart}
-            onChange={(e) => {
-              setDateStart(e.target.value);
-              setFilterStart(e.target.value);
-            }}
-          />
-          <span>-</span>
-          <input
-            type="date"
-            className="px-3 py-2 border rounded-lg bg-gray-50"
-            value={dateEnd}
-            min={dateStart}
-            onChange={(e) => {
-              const newEnd = e.target.value;
-              if (dateStart && newEnd < dateStart) {
-                setDateEnd(dateStart);
-                setFilterEnd(dateStart);
-                return;
-              }
-
-              setDateEnd(newEnd);
-              setFilterEnd(newEnd);
-            }}
-          />
+                ))}
+              </div>
+            )}
         </div>
 
         {/* TITLE SEARCH */}
         <div className="relative flex-1 max-w-xs ml-auto">
-
-
           <input
             type="text"
-            placeholder="Title"
+            placeholder="Post Title"
             className="w-full border bg-gray-50 rounded-full pl-10 pr-8 py-2 text-sm
              focus:outline-none focus:ring-0 focus:border-gray-300"
             value={searchKeyword}
@@ -390,91 +320,54 @@ const handleDeleteReport = async (postId) => {
 
           {/* SEARCH BUTTON */}
           <button
-            onClick={applyTitleFilter}
+            onClick={applyTitleSearch}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black"
           >
             <IoSearchOutline size={18} />
           </button>
 
           {/* TITLE DROPDOWN */}
-          {showTitleDropdown && (searchKeyword.trim() !== "" || titleHistory.length > 0) && (
-            <div className="absolute top-11 bg-white border rounded shadow w-full z-20 max-h-60 overflow-auto">
+          {showTitleDropdown &&
+            titleHistory.length > 0 &&
+            searchKeyword.trim() === "" && (
+              <div className="absolute top-11 bg-white border rounded shadow w-full z-20 max-h-60 overflow-auto">
+                <div className="flex justify-between px-3 py-1 text-xs text-gray-500">
+                  History
+                  <button
+                    onClick={() => clearAllHistory("title")}
+                    className="text-red-500 hover:underline"
+                  >
+                    Delete All
+                  </button>
+                </div>
 
-              {/* CASE 1: INPUT TRỐNG → SHOW HISTORY */}
-              {searchKeyword.trim() === "" && titleHistory.length > 0 && (
-                <>
-                  <div className="flex justify-between px-3 py-1 text-xs text-gray-500">
-                    History
+                {titleHistory.map((t, idx) => (
+                  <div
+                    key={idx}
+                    className="px-3 py-2 flex justify-between hover:bg-gray-100 cursor-pointer"
+                    onClick={() => {
+                      setSearchKeyword(t);
+                      setTitleSearch(t);
+                      setPage(1);
+                      saveTitleHistory(t);
+                      setShowTitleDropdown(false);
+                    }}
+                  >
+                    {t}
+
                     <button
-                      onClick={() => clearAllHistory("title")}
-                      className="text-red-500 hover:underline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeHistoryItem("title", t);
+                      }}
+                      className="text-gray-400 hover:text-red-500"
                     >
-                      Delete All
+                      <X size={14} />
                     </button>
                   </div>
-
-                  {titleHistory.map((t, idx) => (
-                    <div
-                      key={idx}
-                      className="px-3 py-2 flex justify-between hover:bg-gray-100 cursor-pointer"
-                      onClick={() => {
-                        setSearchKeyword(t);
-                        setFilterTitle(t);
-                        saveTitleHistory(t);
-                        setShowTitleDropdown(false);
-                      }}
-                    >
-                      {t}
-
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeHistoryItem("title", t);
-                        }}
-                        className="text-gray-400 hover:text-red-500"
-                      >
-                        <X size={14} />
-                      </button>
-                    </div>
-                  ))}
-                </>
-              )}
-
-              {/* CASE 2: CÓ TỪ KHÓA → SHOW SUGGESTION */}
-              {searchKeyword.trim() !== "" && (
-                <>
-                  {titleList
-                    .filter((t) =>
-                      t.toLowerCase().includes(searchKeyword.toLowerCase())
-                    )
-                    .map((t, idx) => (
-                      <div
-                        key={idx}
-                        className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => {
-                          setSearchKeyword(t);
-                          setFilterTitle(t);
-                          saveTitleHistory(t);
-                          setShowTitleDropdown(false);
-                        }}
-                      >
-                        {t}
-                      </div>
-                    ))}
-
-                  {/* Không có gợi ý */}
-                  {titleList.filter((t) =>
-                    t.toLowerCase().includes(searchKeyword.toLowerCase())
-                  ).length === 0 && (
-                      <div className="px-3 py-2 text-gray-400 italic">
-                        Article not found
-                      </div>
-                    )}
-                </>
-              )}
-            </div>
-          )}
-
+                ))}
+              </div>
+            )}
         </div>
 
         {/* CLEAR FILTER */}
@@ -492,7 +385,6 @@ const handleDeleteReport = async (postId) => {
           <thead>
             <tr className="bg-gray-100">
               <th className="p-3 border">Post ID</th>
-              <th className="p-3 border">Author ID</th>
               <th className="p-3 border">Author</th>
               <th className="p-3 border">Title</th>
               <th className="p-3 border">Image</th>
@@ -503,23 +395,22 @@ const handleDeleteReport = async (postId) => {
             </tr>
           </thead>
 
-          <tbody>
-            {filteredReports.length === 0 ? (
+          <tbody className="text-sm">
+            {reports.length === 0 ? (
               <tr>
                 <td colSpan="8" className="text-center p-4 text-gray-500">
                   No reported posts found.
                 </td>
               </tr>
             ) : (
-              filteredReports.map((item) => (
-                <tr key={item.postId} className="border">
-                  <td className="p-3 border">{item.postId}</td>
-                  <td className="p-3 border">{item.post.user?.id}</td>
+              reports.map((item) => (
+                <tr key={`${item.postId}-${item.user.id}`} className="border">
+                  <td className="p-3 border text-center">{item.postId}</td>
 
-                  <td className="p-3 border">
+                  <td className="p-3 border text-center">
                     <Link
                       to={`/profile/${item.post.user?.username}`}
-                      className="text-blue-600 hover:underline"
+                      className="hover:underline"
                     >
                       {item.post.user?.username}
                     </Link>
@@ -528,7 +419,7 @@ const handleDeleteReport = async (postId) => {
                   <td className="p-3 border">
                     <Link
                       to={`/posts/${item.post.slug}`}
-                      className="text-base sm:text-lg md:text-[17px] lg:text-xl font-semibold mb-1 
+                      className="text-base md:text-[17px] lg:text-lg text-center font-semibold mb-1 
         hover:underline cursor-pointer leading-snug 
         whitespace-pre-line break-words line-clamp-2"
                     >
@@ -536,35 +427,50 @@ const handleDeleteReport = async (postId) => {
                     </Link>
                   </td>
 
-                  <td className="p-3 border w-32">
+                  <td className="p-3 border w-32 text-center">
                     <img
                       src={item.post.coverImageUrl}
                       className="w-20 h-16 object-cover rounded"
+                      alt="Post cover"
                     />
                   </td>
 
-                  <td className="p-3 border">{item.userId}</td>
+                  <td className="p-3 border text-center">{item.userId}</td>
 
-                  <td className="p-3 border">
+                  <td className="p-3 border text-center">
                     <Link
                       to={`/profile/${item.user?.username}`}
-                      className="text-blue-600 hover:underline"
+                      className="hover:underline"
                     >
                       {item.user?.username}
                     </Link>
                   </td>
 
-                  <td className="p-3 border">
+                  <td className="p-3 border text-center">
                     {new Date(item.createdAt).toLocaleString("vi-VN")}
                   </td>
+
                   <td className="p-3 border text-center">
-                    <button
-                      onClick={() => handleDeleteReport(item.postId)}
-                      className="text-red-500 hover:text-red-700"
-                      title="Delete report"
-                    >
-                      <X size={18} />
-                    </button>
+                    <div className="flex flex-col gap-2">
+                      <button
+                        onClick={() =>
+                          handleDeletePost(item.postId, item.user.id)
+                        }
+                        className="text-red-500 hover:text-red-700 cursor-pointer text-sm"
+                        title="Delete post and report"
+                      >
+                        Delete Post
+                      </button>
+                      <button
+                        onClick={() =>
+                          handleClearReport(item.postId, item.user.id)
+                        }
+                        className="text-green-500 hover:text-green-700 cursor-pointer text-sm"
+                        title="Clear report only"
+                      >
+                        Clear Report
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
@@ -572,12 +478,9 @@ const handleDeleteReport = async (postId) => {
           </tbody>
         </table>
       </div>
+
       {/* PAGINATION */}
       <div className="flex items-center justify-center mt-4">
-
-
-
-        {/* PAGE NUMBERS */}
         <div className="flex items-center gap-2">
           <button
             disabled={page === 1}
@@ -587,19 +490,10 @@ const handleDeleteReport = async (postId) => {
             Prev
           </button>
 
-          {[...Array(totalPages)].map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setPage(i + 1)}
-              className={`px-3 py-1 border rounded ${page === i + 1 ? "bg-blue-500 text-white" : ""
-                }`}
-            >
-              {i + 1}
-            </button>
-          ))}
+          <span className="px-3 py-1 opacity-70">{page}</span>
 
           <button
-            disabled={page === totalPages}
+            disabled={!hasNext}
             onClick={() => setPage(page + 1)}
             className="px-3 py-1 border rounded disabled:opacity-50"
           >
@@ -607,7 +501,6 @@ const handleDeleteReport = async (postId) => {
           </button>
         </div>
       </div>
-
     </div>
   );
 }

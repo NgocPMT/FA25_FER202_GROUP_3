@@ -1,12 +1,29 @@
-import { Navigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function ProtectedRouteAdmin({ children }) {
   const token = localStorage.getItem("token");
-  const role = localStorage.getItem("role"); // stored when login
+  const navigate = useNavigate();
 
-  if (!token) return <Navigate to="/sign-in" replace />;
+  useEffect(() => {
+    const validateAdmin = async () => {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/validate-admin`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const data = await res.json();
 
-  if (role !== "admin") return <Navigate to="/home" replace />;
+      if (!data.valid) navigate("/home");
+    };
+
+    if (!token) navigate("/sign-in");
+
+    validateAdmin();
+  }, []);
 
   return children;
 }

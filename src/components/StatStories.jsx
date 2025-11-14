@@ -9,6 +9,7 @@ export default function StatStories() {
   const [chartData, setChartData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [stories, setStories] = useState([]);
+  const [fullStories, setFullStories] = useState([]);
   const [followersCount, setFollowersCount] = useState(0);
 
   const [page, setPage] = useState(1);
@@ -85,22 +86,39 @@ export default function StatStories() {
 
   // Sort stories using useMemo
   const sortedStories = useMemo(() => {
-    if (!stories.length) return [];
+    if (!fullStories.length) return [];
 
-    const arr = [...stories];
+    const arr = [...fullStories];
 
-    const sortMap = {
-      Latest: () => arr.sort((a, b) => b.dateValue - a.dateValue),
-      Oldest: () => arr.sort((a, b) => a.dateValue - b.dateValue),
-      "Most viewed": () => arr.sort((a, b) => b.views - a.views),
-      "Least viewed": () => arr.sort((a, b) => a.views - b.views),
-      "Most reactions": () => arr.sort((a, b) => b.reactions - a.reactions),
-      "Least reactions": () => arr.sort((a, b) => a.reactions - b.reactions),
-    };
+    switch (selectedSort) {
+      case "Latest":
+        return arr.sort((a, b) => b.dateValue - a.dateValue);
+      case "Oldest":
+        return arr.sort((a, b) => a.dateValue - b.dateValue);
+      case "Most viewed":
+        return arr.sort((a, b) => b.views - a.views);
+      case "Least viewed":
+        return arr.sort((a, b) => a.views - b.views);
+      case "Most reactions":
+        return arr.sort((a, b) => b.reactions - a.reactions);
+      case "Least reactions":
+        return arr.sort((a, b) => a.reactions - b.reactions);
+      default:
+        return arr;
+    }
+  }, [fullStories, selectedSort]);
 
-    sortMap[selectedSort]?.();
-    return arr;
-  }, [stories, selectedSort]);
+  // Pagination using sortedStories
+  const paginatedStories = useMemo(() => {
+    const start = (page - 1) * limit;
+    const end = start + limit;
+    return sortedStories.slice(start, end);
+  }, [sortedStories, page, limit]);
+
+  // Update hasNext based on total
+  useEffect(() => {
+    setHasNext(page * limit < sortedStories.length);
+  }, [sortedStories, page]);
 
   // Get data for chart
   useEffect(() => {
@@ -134,6 +152,42 @@ export default function StatStories() {
     fetchStats();
   }, []);
 
+  // Fetch ALL stories (for sorting)
+  useEffect(() => {
+    async function fetchAllStories() {
+      try {
+        const token = localStorage.getItem("token");
+
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_URL}/me/posts?page=1&limit=99999`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        const data = res.data || [];
+
+        const formatted = data.map((post) => {
+          const d = new Date(post.createdAt);
+          return {
+            id: post._id || post.id,
+            title: post.title,
+            slug: post.slug,
+            date: d.toISOString().split("T")[0],
+            dateValue: d.getTime(),
+            views: post.PostView?.length || 0,
+            reactions: post.PostReaction?.length || 0,
+          };
+        });
+
+        setFullStories(formatted);
+      } catch (err) {
+        console.error("❌ Fetch full stories failed:", err);
+        setFullStories([]);
+      }
+    }
+
+    fetchAllStories();
+  }, []);
+
   // Get all stories
   useEffect(() => {
     async function fetchStories() {
@@ -154,8 +208,8 @@ export default function StatStories() {
           const d = new Date(post.createdAt);
           return {
             id: post._id || post.id,
-            title: post.title || "Untitled",
-            readTime: post.readTime || "1 min read",
+            title: post.title,
+            slug: post.slug,
             date: d.toISOString().split("T")[0],
             dateValue: d.getTime(),
             views: post.PostView?.length || 0,
@@ -234,7 +288,7 @@ export default function StatStories() {
       {/* Story list */}
       <div ref={listTopRef}>
         <StoryListStat
-          stories={stories}
+          stories={paginatedStories}
           sortRef={sortRef}
           openSort={openSort}
           setOpenSort={setOpenSort}

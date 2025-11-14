@@ -2,13 +2,15 @@
 import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import Articles from "../components/Articles";
+import { useOutletContext } from "react-router";
 
 const HomeDashboard = () => {
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1270);
+  const { isCommentOpen } = useOutletContext();
 
   useEffect(() => {
     const handleResize = () => {
-      const mobile = window.innerWidth < 1024;
+      const mobile = window.innerWidth < 1270;
       setIsMobile(mobile);
     };
     handleResize();
@@ -26,8 +28,8 @@ const HomeDashboard = () => {
       {!isMobile && (
         <aside
           className={`w-96 shrink-0 p-4 border-l border-gray-200
-          sticky top-14 transition-all duration-300
-        `}
+            ${isCommentOpen ? "static z-0" : "sticky top-14 z-20"}
+          `}
         >
           <Sidebar />
         </aside>

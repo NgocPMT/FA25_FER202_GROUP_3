@@ -33,8 +33,7 @@ const Navbar = ({ onToggleSideNav }) => {
     const updated = [
       keyword,
       ...searchHistory.filter((item) => item !== keyword),
-    ].slice(0, 10);
-
+    ].slice(0, 5);
     setSearchHistory(updated);
     localStorage.setItem("searchHistory", JSON.stringify(updated));
   };

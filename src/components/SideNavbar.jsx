@@ -67,25 +67,10 @@ const SideNavbar = () => {
         <MenuItem
           icon={<BsPeople />}
           activeIcon={<BsFillPeopleFill />}
-          label="Following"
+          label="Follows"
           href="/following"
           active={path === "/following"}
         />
-
-        <li className="suggest-box flex items-start gap-4 px-3">
-          <FiPlus className="mt-1 text-gray-500 text-3xl" />
-          <div className="content flex flex-col gap-2">
-            <p className="text-sm text-gray-500">
-              Find writers and publications to follow.
-            </p>
-            <a
-              href="#"
-              className="underline text-gray-500 group-hover:text-gray-800"
-            >
-              See suggestions
-            </a>
-          </div>
-        </li>
       </ul>
     </div>
   );

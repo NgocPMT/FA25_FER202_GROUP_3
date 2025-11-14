@@ -2,7 +2,7 @@ import { RxAvatar } from "react-icons/rx";
 import { useEffect, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import SidebarProfile from "../components/SidebarProfile";
-import Article from "../components/Article"
+import Article from "../components/Article";
 import useSavedPosts from "../hooks/useSavedPosts";
 import useFollow from "../hooks/useFollow";
 
@@ -19,14 +19,14 @@ const Profile = () => {
     followerCount,
     checkIfFollowing,
     getFollower,
-    toggleFollow
+    toggleFollow,
   } = useFollow();
 
   const [profile, setProfile] = useState({
     name: "userName",
     avatarUrl: null,
     bio: "text",
-    userId: "null"
+    userId: "null",
   });
   // const [follower, setFollower] = useState(0);
 
@@ -38,7 +38,7 @@ const Profile = () => {
 
   useEffect(() => {
     getProfile().then((res) => {
-      const userId = res?.data?.userId;
+      const userId = res?.user?.id;
       if (userId) checkIfFollowing(userId);
     });
     getFollower(username);
@@ -67,9 +67,10 @@ const Profile = () => {
       }
 
       const data = await res.json();
+      // console.log(data);
       setProfile(data);
 
-      return data; // vì axios trả res, fetch trả data 
+      return data; // vì axios trả res, fetch trả data
     } catch (error) {
       console.error("Error profile:", error.message);
     }
@@ -99,19 +100,21 @@ const Profile = () => {
 
       const data = await res.json(); // giống res.data
 
-
       // ---- Fetch trang kế tiếp để check hasNext ----
       const nextRoute = username
         ? `users/user/${username}/posts?page=${currentPage + 1}&limit=${limit}`
         : `me/posts?page=${currentPage + 1}&limit=${limit}`;
 
-      const nextRes = await fetch(`${import.meta.env.VITE_API_URL}/${nextRoute}`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+      const nextRes = await fetch(
+        `${import.meta.env.VITE_API_URL}/${nextRoute}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       if (!nextRes.ok) {
         const errData = await nextRes.json().catch(() => ({}));
@@ -129,7 +132,6 @@ const Profile = () => {
       // ---- Cập nhật UI ----
       setPosts(data);
       setHasNext(data.length === limit && nextData.length !== 0);
-
     } catch (err) {
       console.log("Error get posts:", err.message);
     }
@@ -137,10 +139,8 @@ const Profile = () => {
     setLoading(false);
   }
 
-
   function handleDeletePost(deletedId) {
     getPosts(page);
-    
   }
 
   return (
@@ -176,12 +176,15 @@ const Profile = () => {
             ) : (
               posts.map((post) => {
                 const saved = savedIds.has(post.id);
-                return <Article
-                  key={post.id}
-                  data={post}
-                  isSaved={saved}
-                  onSave={() => toggleSave(post.id)}
-                  onDelete={handleDeletePost} />
+                return (
+                  <Article
+                    key={post.id}
+                    data={post}
+                    isSaved={saved}
+                    onSave={() => toggleSave(post.id)}
+                    onDelete={handleDeletePost}
+                  />
+                );
               })
             )}
           </div>
@@ -191,20 +194,22 @@ const Profile = () => {
             <div className="flex justify-center mt-6 gap-3">
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className={`px-3 py-1 rounded-full bg-white transition ${page === 1
-                  ? "invisible"
-                  : "cursor-pointer opacity-40 hover:opacity-60"
-                  }`}
+                className={`px-3 py-1 rounded-full bg-white transition ${
+                  page === 1
+                    ? "invisible"
+                    : "cursor-pointer opacity-40 hover:opacity-60"
+                }`}
               >
                 Prev
               </button>
               <span className="px-3 py-1 opacity-70">{page}</span>
               <button
                 onClick={() => setPage((p) => p + 1)}
-                className={`px-3 py-1 rounded-full bg-white transition ${!hasNext
-                  ? "invisible"
-                  : "cursor-pointer opacity-40 hover:opacity-60"
-                  }`}
+                className={`px-3 py-1 rounded-full bg-white transition ${
+                  !hasNext
+                    ? "invisible"
+                    : "cursor-pointer opacity-40 hover:opacity-60"
+                }`}
               >
                 Next
               </button>

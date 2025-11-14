@@ -10,6 +10,9 @@ export default function FollowingList() {
     const [hasNext, setHasNext] = useState(true);
     const [isEmptyPage, setIsEmptyPage] = useState(false);
     const limit = 3;
+    const [showConfirm, setShowConfirm] = useState(false);
+    const [targetUser, setTargetUser] = useState(null);
+
 
     const token = localStorage.getItem("token");
 
@@ -175,11 +178,15 @@ export default function FollowingList() {
                             )}
 
                             <button
-                                onClick={() => handleUnfollow(user.id)}
-                                className="text-sm border rounded-full px-3 py-1 hover:bg-gray-100 flex-shrink-0"
+                                onClick={() => {
+                                    setTargetUser(user);
+                                    setShowConfirm(true);
+                                }}
+                                className="text-sm border rounded-full px-3 py-1 hover:bg-gray-100 flex-shrink-0 cursor-pointer"
                             >
                                 Unfollow
                             </button>
+
                         </div>
                     ))}
                 </div>
@@ -190,7 +197,7 @@ export default function FollowingList() {
                     <button
                         onClick={() => setPage((p) => Math.max(1, p - 1))}
                         disabled={page === 1}
-                        className="px-3 py-1 border rounded-full hover:bg-gray-100 disabled:opacity-40"
+                        className="px-3 py-1 border rounded-full hover:bg-gray-100 disabled:opacity-40 cursor-pointer"
                     >
                         Prev
                     </button>
@@ -200,12 +207,44 @@ export default function FollowingList() {
                     <button
                         onClick={() => hasNext && setPage((p) => p + 1)}
                         disabled={!hasNext}
-                        className="px-3 py-1 border rounded-full hover:bg-gray-100 disabled:opacity-40"
+                        className="px-3 py-1 border rounded-full hover:bg-gray-100 disabled:opacity-40 cursor-pointer"
                     >
                         Next
                     </button>
                 </div>
             )}
+            {showConfirm && (
+                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[999]">
+                    <div className="bg-white rounded-xl shadow-xl p-6 w-[320px] text-center">
+                        <h2 className="text-lg font-semibold text-gray-900">
+                            Unfollow {targetUser?.username}?
+                        </h2>
+                        <p className="text-sm text-gray-500 mt-2">
+                            They will no longer appear in your following list.
+                        </p>
+
+                        <div className="flex justify-center gap-4 mt-6">
+                            <button
+                                onClick={() => setShowConfirm(false)}
+                                className="px-4 py-2 text-sm rounded-lg bg-gray-200 hover:bg-gray-300 transition"
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                onClick={() => {
+                                    handleUnfollow(targetUser.id);
+                                    setShowConfirm(false);
+                                }}
+                                className="px-4 py-2 text-sm rounded-lg text-white bg-red-600 hover:bg-red-700 transition"
+                            >
+                                Unfollow
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
         </div>
     );
 }

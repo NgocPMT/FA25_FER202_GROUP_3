@@ -25,10 +25,12 @@ import { IoIosMore } from "react-icons/io";
 import { useLoader } from "@/context/LoaderContext";
 import CommentPost from "@/components/CommentPost";
 import { Link } from "react-router";
+import { useOutletContext } from "react-router";
 
 const ReadOnlyContent = ({ slug }) => {
+  const { setIsCommentOpen, isCommentOpen } = useOutletContext();
   const [post, setPost] = useState(null);
-  const [isCommentOpen, setIsCommentOpen] = useState(false);
+  // const [isCommentOpen, setIsCommentOpen] = useState(false);
   const [showMore, setShowMore] = useState(false);
   const [reactions, setReactions] = useState(null);
   const [isReactionShow, setIsReactionShow] = useState(false);

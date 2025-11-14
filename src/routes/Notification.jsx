@@ -59,7 +59,7 @@ export default function Notification() {
           <h1 className="text-2xl font-bold text-gray-900">Notifications</h1>
           <button
             onClick={markAllAsRead}
-            className="text-sm text-amber-500 hover:text-amber-600"
+            className="text-sm text-amber-500 hover:text-amber-600 cursor-pointer"
           >
             Mark all as read
           </button>
@@ -67,7 +67,7 @@ export default function Notification() {
 
         <div className="flex border-b mt-4 text-sm font-medium">
           <button
-            className={`px-6 py-3 border-b-2 ${
+            className={`px-6 py-3 border-b-2 cursor-pointer ${
               filter === "all"
                 ? "border-amber-500 text-amber-600"
                 : "border-transparent text-gray-500 hover:text-amber-600 hover:border-amber-400"
@@ -77,7 +77,7 @@ export default function Notification() {
             All
           </button>
           <button
-            className={`px-6 py-3 border-b-2 ${
+            className={`px-6 py-3 border-b-2 cursor-pointer ${
               filter === "response"
                 ? "border-amber-500 text-amber-600"
                 : "border-transparent text-gray-500 hover:text-amber-600 hover:border-amber-400"

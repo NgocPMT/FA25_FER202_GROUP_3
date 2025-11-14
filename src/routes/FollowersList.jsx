@@ -211,7 +211,7 @@ export default function FollowersList() {
 
                 <button
                   onClick={() => handleToggleFollow(user.id, isFollowing)}
-                  className={`text-sm border rounded-full px-3 py-1 transition ${isFollowing
+                  className={`cursor-pointer text-sm border rounded-full px-3 py-1 transition ${isFollowing
                     ? "bg-gray-100 hover:bg-gray-200 text-gray-700"
                     : "hover:bg-gray-100"
                     }`}
@@ -229,7 +229,7 @@ export default function FollowersList() {
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="px-3 py-1 border rounded-full hover:bg-gray-100 disabled:opacity-40"
+            className=" cursor-pointer px-3 py-1 border rounded-full hover:bg-gray-100 disabled:opacity-40"
           >
             Prev
           </button>
@@ -239,7 +239,7 @@ export default function FollowersList() {
           <button
             onClick={() => hasNext && setPage((p) => p + 1)}
             disabled={!hasNext}
-            className="px-3 py-1 border rounded-full hover:bg-gray-100 disabled:opacity-40"
+            className="cursor-pointer px-3 py-1 border rounded-full hover:bg-gray-100 disabled:opacity-40"
           >
             Next
           </button>

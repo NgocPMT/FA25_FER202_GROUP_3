@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { BsStarFill, BsChat, BsBookmark, BsThreeDots, BsBookmarkFill } from "react-icons/bs";
 import { Link } from "react-router-dom";
-import axios from 'axios'
+import ModalPortal from "./ModalPortal";
+import { toast } from "react-toastify";
 
 export default function Article({ data, isSaved, onSave, onDelete }) {
   const currentUserId = JSON.parse(localStorage.getItem("userId"));
 
   const {
+    id,
     title,
     content,
     createdAt,
@@ -88,16 +90,33 @@ export default function Article({ data, isSaved, onSave, onDelete }) {
   // delete post
   async function deletePost() {
     const token = localStorage.getItem("token");
+
     try {
-      await axios.delete(`${import.meta.env.VITE_API_URL}/posts/${postToDelete}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/posts/${postToDelete}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        toast.error("Delete failed!")
+        throw new Error(errorData.message || "Delete failed");
+      }
+
       onDelete(postToDelete);
+      toast.success("Deleted successfully!")
     } catch (err) {
-      console.error("Delete post error:", err.response?.data || err.message);
+      console.error("Delete post error:", err.message);
+      toast.error("Delete failed!")
     } finally {
       setShowModal(false);
-      setPostToDelete(null)
+      setPostToDelete(null);
     }
   }
 
@@ -262,30 +281,32 @@ export default function Article({ data, isSaved, onSave, onDelete }) {
 
               {/* show modal confirm */}
               {showModal && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black/30 z-50">
-                  <div className="bg-white rounded-lg shadow-lg p-6 w-80">
-                    <h3 className="text-lg font-semibold mb-3 text-gray-800">
-                      Delete Confirm
-                    </h3>
-                    <p className="text-sm text-gray-600 mb-5">
-                      Are you sure to delete this post?
-                    </p>
-                    <div className="flex justify-end gap-3">
-                      <button
-                        onClick={() => setShowModal(false)}
-                        className="px-4 py-2 text-gray-600 hover:text-black"
-                      >
-                        Back
-                      </button>
-                      <button
-                        onClick={() => deletePost()}
-                        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                      >
-                        Delete
-                      </button>
+                <ModalPortal>
+                  <div className="fixed inset-0 flex items-center justify-center bg-black/30 z-50">
+                    <div className="bg-white rounded-lg shadow-lg p-6 w-80">
+                      <h3 className="text-lg font-semibold mb-3 text-gray-800">
+                        Delete Confirm
+                      </h3>
+                      <p className="text-sm text-gray-600 mb-5">
+                        Are you sure to delete this post?
+                      </p>
+                      <div className="flex justify-end gap-3">
+                        <button
+                          onClick={() => setShowModal(false)}
+                          className="px-4 py-2 text-gray-600 hover:text-black"
+                        >
+                          Back
+                        </button>
+                        <button
+                          onClick={() => deletePost()}
+                          className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </ModalPortal>
               )}
               {showReportModal && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black/30 z-[9999]">

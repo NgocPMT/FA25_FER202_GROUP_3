@@ -22,6 +22,7 @@ export default function CommentPost({
   const [openMenuId, setOpenMenuId] = useState(null);
   const [extraSpace, setExtraSpace] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [openHeaderMenu, setOpenHeaderMenu] = useState(false);
 
   const [comments, setComments] = useState([]);
   const [sort, setSort] = useState("relevant");
@@ -38,14 +39,28 @@ export default function CommentPost({
     avatar: "",
   });
 
+  const [isDiscussionClosed, setIsDiscussionClosed] = useState(false);
+  const [showCloseModal, setShowCloseModal] = useState(false);
+  const isFirstComment =
+    comments.length > 0
+      ? [...comments].sort(
+          (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+        )[0]?.id
+      : null;
+
   // Close comment menu (...)
   useEffect(() => {
     const handleClickOutside = (e) => {
+      if (!e.target.closest(".header-menu")) {
+        setOpenHeaderMenu(false);
+      }
+
       if (!e.target.closest(".menu-comment")) {
         setOpenMenuId(null);
         setExtraSpace(false);
       }
     };
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
@@ -184,11 +199,16 @@ export default function CommentPost({
           user: c.user || { name: "Anonymous" },
         }));
 
-        const latestComment = cleanedData.reduce((latest, current) => {
-          return new Date(current.createdAt) > new Date(latest.createdAt)
+        if (cleanedData.length === 0) {
+          setComments([]);
+          return;
+        }
+
+        const latestComment = cleanedData.reduce((latest, current) =>
+          new Date(current.createdAt) > new Date(latest.createdAt)
             ? current
-            : latest;
-        }, cleanedData[0]);
+            : latest
+        );
 
         const reordered = [
           latestComment,
@@ -427,170 +447,222 @@ export default function CommentPost({
             <div className="relative  p-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold">
-                  Responses ({comments.filter((c) => c && c.id).length})
+                  Responses
+                  {comments.length > 0 && ` (${comments.length})`}
                 </h2>
-                <button
-                  onClick={onClose}
-                  className="text-gray-600 hover:text-black text-xl"
-                >
-                  ✕
-                </button>
-              </div>
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[91%] border-b border-gray-300"></div>
-            </div>
-
-            <div className="p-4 relative overflow-visible">
-              <div className="flex items-center gap-3 mb-3">
-                <img
-                  src={
-                    user.avatar ||
-                    "https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-icon.webp"
-                  }
-                  alt="avatar"
-                  className="size-9 rounded-full object-cover"
-                />
-                <p className="text-sm font-semibold">{user.name}</p>
-              </div>
-
-              <motion.div
-                initial={false}
-                animate={{ height: isExpanded ? 140 : 46 }}
-                transition={{ duration: 0.25, ease: "easeOut" }}
-                className="border border-gray-300 bg-gray-50 rounded-md p-3 transition-all hover:bg-gray-100"
-                onClick={() => {
-                  if (!isExpanded) {
-                    setIsExpanded(true);
-                    const expandKey = `commentExpanded_${user.id}_${postId}`;
-                    localStorage.setItem(expandKey, "true");
-                    setTimeout(() => textareaRef.current?.focus(), 50);
-                  }
-                }}
-              >
-                <textarea
-                  ref={textareaRef}
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  placeholder="What are your thoughts?"
-                  className="w-full resize-none text-sm outline-none bg-transparent"
-                  rows={3}
-                />
-
-                <AnimatePresence>
-                  {isExpanded && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      transition={{ duration: 0.25 }}
-                      className="flex justify-end gap-4 mt-2"
-                    >
+                <div className="flex items-center gap-4 ">
+                  {String(user.id) === String(postAuthorId) && (
+                    <div className="relative header-menu">
                       <button
-                        type="button"
-                        onClick={() => {
-                          setIsExpanded(false);
-                          setCommentText("");
-                          const expandKey = `commentExpanded_${user.id}_${postId}`;
-                          localStorage.removeItem(expandKey);
-                        }}
-                        className="text-gray-500 text-sm cursor-pointer"
+                        onClick={() => setOpenHeaderMenu((prev) => !prev)}
+                        className="text-gray-600 hover:text-black text-xl mr-2 cursor-pointer mb-2.5"
                       >
-                        Cancel
+                        ...
                       </button>
-                      <button
-                        type="submit"
-                        disabled={!commentText.trim() || loading}
-                        onClick={handleRespond}
-                        className={`text-white text-sm px-4 py-1.5 border rounded-full ${
-                          commentText.trim()
-                            ? "bg-black hover:opacity-80 cursor-pointer"
-                            : "bg-gray-300"
-                        }`}
-                      >
-                        {loading
-                          ? editingId
-                            ? "Updating..."
-                            : "Sending..."
-                          : editingId
-                          ? "Update"
-                          : "Respond"}
-                      </button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            </div>
 
-            {/* Sort comment */}
-            <div className="p-4 border-b border-gray-300 relative z-10">
-              <div className="flex items-center justify-between">
-                <div ref={sortRef} className="relative text-left">
-                  <button
-                    onClick={() => setOpenSort((prev) => !prev)}
-                    className="inline-flex items-center justify-between w-44 px-4 py-2 text-sm font-semibold bg-white text-gray-700 transition cursor-pointer"
-                  >
-                    {sort === "relevant" ? "Most relevant" : "Most recent"}
-                    <svg
-                      className={`ml-2 h-4 w-4 transform transition-transform duration-200 ${
-                        openSort ? "rotate-180" : "rotate-0"
-                      }`}
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
-                  </button>
-
-                  {openSort && (
-                    <div className="absolute right-0 mt-2 rounded-xl bg-white shadow-lg ring-1 ring-black/10 z-20 w-44">
-                      <ul className="py-1 text-sm text-gray-700">
-                        {[
-                          { label: "Most relevant", value: "relevant" },
-                          { label: "Most recent", value: "recent" },
-                        ].map((option) => (
-                          <li key={option.value}>
+                      {openHeaderMenu && (
+                        <div className="absolute right-0 top-full -translate-y-3 w-40 bg-white border border-gray-200 shadow-lg rounded-lg z-50">
+                          {!isDiscussionClosed ? (
                             <button
                               onClick={() => {
-                                setSort(option.value);
-                                setOpenSort(false);
+                                setShowCloseModal(true);
+                                setOpenHeaderMenu(false);
                               }}
-                              className={`flex items-center justify-between w-full px-4 py-2 rounded-lg transition ${
-                                sort === option.value
-                                  ? "bg-white text-gray-900 font-medium hover:bg-gray-100"
-                                  : "hover:bg-gray-100"
-                              }`}
+                              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 cursor-pointer"
                             >
-                              <span>{option.label}</span>
-                              {sort === option.value && (
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  strokeWidth={2}
-                                  stroke="currentColor"
-                                  className="w-4 h-4 text-black"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    d="M4.5 12.75l6 6 9-13.5"
-                                  />
-                                </svg>
-                              )}
+                              Close discussion
                             </button>
-                          </li>
-                        ))}
-                      </ul>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                setIsDiscussionClosed(false);
+                                setOpenHeaderMenu(false);
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm text-green-600 hover:bg-green-50 cursor-pointer"
+                            >
+                              Open discussion
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
+
+                  <button
+                    onClick={onClose}
+                    className="text-gray-600 hover:text-black text-xl cursor-pointer"
+                  >
+                    ✕
+                  </button>
                 </div>
               </div>
+              {!isDiscussionClosed && (
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[91%] border-b border-gray-300"></div>
+              )}
             </div>
+
+            {isDiscussionClosed && (
+              <div className="px-4 py-3 bg-gray-100 border-b border-gray-300 text-sm text-gray-700">
+                The author has closed discussion for this story.
+                <button className="underline ml-1">Learn more.</button>
+              </div>
+            )}
+            {!isDiscussionClosed && (
+              <div className="p-4 relative overflow-visible">
+                <div className="flex items-center gap-3 mb-3">
+                  <img
+                    src={
+                      user.avatar ||
+                      "https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-icon.webp"
+                    }
+                    alt="avatar"
+                    className="size-9 rounded-full object-cover"
+                  />
+                  <p className="text-sm font-semibold">{user.name}</p>
+                </div>
+
+                <motion.div
+                  initial={false}
+                  animate={{ height: isExpanded ? 140 : 46 }}
+                  transition={{ duration: 0.25, ease: "easeOut" }}
+                  className="border border-gray-300 bg-gray-50 rounded-md p-3 transition-all hover:bg-gray-100"
+                  onClick={() => {
+                    if (!isExpanded) {
+                      setIsExpanded(true);
+                      const expandKey = `commentExpanded_${user.id}_${postId}`;
+                      localStorage.setItem(expandKey, "true");
+                      setTimeout(() => textareaRef.current?.focus(), 50);
+                    }
+                  }}
+                >
+                  <textarea
+                    ref={textareaRef}
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    placeholder="What are your thoughts?"
+                    className="w-full resize-none text-sm outline-none bg-transparent"
+                    rows={3}
+                  />
+
+                  <AnimatePresence>
+                    {isExpanded && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        transition={{ duration: 0.25 }}
+                        className="flex justify-end gap-4 mt-2"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsExpanded(false);
+                            setCommentText("");
+                            const expandKey = `commentExpanded_${user.id}_${postId}`;
+                            localStorage.removeItem(expandKey);
+                          }}
+                          className="text-gray-500 text-sm cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={!commentText.trim() || loading}
+                          onClick={handleRespond}
+                          className={`text-white text-sm px-4 py-1.5 border rounded-full ${
+                            commentText.trim()
+                              ? "bg-black hover:opacity-80 cursor-pointer"
+                              : "bg-gray-300"
+                          }`}
+                        >
+                          {loading
+                            ? editingId
+                              ? "Updating..."
+                              : "Sending..."
+                            : editingId
+                            ? "Update"
+                            : "Respond"}
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              </div>
+            )}
+
+            {/* Sort comment */}
+            {comments.length > 0 && !isDiscussionClosed && (
+              <div className="p-4 border-b border-gray-300 relative z-10">
+                <div className="flex items-center justify-between">
+                  <div ref={sortRef} className="relative text-left">
+                    <button
+                      onClick={() => setOpenSort((prev) => !prev)}
+                      className="inline-flex items-center justify-between w-44 px-4 py-2 text-sm font-semibold bg-white text-gray-700 transition cursor-pointer"
+                    >
+                      {sort === "relevant" ? "Most relevant" : "Most recent"}
+                      <svg
+                        className={`ml-2 h-4 w-4 transform transition-transform duration-200 ${
+                          openSort ? "rotate-180" : "rotate-0"
+                        }`}
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </button>
+
+                    {openSort && (
+                      <div className="absolute right-0 mt-2 rounded-xl bg-white shadow-lg ring-1 ring-black/10 z-20 w-44">
+                        <ul className="py-1 text-sm text-gray-700">
+                          {[
+                            { label: "Most relevant", value: "relevant" },
+                            { label: "Most recent", value: "recent" },
+                          ].map((option) => (
+                            <li key={option.value}>
+                              <button
+                                onClick={() => {
+                                  setSort(option.value);
+                                  setOpenSort(false);
+                                }}
+                                className={`flex items-center justify-between w-full px-4 py-2 rounded-lg transition ${
+                                  sort === option.value
+                                    ? "bg-white text-gray-900 font-medium hover:bg-gray-100"
+                                    : "hover:bg-gray-100"
+                                }`}
+                              >
+                                <span>{option.label}</span>
+                                {sort === option.value && (
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    strokeWidth={2}
+                                    stroke="currentColor"
+                                    className="w-4 h-4 text-black"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      d="M4.5 12.75l6 6 9-13.5"
+                                    />
+                                  </svg>
+                                )}
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* List of comments */}
             <div
@@ -599,6 +671,13 @@ export default function CommentPost({
                 extraSpace ? "pb-24" : "pb-4"
               }`}
             >
+              {comments.filter((c) => c && c.id).length === 0 && (
+                <div className="text-center text-gray-500 mt-6 text-sm">
+                  There are currently no responses for this story.
+                  <br />
+                  <span className="opacity-80">Be the first to respond.</span>
+                </div>
+              )}
               {comments
                 .filter((c) => c && c.id)
                 .map((c) => {
@@ -662,6 +741,11 @@ export default function CommentPost({
                                   {displayName}
                                 </p>
                               </Link>
+                              {c.id === isFirstComment && (
+                                <span className="text-xs bg-gray-200 text-gray-500 px-1 py-0.5 rounded-md">
+                                  First comment
+                                </span>
+                              )}
 
                               {isOwner && !isAuthorOfPost && (
                                 <span className="text-xs bg-gray-200 text-gray-500 px-1 py-0.4 rounded-md">
@@ -670,13 +754,13 @@ export default function CommentPost({
                               )}
 
                               {isOwner && isAuthorOfPost && (
-                                <span className="text-xs bg-green-700 text-white px-2 py-0.5 rounded-md">
+                                <span className="text-xs bg-green-700 text-white px-1 py-0.5 rounded-md">
                                   Author
                                 </span>
                               )}
 
                               {!isOwner && isAuthorComment && (
-                                <span className="text-xs bg-green-700 text-white px-2 py-0.5 rounded-md">
+                                <span className="text-xs bg-green-700 text-white px-1 py-0.5 rounded-md">
                                   Author
                                 </span>
                               )}
@@ -753,12 +837,33 @@ export default function CommentPost({
                                     Delete respond
                                   </button>
                                 </>
+                              ) : isAuthorOfPost ? (
+                                <>
+                                  <button
+                                    onClick={() => {
+                                      setOpenMenuId(null);
+                                      setTargetDeleteId(c.id);
+                                      setShowDeleteModal(true);
+                                    }}
+                                    className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 cursor-pointer"
+                                  >
+                                    Delete respond
+                                  </button>
+
+                                  <button
+                                    onClick={() => {
+                                      setOpenMenuId(null);
+                                    }}
+                                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                                  >
+                                    Report respond
+                                  </button>
+                                </>
                               ) : (
                                 <>
                                   <button
                                     onClick={() => {
                                       setOpenMenuId(null);
-                                      // console.log("🚩 Report comment:", c.id);
                                     }}
                                     className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 cursor-pointer"
                                   >
@@ -804,6 +909,44 @@ export default function CommentPost({
             </div>
           </motion.div>
         )}
+        {showCloseModal && (
+          <div className="fixed inset-0 z-[999] bg-black/40 flex items-center justify-center">
+            <div className="bg-white rounded-xl shadow-2xl p-6 w-[360px] text-center">
+              <h2 className="text-lg font-semibold text-gray-900 mb-2">
+                Close Discussion
+              </h2>
+              <p className="text-sm text-gray-500 mb-6">
+                Closing a discussion prevents responses from being added or
+                edited on your story. Existing responses will remain on your
+                story.
+              </p>
+
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={() => setShowCloseModal(false)}
+                  className="px-4 py-2 text-sm rounded-lg bg-gray-100 hover:bg-gray-200 transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  onClick={() => {
+                    setIsDiscussionClosed(true);
+                    setShowCloseModal(false);
+                  }}
+                  className="px-4 py-2 text-sm rounded-lg bg-red-600 text-white hover:bg-red-700 transition cursor-pointer"
+                >
+                  Close discussion
+                </button>
+              </div>
+
+              <p className="text-xs text-gray-400 mt-3">
+                You can reopen the discussion at any time.
+              </p>
+            </div>
+          </div>
+        )}
+
         {showDeleteModal && (
           <div className="fixed inset-0 z-[999] bg-black/40 flex items-center justify-center">
             <div className="bg-white rounded-xl shadow-2xl p-6 w-[320px] text-center">
@@ -816,14 +959,14 @@ export default function CommentPost({
               <div className="flex justify-center gap-4">
                 <button
                   onClick={() => setShowDeleteModal(false)}
-                  className="px-4 py-2 text-sm rounded-lg bg-gray-100 hover:bg-gray-200 transition"
+                  className="px-4 py-2 text-sm rounded-lg bg-gray-100 hover:bg-gray-200 transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDelete}
                   disabled={deleting}
-                  className={`px-4 py-2 text-sm rounded-lg text-white transition ${
+                  className={`px-4 py-2 text-sm rounded-lg cursor-pointer text-white transition ${
                     deleting ? "bg-red-400" : "bg-red-600 hover:bg-red-700"
                   }`}
                 >

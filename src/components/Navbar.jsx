@@ -11,6 +11,7 @@ const Navbar = ({ onToggleSideNav }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [isAvatarDropdownShow, setIsAvatarDropdownShow] = useState(false);
   const [isValidToken, setIsValidToken] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [profile, setProfile] = useState(null);
 
   const { showLoader, hideLoader } = useLoader();
@@ -88,6 +89,46 @@ const Navbar = ({ onToggleSideNav }) => {
     };
 
     validateToken();
+
+    // Cleanup function: abort fetch when unmounting or token changes
+    return () => {
+      controller.abort();
+    };
+  }, [token]);
+
+  useEffect(() => {
+    const controller = new AbortController(); // Create an AbortController
+    const signal = controller.signal; // Get its signal
+
+    const validateAdmin = async () => {
+      if (!token) {
+        setIsAdmin(false);
+        return;
+      }
+
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_API_URL}/validate-admin`,
+          {
+            method: "GET",
+            headers: { Authorization: `Bearer ${token}` },
+            signal,
+          }
+        );
+
+        if (!res.ok) return;
+
+        const data = await res.json();
+        setIsAdmin(data.valid);
+      } catch (error) {
+        // Ignore AbortError (when request is canceled)
+        if (error.name !== "AbortError") {
+          setIsAdmin(false);
+        }
+      }
+    };
+
+    validateAdmin();
 
     // Cleanup function: abort fetch when unmounting or token changes
     return () => {
@@ -230,7 +271,6 @@ const Navbar = ({ onToggleSideNav }) => {
           )}
         </div>
 
-
         {showSearch && (
           <div className="fixed inset-0 bg-white z-[60] flex flex-col p-4 animate-fadeIn">
             <div className="flex items-center justify-between mb-4">
@@ -251,7 +291,9 @@ const Navbar = ({ onToggleSideNav }) => {
             </div>
 
             <div className="mt-2">
-              <h3 className="text-xs font-semibold text-gray-500 mb-2">Recent searches</h3>
+              <h3 className="text-xs font-semibold text-gray-500 mb-2">
+                Recent searches
+              </h3>
               {searchHistory.length === 0 ? (
                 <p className="text-gray-400 text-sm">No recent searches</p>
               ) : (
@@ -264,7 +306,11 @@ const Navbar = ({ onToggleSideNav }) => {
                         saveSearchHistory(item);
                         setSearchQuery(item);
                         setShowSearch(false);
-                        navigate(`/home?query=${encodeURIComponent(item)}&page=1&limit=5`);
+                        navigate(
+                          `/home?query=${encodeURIComponent(
+                            item
+                          )}&page=1&limit=5`
+                        );
                       }}
                     >
                       <div className="flex items-center gap-2">
@@ -333,6 +379,14 @@ const Navbar = ({ onToggleSideNav }) => {
               </button>
               {isAvatarDropdownShow && (
                 <div className="bg-white top-10 right-0 absolute w-fit">
+                  {isAdmin && (
+                    <Link
+                      to="/admin/reports"
+                      className="cursor-pointer hover:bg-gray-400 p-1 whitespace-nowrap inline-block"
+                    >
+                      Admin Dashboard
+                    </Link>
+                  )}
                   <button
                     onClick={logOut}
                     className="cursor-pointer hover:bg-gray-400 p-1 whitespace-nowrap"

@@ -1,18 +1,17 @@
 import { useState } from "react";
 import FormField from "./FormField";
 import { Link } from "react-router";
-import { FcGoogle } from "react-icons/fc";
 import { MdAccountCircle } from "react-icons/md";
 import { useNavigate } from "react-router";
-import { useLoader } from "@/context/LoaderContext";
 import { toast } from "react-toastify";
+import { FaSpinner } from "react-icons/fa";
 
 const SignInForm = () => {
   const [isAccount, setIsAccount] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState([]);
-  const { showLoader, hideLoader } = useLoader();
   const navigate = useNavigate();
 
   const handleUsernameInput = (e) => {
@@ -49,7 +48,7 @@ const SignInForm = () => {
     const isValid = validationErrors.filter((error) => !!error).length === 0;
     if (!isValid) return;
     try {
-      showLoader();
+      setLoading(true);
       const res = await fetch(`${import.meta.env.VITE_API_URL}/login`, {
         method: "POST",
         headers: {
@@ -61,16 +60,15 @@ const SignInForm = () => {
         }),
       });
 
-
-      const data = await res.json();
       if (!res.ok) {
         const data = await res.json();
         toast.error(data.error);
         return;
       }
 
-      const role = (data.user.role || "user").toLowerCase();
+      const data = await res.json();
 
+      const role = (data.user.role || "user").toLowerCase();
 
       localStorage.setItem("token", data.token);
       localStorage.setItem("username", data.user.username);
@@ -79,17 +77,16 @@ const SignInForm = () => {
       //Admin
       if (role === "admin") {
         toast.success("Welcome admin!");
-        navigate("/admin/home");
+        navigate("/admin/reports");
         return;
       }
 
       toast.success(data.message);
       navigate("/home");
-
     } catch (err) {
-      toast.error(err.message);
+      toast.error(err.error);
     } finally {
-      hideLoader();
+      setLoading(false);
     }
   };
   return (
@@ -125,7 +122,11 @@ const SignInForm = () => {
                   type="button"
                   className="btn transition-opacity hover:opacity-80"
                 >
-                  Sign in
+                  {loading ? (
+                    <FaSpinner className="animate-spin size-3" />
+                  ) : (
+                    "Sign In"
+                  )}
                 </button>
               </div>
             </form>

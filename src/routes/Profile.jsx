@@ -120,11 +120,14 @@ const Profile = () => {
 
       const nextData = await nextRes.json();
 
+      if (data.length === 0 && currentPage > 1) {
+        setPage((p) => p - 1);
+        setLoading(false);
+        return;
+      }
 
       // ---- Cập nhật UI ----
       setPosts(data);
-      console.log("next:", nextData);
-
       setHasNext(data.length === limit && nextData.length !== 0);
 
     } catch (err) {
@@ -136,7 +139,8 @@ const Profile = () => {
 
 
   function handleDeletePost(deletedId) {
-    setPosts((prev) => prev.filter((p) => p.id !== deletedId));
+    getPosts(page);
+    
   }
 
   return (

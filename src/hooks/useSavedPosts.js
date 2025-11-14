@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { toast } from "react-toastify";
 
 export default function useSavedPosts() {
   const token = localStorage.getItem("token");
@@ -52,8 +53,10 @@ export default function useSavedPosts() {
 
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
+          toast.error("Unsave Failed!")
           throw new Error(errData.message || "Failed to unsave post");
         }
+        toast.success("Unsave Successfully!")
 
       } else {
         // --- SAVE ---
@@ -71,8 +74,10 @@ export default function useSavedPosts() {
 
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
+          toast.error("Save Failed!")
           throw new Error(errData.message || "Failed to save post");
         }
+        toast.success("Save Successfully!")
       }
 
       await getSavedPosts();

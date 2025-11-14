@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { BsStarFill, BsChat, BsBookmark, BsThreeDots, BsBookmarkFill } from "react-icons/bs";
 import { Link } from "react-router-dom";
 import ModalPortal from "./ModalPortal";
+import { toast } from "react-toastify";
 
 export default function Article({ data, isSaved, onSave, onDelete }) {
   const currentUserId = JSON.parse(localStorage.getItem("userId"));
@@ -97,12 +98,15 @@ export default function Article({ data, isSaved, onSave, onDelete }) {
 
       if (!res.ok) {
         const errorData = await res.json();
+        toast.error("Delete failed!")
         throw new Error(errorData.message || "Delete failed");
       }
 
       onDelete(postToDelete);
+      toast.success("Deleted successfully!")
     } catch (err) {
       console.error("Delete post error:", err.message);
+      toast.error("Delete failed!")
     } finally {
       setShowModal(false);
       setPostToDelete(null);

@@ -2,6 +2,9 @@ import { RxAvatar } from "react-icons/rx";
 import { Link } from "react-router-dom";
 
 const SidebarProfile = ({ profile, follower, isFollowing, toggleFollow, username }) => {
+  const usernameToken = localStorage.getItem("username");
+  const userAccount = username === usernameToken ? null : username;
+
   return (
     <div className="max-md:hidden top-14 right-0 h-[calc(100%-56px)] w-64 lg:w-96 border-l border-gray-200 p-4">
       <div className="mx-2 my-3 flex flex-col items-start">
@@ -19,7 +22,7 @@ const SidebarProfile = ({ profile, follower, isFollowing, toggleFollow, username
         <h5 className="mb-2 text-gray-600">{follower} followers</h5>
         <p className="text-xs text-gray-600">{profile.bio}</p>
 
-        {username ? (
+        {userAccount ? (
           <button
             onClick={toggleFollow}
             className={`mt-7 px-4 py-2 text-sm rounded-2xl cursor-pointer transition 

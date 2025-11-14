@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { toast } from "react-toastify";
 
 export default function useFollow() {
   const token = localStorage.getItem("token");
@@ -69,6 +70,7 @@ export default function useFollow() {
     }
   }, [token]);
 
+  // Handle follow
   const toggleFollow = useCallback(async (profileId) => {
     if (!profileId) return;
 
@@ -88,11 +90,13 @@ export default function useFollow() {
 
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
+          toast.error("Unfollow Failed");
           throw new Error(errData.message || "Failed to unfollow");
         }
 
         setIsFollowing(false);
         setFollowerCount((prev) => Math.max(0, prev - 1));
+        toast.success("Unfollow successfully!");
 
       } else {
         // --- FOLLOW ---
@@ -110,11 +114,13 @@ export default function useFollow() {
 
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
+          toast.error("Follow Failed");
           throw new Error(errData.message || "Failed to follow");
         }
 
         setIsFollowing(true);
         setFollowerCount((prev) => prev + 1);
+        toast.success("Follow successfully!");
       }
 
     } catch (err) {

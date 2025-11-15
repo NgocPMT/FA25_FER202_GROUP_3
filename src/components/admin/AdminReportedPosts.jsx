@@ -137,16 +137,25 @@ export default function AdminReportedPosts() {
     try {
       const token = localStorage.getItem("token");
 
-      await fetch(`${import.meta.env.VITE_API_URL}/admin/reported-posts`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ postId, userId }),
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/admin/reported-post`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ postId, userId }),
+        }
+      );
 
-      toast.success("Report cleared successfully!");
+      if (!res.ok) {
+        const data = await res.json();
+        toast.error(data.error);
+      }
+
+      const data = await res.json();
+      toast.success(data.message);
       fetchReports(); // Refresh list
     } catch (err) {
       toast.error("Failed to clear report. Please try again.");

@@ -8,11 +8,11 @@ export default function AdminManageUsers() {
   const [users, setUsers] = useState([]);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
-  const [total, setTotal] = useState(0);
 
   // Search states
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
+  const [hasNext, setHasNext] = useState(false);
 
   // Search history
   const [searchHistory, setSearchHistory] = useState(
@@ -39,7 +39,7 @@ export default function AdminManageUsers() {
       const data = await res.json();
 
       setUsers(data.users || []);
-      setTotal(data.total || 0);
+      setHasNext(data.users.length === limit);
     } catch (err) {
       console.error("Error fetching users:", err);
       toast.error("Failed to fetch users");
@@ -49,8 +49,6 @@ export default function AdminManageUsers() {
   useEffect(() => {
     fetchUsers();
   }, [page, limit, search]);
-
-  const totalPages = Math.ceil(total / limit);
 
   // Save search history
   const saveSearchHistory = (username) => {
@@ -316,60 +314,16 @@ export default function AdminManageUsers() {
             Prev
           </button>
 
-          {totalPages > 0 &&
-            [...Array(Math.min(totalPages, 10))].map((_, i) => {
-              const pageNum = i + 1;
-              // Show first 3, last 3, and current page with neighbors
-              const showPage =
-                pageNum <= 3 ||
-                pageNum > totalPages - 3 ||
-                (pageNum >= page - 1 && pageNum <= page + 1);
-
-              if (!showPage) {
-                if (pageNum === 4 && page > 5)
-                  return (
-                    <span key={i} className="px-2">
-                      ...
-                    </span>
-                  );
-                if (pageNum === totalPages - 3 && page < totalPages - 4)
-                  return (
-                    <span key={i} className="px-2">
-                      ...
-                    </span>
-                  );
-                return null;
-              }
-
-              return (
-                <button
-                  key={i}
-                  onClick={() => setPage(pageNum)}
-                  className={`px-3 py-2 border rounded ${
-                    page === pageNum
-                      ? "bg-blue-500 text-white"
-                      : "hover:bg-gray-100"
-                  }`}
-                >
-                  {pageNum}
-                </button>
-              );
-            })}
+          <span className="px-3 py-1 opacity-70">{page}</span>
 
           <button
-            disabled={page === totalPages || totalPages === 0}
+            disabled={!hasNext}
             onClick={() => setPage(page + 1)}
             className="px-4 py-2 border rounded disabled:opacity-50 hover:bg-gray-100"
           >
             Next
           </button>
         </div>
-      </div>
-
-      {/* Results info */}
-      <div className="text-center mt-4 text-sm text-gray-600">
-        Showing {users.length > 0 ? (page - 1) * limit + 1 : 0} -{" "}
-        {Math.min(page * limit, total)} of {total} users
       </div>
     </div>
   );

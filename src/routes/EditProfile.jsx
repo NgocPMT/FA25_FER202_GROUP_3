@@ -1,6 +1,6 @@
 import { RxAvatar } from "react-icons/rx";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams } from "react-router-dom"
 import axios from 'axios'
 
 const EditProfile = () => {
@@ -21,17 +21,25 @@ const EditProfile = () => {
 
   async function getProfile() {
     try {
-      const endpoint = username ? `/users/user/${username}/profile` : "/me/profile";
-      const { data } = await axios.get(`${import.meta.env.VITE_API_URL}${endpoint}`,
+      const endpoint = username
+        ? `/users/user/${username}/profile`
+        : "/me/profile";
+
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}${endpoint}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
+
+      if (!res.ok) throw new Error("Fail to fetch profile");
+
+      const data = await res.json();
       setProfile(data);
-    } catch {
-      console.log("Error profile data");
+    } catch (err) {
+      console.log("Error profile data", err);
     }
   }
 
@@ -40,64 +48,72 @@ const EditProfile = () => {
     if (!file) return;
 
     try {
-      // Gửi file lên backend
       const formData = new FormData();
       formData.append("file", file);
 
-      const data = await axios.post(
+      const res = await fetch(
         `${import.meta.env.VITE_API_URL}/images/upload-avatar`,
-        formData,
         {
+          method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
           },
+          body: formData,
         }
       );
 
-      const imageUrl = data.data.url;
+      if (!res.ok) throw new Error("Upload failed");
+
+      const data = await res.json();
+
+      const imageUrl = data.url;
       setProfile((prev) => ({ ...prev, avatarUrl: imageUrl }));
     } catch (err) {
-      console.error("Upload failed:", err.response?.data || err.message);
+      console.error("Upload failed:", err.message);
     }
   }
+
 
   async function handleSave() {
     const token = localStorage.getItem("token");
     setIsSaving(true);
-    setSuccessMessage(""); 
+    setSuccessMessage("");
 
     try {
-      const res = await axios.put(
+      const res = await fetch(
         `${import.meta.env.VITE_API_URL}/me/profile`,
         {
-          name: profile.name,
-          bio: profile.bio,
-          avatarUrl: profile.avatarUrl,
-        },
-        {
+          method: "PUT",
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
+          body: JSON.stringify({
+            name: profile.name,
+            bio: profile.bio,
+            avatarUrl: profile.avatarUrl,
+          }),
         }
       );
 
-      console.log("Server response:", res.data);
+      if (!res.ok) throw new Error("Update failed");
+
+      const data = await res.json();
+      console.log("Server response:", data);
+
       await getProfile();
 
       setSuccessMessage("Profile updated successfully!");
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
-      console.error("Update failed:", err.response?.data || err.message);
+      console.error("Update failed:", err.message);
     } finally {
-      setIsSaving(false); 
+      setIsSaving(false);
     }
   }
-
-
+  
   return (
-    <div className="px-16 py-8 container">
+    <div className="px-16 py-8 container mx-auto">
       <h1 className="text-3xl font-bold mb-6 text-gray-800 pb-2">
         Profile Information
       </h1>

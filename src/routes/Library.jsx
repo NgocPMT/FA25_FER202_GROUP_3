@@ -20,7 +20,7 @@ const Library = () => {
     setLoading(true);
 
     try {
-      // --- Fetch trang hiện tại ---
+      // Fetch current page
       const res = await fetch(
         `${import.meta.env.VITE_API_URL}/me/saved-posts?page=${currentPage}&limit=${limit}`,
         {
@@ -39,8 +39,7 @@ const Library = () => {
 
       const data = await res.json();
 
-
-      // --- Fetch trang kế tiếp ---
+      // Fetch next page
       const nextRes = await fetch(
         `${import.meta.env.VITE_API_URL}/me/saved-posts?page=${currentPage + 1}&limit=${limit}`,
         {
@@ -59,14 +58,13 @@ const Library = () => {
 
       const nextData = await nextRes.json();
 
-      // Nếu trang rỗng và không phải trang đầu → lùi về trang trước
       if (data.length === 0 && currentPage > 1) {
         setPage((p) => p - 1);
         setLoading(false);
         return;
       }
 
-      // Cập nhật UI
+      // Update UI
       setReadlist(data);
       setHasNext(data.length === limit && nextData.length !== 0);
 
@@ -78,10 +76,9 @@ const Library = () => {
     setLoading(false);
   }
 
-
   async function deleteSavedPost(postId) {
     try {
-      await toggleSave(postId);
+      await toggleSave(postId, true);
       await getReadlist(page);
     } catch (err) {
       console.log("Toggle save error:", err);
@@ -99,7 +96,6 @@ const Library = () => {
         <h1 className="text-4xl font-bold text-gray-800 pb-2">Your Library</h1>
       </div>
 
-      {/* Danh sách bài viết */}
       <div className="space-y-8">
         {readlist.length === 0 && !loading ? (
           <p className="text-gray-500 italic">Your library is empty.</p>

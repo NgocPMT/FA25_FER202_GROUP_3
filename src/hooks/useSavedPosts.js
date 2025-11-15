@@ -26,8 +26,6 @@ export default function useSavedPosts() {
 
       const data = await res.json();
 
-      // backend có thể trả:
-      // { posts: [...] } hoặc trực tiếp [...]
       setSavedPosts(data.posts || data);
     } catch (err) {
       console.log("Error get saved posts:", err.message);
@@ -35,12 +33,11 @@ export default function useSavedPosts() {
   }, [token]);
 
   const toggleSave = useCallback(
-    async (postId) => {
+    async (postId, isSaved) => {
       try {
-        const isSaved = savedPosts.some((p) => p.postId === postId);
 
         if (isSaved) {
-          // --- UNSAVE ---
+          // Unsave
           const res = await fetch(
             `${import.meta.env.VITE_API_URL}/me/saved-posts/${postId}`,
             {
@@ -59,7 +56,7 @@ export default function useSavedPosts() {
           }
           toast.success("Unsave Successfully!");
         } else {
-          // --- SAVE ---
+          // Save
           const res = await fetch(
             `${import.meta.env.VITE_API_URL}/me/saved-posts`,
             {

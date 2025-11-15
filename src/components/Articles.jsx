@@ -137,7 +137,7 @@ const Articles = () => {
               key={post.id}
               data={post}
               isSaved={saved}
-              onSave={() => toggleSave(post.id)}
+              onSave={() => toggleSave(post.id, saved)}
               onDelete={handleDeletePost} />
           })
         )}

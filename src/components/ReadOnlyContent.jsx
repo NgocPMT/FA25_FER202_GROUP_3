@@ -20,13 +20,14 @@ import "@/components/tiptap-node/paragraph-node/paragraph-node.scss";
 import "@/components/tiptap-templates/simple/simple-editor.scss";
 import { FaRegComments } from "react-icons/fa";
 import { VscReactions } from "react-icons/vsc";
-import { CiBookmark } from "react-icons/ci";
+import { BsBookmark, BsBookmarkFill } from "react-icons/bs";
 import { IoIosMore } from "react-icons/io";
 import { useLoader } from "@/context/LoaderContext";
 import CommentPost from "@/components/CommentPost";
 import { Link, useNavigate } from "react-router";
 import { useOutletContext } from "react-router";
 import { toast } from "react-toastify";
+import useSavedPosts from "@/hooks/useSavedPosts";
 
 const ReadOnlyContent = ({ slug }) => {
   const { setIsCommentOpen, isCommentOpen } = useOutletContext();
@@ -42,6 +43,7 @@ const ReadOnlyContent = ({ slug }) => {
   const [isFollowing, setIsFollowing] = useState(false); // ✅ trạng thái follow
   const [loadingFollow, setLoadingFollow] = useState(false);
   const navigate = useNavigate();
+  const { savedIds, toggleSave } = useSavedPosts();
 
   const openCommentSidebar = () => {
     setIsCommentOpen(true);
@@ -151,9 +153,8 @@ const ReadOnlyContent = ({ slug }) => {
             className="size-5"
           />
           <span
-            className={`${
-              reactedType === keyword ? "font-bold text-green-500" : ""
-            }`}
+            className={`${reactedType === keyword ? "font-bold text-green-500" : ""
+              }`}
           >
             {count}
           </span>
@@ -248,8 +249,8 @@ const ReadOnlyContent = ({ slug }) => {
             const list = Array.isArray(followData)
               ? followData.map((item) => item.following)
               : Array.isArray(followData.data)
-              ? followData.data.map((item) => item.following)
-              : [];
+                ? followData.data.map((item) => item.following)
+                : [];
 
             setIsFollowing(
               list.some((u) => Number(u.id) === Number(data.userId))
@@ -367,17 +368,16 @@ const ReadOnlyContent = ({ slug }) => {
                 <button
                   onClick={handleFollowToggle}
                   disabled={loadingFollow}
-                  className={`ring rounded-full py-1.5 px-3 cursor-pointer transition ${
-                    isFollowing
-                      ? "bg-gray-100 text-gray-700 border hover:bg-gray-200" // ✅ kiểu "Unfollow"
-                      : "bg-black text-white hover:opacity-80" // ✅ kiểu "Follow"
-                  }`}
+                  className={`ring rounded-full py-1.5 px-3 cursor-pointer transition ${isFollowing
+                    ? "bg-gray-100 text-gray-700 border hover:bg-gray-200" // ✅ kiểu "Unfollow"
+                    : "bg-black text-white hover:opacity-80" // ✅ kiểu "Follow"
+                    }`}
                 >
                   {loadingFollow
                     ? "Loading..."
                     : isFollowing
-                    ? "Unfollow" // ✅ đổi chữ thành Unfollow khi đã theo dõi
-                    : "Follow"}
+                      ? "Unfollow" // ✅ đổi chữ thành Unfollow khi đã theo dõi
+                      : "Follow"}
                 </button>
 
                 <p>&middot;</p>
@@ -401,7 +401,7 @@ const ReadOnlyContent = ({ slug }) => {
                               onClick={() => handleReaction(reaction.id)}
                               className="p-2 group cursor-pointer"
                             >
-                              <img
+                              <imgƯ
                                 src={reaction.reactionImageUrl}
                                 alt={reaction.name}
                                 className="size-5 inline-block transition-all group-hover:-translate-y-0.5"
@@ -430,9 +430,28 @@ const ReadOnlyContent = ({ slug }) => {
                   </button>
                 </div>
                 <div className="flex gap-3 text-gray-600">
-                  <button className=" hover:text-black transition cursor-pointer">
-                    <CiBookmark className="size-5" />
-                  </button>
+                  {savedIds.has(post.id) ? (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        toggleSave(post.id, savedIds.has(post.id))
+                      }}
+                      className=" hover:text-black transition cursor-pointer">
+                      <BsBookmarkFill className="size-5" />
+                    </button>
+                  ) : (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        toggleSave(post.id, savedIds.has(post.id))
+                      }}
+                      className=" hover:text-black transition cursor-pointer">
+                      <BsBookmark className="size-5" />
+                    </button>
+                  )}
+
                   <div className="relative">
                     <button
                       className="hover:text-black transition cursor-pointer"

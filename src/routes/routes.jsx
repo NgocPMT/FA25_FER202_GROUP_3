@@ -25,6 +25,13 @@ import AdminLayout from "../components/admin/AdminLayout";
 import AdminReportedPosts from "../components/admin/AdminReportedPosts";
 import AdminUsers from "../components/admin/AdminManageUsers";
 import ProtectedRouteAdmin from "../components/admin/ProtectedRouteAdmin";
+import PublicationList from "@/components/publication/PublicationList";
+import PublicationDetail from "@/components/publication/PublicationDetail";
+import PublicationCreate from "@/components/publication/PublicationCreate";
+import PublicationEdit from "@/components/publication/PublicationEdit";
+
+
+
 const routes = [
   {
     path: "/admin",
@@ -183,6 +190,23 @@ const routes = [
           },
         ],
       },
+      {
+        path: "/publications",
+        element: <PublicationList />,
+      },
+      {
+        path: "/publications/create",
+        element: <PublicationCreate />,
+      },
+      {
+        path: "/publications/:id",
+        element: <PublicationDetail />,
+      },
+      {
+        path: "/publications/:id/edit",
+        element: <PublicationEdit />,
+      },
+
     ],
   },
 ];

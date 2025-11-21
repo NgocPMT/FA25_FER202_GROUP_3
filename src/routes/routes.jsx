@@ -25,10 +25,10 @@ import AdminLayout from "../components/admin/AdminLayout";
 import AdminReportedPosts from "../components/admin/AdminReportedPosts";
 import AdminUsers from "../components/admin/AdminManageUsers";
 import ProtectedRouteAdmin from "../components/admin/ProtectedRouteAdmin";
-import PublicationList from "../components/publication/PublicationList";
-import PublicationDetail from "../components/publication/PublicationDetail";
-import PublicationCreate from "../components/publication/PublicationCreate";
-import PublicationEdit from "../components/publication/PublicationEdit";
+import PublicationList from "@/components/publication/PublicationList";
+import PublicationDetail from "@/components/publication/PublicationDetail";
+import PublicationCreate from "@/components/publication/PublicationCreate";
+import PublicationEdit from "@/components/publication/PublicationEdit";
 
 
 

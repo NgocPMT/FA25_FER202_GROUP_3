@@ -75,13 +75,10 @@ const SideNavbar = () => {
       <MenuItem
         icon={<BsPeople />}
         activeIcon={<BsFillPeopleFill />}
-        label="Publications"
+        label="Publication"
         href="/publications"
         active={path.startsWith("/publications")}
       />
-
-
-
     </div>
   );
 };

@@ -16,7 +16,6 @@ export default function PublicationEdit() {
 
   const [saving, setSaving] = useState(false);
 
-  // ❗ MOVE THIS INSIDE COMPONENT
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
@@ -24,7 +23,6 @@ export default function PublicationEdit() {
     loadPublication();
   }, []);
 
-  // CHECK OWNER
   const checkOwner = async () => {
     const res = await fetch(
       `${import.meta.env.VITE_API_URL}/validate-owner/${id}`,
@@ -42,12 +40,11 @@ export default function PublicationEdit() {
     const data = await res.json();
 
     if (!data?.isOwner) {
-      toast.error("❌ You are NOT the owner — cannot edit!");
+      toast.error("You are NOT the owner — cannot edit!");
       navigate(`/publications/${id}`);
     }
   };
 
-  // LOAD PUBLICATION
   const loadPublication = async () => {
     const res = await fetch(
       `${import.meta.env.VITE_API_URL}/publications?page=1&limit=200`,
@@ -113,11 +110,11 @@ export default function PublicationEdit() {
     setSaving(false);
 
     if (!res.ok) {
-      toast.error("❌ Update failed!");
+      toast.error("Update failed!");
       return;
     }
 
-    toast.success("✔ Updated successfully!");
+    toast.success("Updated successfully!");
     navigate(`/publications/${id}`);
   };
 

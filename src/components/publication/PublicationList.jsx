@@ -73,7 +73,6 @@ export default function PublicationList() {
   return (
     <div className="p-6 max-w-4xl mx-auto">
 
-      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Publications</h1>
 
@@ -85,7 +84,6 @@ export default function PublicationList() {
         </button>
       </div>
 
-      {/* Search */}
       <input
         className="w-full border px-4 py-2 rounded-xl mb-6"
         placeholder="Search publication..."
@@ -97,7 +95,6 @@ export default function PublicationList() {
 
       {loading && <p>Loading...</p>}
 
-      {/* Publication List */}
       <div className="grid grid-cols-1 gap-4 mt-4">
         {publications.map((p) => (
           <div

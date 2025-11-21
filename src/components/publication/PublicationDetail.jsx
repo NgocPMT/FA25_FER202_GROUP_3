@@ -20,9 +20,6 @@ export default function PublicationDetail() {
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  // ======================================================
-  // LOAD PUBLICATION INFO
-  // ======================================================
   useEffect(() => {
     if (!publicationId) return;
     loadPublication();
@@ -59,9 +56,6 @@ export default function PublicationDetail() {
     }
   }
 
-  // ======================================================
-  // TABS
-  // ======================================================
   useEffect(() => {
     if (!publicationId) return;
 
@@ -99,9 +93,6 @@ export default function PublicationDetail() {
     setInvitations([]);
   }
 
-  // ======================================================
-  // DELETE PUBLICATION
-  // ======================================================
   const handleDeletePub = async () => {
     try {
       const res = await fetch(
@@ -124,15 +115,11 @@ export default function PublicationDetail() {
     }
   };
 
-  // ======================================================
-  // UI
-  // ======================================================
   if (!pub) return <p className="p-10 text-center">Loading...</p>;
 
   return (
     <div className="max-w-4xl mx-auto p-8">
 
-      {/* HEADER */}
       <div className="flex items-center gap-5 mb-10">
         <img
           src={pub.avatarUrl}
@@ -169,15 +156,13 @@ export default function PublicationDetail() {
         </div>
       </div>
 
-      {/* NAV TABS */}
       <div className="flex gap-8 border-b pb-3 mb-6 text-lg">
         {["posts", "members"].map((t) => (
           <button
             key={t}
             onClick={() => setActiveTab(t)}
-            className={`pb-2 ${
-              activeTab === t ? "font-bold border-b-2 border-black" : "text-gray-600"
-            }`}
+            className={`pb-2 ${activeTab === t ? "font-bold border-b-2 border-black" : "text-gray-600"
+              }`}
           >
             {t === "posts" ? "Posts" : "Members"}
           </button>
@@ -187,22 +172,20 @@ export default function PublicationDetail() {
           <>
             <button
               onClick={() => setActiveTab("pending")}
-              className={`pb-2 ${
-                activeTab === "pending"
+              className={`pb-2 ${activeTab === "pending"
                   ? "font-bold border-b-2 border-black"
                   : "text-gray-600"
-              }`}
+                }`}
             >
               Pending Posts
             </button>
 
             <button
               onClick={() => setActiveTab("invite")}
-              className={`pb-2 ${
-                activeTab === "invite"
+              className={`pb-2 ${activeTab === "invite"
                   ? "font-bold border-b-2 border-black"
                   : "text-gray-600"
-              }`}
+                }`}
             >
               Invitations
             </button>
@@ -210,7 +193,6 @@ export default function PublicationDetail() {
         )}
       </div>
 
-      {/* CONTENT */}
       {activeTab === "posts" && (
         <div className="space-y-6">
           {posts.length === 0 && <p className="text-gray-500">No posts yet.</p>}
@@ -252,10 +234,7 @@ export default function PublicationDetail() {
         <p className="text-gray-500">Invitation system coming soon.</p>
       )}
 
-      {/* ========================= */}
-      {/* DELETE CONFIRM MODAL */}
-      {/* ========================= */}
-            {showDeleteConfirm && (
+      {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white p-6 w-80 rounded-xl shadow-lg text-center">
 
@@ -290,6 +269,6 @@ export default function PublicationDetail() {
         </div>
       )}
 
-    </div>  
-  );         
-}            
+    </div>
+  );
+}          

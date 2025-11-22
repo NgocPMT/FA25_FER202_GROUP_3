@@ -44,6 +44,7 @@ const ReadOnlyContent = ({ slug }) => {
   const [loadingFollow, setLoadingFollow] = useState(false);
   const navigate = useNavigate();
   const { savedIds, toggleSave } = useSavedPosts();
+  const [topicMap, setTopicMap] = useState({});
 
   const openCommentSidebar = () => {
     setIsCommentOpen(true);
@@ -62,6 +63,29 @@ const ReadOnlyContent = ({ slug }) => {
       }));
     }
   };
+
+  useEffect(() => {
+    const fetchTopics = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/topics`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json();
+
+        const map = {};
+        data.forEach((t) => (map[t.id] = t.name));
+
+        setTopicMap(map);
+      } catch (err) {
+        console.error("Failed to load topics:", err);
+      }
+    };
+
+    fetchTopics();
+  }, []);
 
   useEffect(() => {
     document.body.classList.add("page-no-scroll");
@@ -356,7 +380,7 @@ const ReadOnlyContent = ({ slug }) => {
                       key={pt.topicId}
                       className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded-full"
                     >
-                      {pt.topic.name}
+                      #{topicMap[pt.topicId] || "Unknown topic"}
                     </span>
                   ))}
                 </div>

@@ -29,8 +29,7 @@ import PublicationList from "@/components/publication/PublicationList";
 import PublicationDetail from "@/components/publication/PublicationDetail";
 import PublicationCreate from "@/components/publication/PublicationCreate";
 import PublicationEdit from "@/components/publication/PublicationEdit";
-
-
+import AdminManageTopic from "../components/admin/AdminManageTopic";
 
 const routes = [
   {
@@ -43,6 +42,7 @@ const routes = [
     children: [
       { path: "reports", element: <AdminReportedPosts /> },
       { path: "users", element: <AdminUsers /> },
+      { path: "topics", element: <AdminManageTopic /> },
     ],
   },
   {
@@ -206,7 +206,6 @@ const routes = [
         path: "/publications/:id/edit",
         element: <PublicationEdit />,
       },
-
     ],
   },
 ];

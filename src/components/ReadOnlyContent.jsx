@@ -349,6 +349,19 @@ const ReadOnlyContent = ({ slug }) => {
           <EditorContext.Provider value={{ editor }}>
             <div className="simple-editor-title-wrapper">
               <h1 className="simple-editor-title">{post.title}</h1>
+              {post.postTopics?.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {post.postTopics.map((pt) => (
+                    <span
+                      key={pt.topicId}
+                      className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded-full"
+                    >
+                      {pt.topic.name}
+                    </span>
+                  ))}
+                </div>
+              )}
+
               <div className="mt-5 flex gap-3 items-center text-sm">
                 <Link
                   className="flex items-center gap-3 group"

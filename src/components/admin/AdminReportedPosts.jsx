@@ -148,13 +148,11 @@ export default function AdminReportedPosts() {
           body: JSON.stringify({ postId, userId }),
         }
       );
-
+      const data = await res.json();
       if (!res.ok) {
-        const data = await res.json();
+        
         toast.error(data.error);
       }
-
-      const data = await res.json();
       toast.success(data.message);
       fetchReports(); // Refresh list
     } catch (err) {

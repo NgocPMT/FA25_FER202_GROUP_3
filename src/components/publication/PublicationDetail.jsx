@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import PublicationPendingPosts from "./PublicationPendingPosts";
+
 
 export default function PublicationDetail() {
   const { id, publicationId: pId } = useParams();
   const publicationId = pId || id;
+  const [isMember, setIsMember] = useState(false);
 
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
@@ -23,6 +26,7 @@ export default function PublicationDetail() {
   useEffect(() => {
     if (!publicationId) return;
     loadPublication();
+    checkMember();
     checkOwner();
   }, [publicationId]);
 
@@ -55,6 +59,30 @@ export default function PublicationDetail() {
       setIsOwner(false);
     }
   }
+  async function checkMember() {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return setIsMember(false);
+
+      const me = JSON.parse(localStorage.getItem("user"));
+      const myId = me?.id;
+      if (!myId) return setIsMember(false);
+
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/publications/${publicationId}/members`
+      );
+
+      if (!res.ok) return setIsMember(false);
+
+      const list = await res.json();
+      const found = list.some((m) => m.id === myId);
+
+      setIsMember(found);
+    } catch {
+      setIsMember(false);
+    }
+  }
+
 
   useEffect(() => {
     if (!publicationId) return;
@@ -131,9 +159,19 @@ export default function PublicationDetail() {
           <p className="text-gray-600 mt-1">{pub.bio}</p>
         </div>
 
-        <div className="ml-auto">
-          {isOwner ? (
-            <div className="flex gap-3">
+        <div className="ml-auto flex gap-3">
+
+          {(isOwner || isMember) && (
+            <button
+              onClick={() => navigate(`/publications/${publicationId}/write`)}
+              className="px-4 py-2 bg-black text-white rounded-full"
+            >
+              Write Post
+            </button>
+          )}
+
+          {isOwner && (
+            <>
               <Link
                 to={`/publications/${publicationId}/edit`}
                 className="px-4 py-2 bg-blue-600 text-white rounded-full"
@@ -147,13 +185,10 @@ export default function PublicationDetail() {
               >
                 Delete
               </button>
-            </div>
-          ) : (
-            <button className="px-5 py-2 bg-black text-white rounded-full">
-              Follow
-            </button>
+            </>
           )}
         </div>
+
       </div>
 
       <div className="flex gap-8 border-b pb-3 mb-6 text-lg">
@@ -173,8 +208,8 @@ export default function PublicationDetail() {
             <button
               onClick={() => setActiveTab("pending")}
               className={`pb-2 ${activeTab === "pending"
-                  ? "font-bold border-b-2 border-black"
-                  : "text-gray-600"
+                ? "font-bold border-b-2 border-black"
+                : "text-gray-600"
                 }`}
             >
               Pending Posts
@@ -183,8 +218,8 @@ export default function PublicationDetail() {
             <button
               onClick={() => setActiveTab("invite")}
               className={`pb-2 ${activeTab === "invite"
-                  ? "font-bold border-b-2 border-black"
-                  : "text-gray-600"
+                ? "font-bold border-b-2 border-black"
+                : "text-gray-600"
                 }`}
             >
               Invitations
@@ -220,15 +255,9 @@ export default function PublicationDetail() {
       )}
 
       {activeTab === "pending" && (
-        <div className="space-y-5">
-          {pending.length === 0 && <p className="text-gray-500">No pending posts.</p>}
-          {pending.map((p) => (
-            <div key={p.id} className="border p-5 rounded-xl">
-              <h2 className="font-semibold">{p.title}</h2>
-            </div>
-          ))}
-        </div>
+        <PublicationPendingPosts publicationId={publicationId} />
       )}
+
 
       {activeTab === "invite" && (
         <p className="text-gray-500">Invitation system coming soon.</p>

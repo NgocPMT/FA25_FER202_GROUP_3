@@ -74,7 +74,7 @@ const EditProfile = () => {
   }
 
 
-  async function handleSave() {
+async function handleSave() {
     const token = localStorage.getItem("token");
     setIsSaving(true);
     setSuccessMessage("");
@@ -96,7 +96,11 @@ const EditProfile = () => {
         }
       );
 
-      if (!res.ok) throw new Error("Update failed");
+      if (!res.ok) {
+        setSuccessMessage("Profile updated failed!");
+        setTimeout(() => setSuccessMessage(""), 3000);
+        throw new Error("Update failed");
+      }
 
       const data = await res.json();
       console.log("Server response:", data);
@@ -106,6 +110,8 @@ const EditProfile = () => {
       setSuccessMessage("Profile updated successfully!");
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
+      setSuccessMessage("Profile updated failed!");
+      setTimeout(() => setSuccessMessage(""), 3000);
       console.error("Update failed:", err.message);
     } finally {
       setIsSaving(false);

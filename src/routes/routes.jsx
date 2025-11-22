@@ -29,6 +29,10 @@ import PublicationList from "@/components/publication/PublicationList";
 import PublicationDetail from "@/components/publication/PublicationDetail";
 import PublicationCreate from "@/components/publication/PublicationCreate";
 import PublicationEdit from "@/components/publication/PublicationEdit";
+import PublicationPendingPosts from "@/components/publication/PublicationPendingPosts";
+import PublicationPosts from "@/components/publication/PublicationPosts";
+import WritePublication from "@/components/Publication/WritePublication";
+
 
 
 
@@ -191,6 +195,14 @@ const routes = [
         ],
       },
       {
+        path: "/publications/:publicationId/write",
+        element: (
+          <ProtectedRoute>
+            <WritePublication />
+          </ProtectedRoute>
+        ),
+      },
+      {
         path: "/publications",
         element: <PublicationList />,
       },
@@ -199,9 +211,21 @@ const routes = [
         element: <PublicationCreate />,
       },
       {
-        path: "/publications/:id",
-        element: <PublicationDetail />,
+        path: "/publications/:publicationId",
+        element: <PublicationDetail />,   // chứa Outlet
+        children: [
+          { index: true, element: <PublicationPosts /> },
+          {
+            path: "pending",
+            element: (
+              <ProtectedRoute>
+                <PublicationPendingPosts />
+              </ProtectedRoute>
+            ),
+          }
+        ]
       },
+
       {
         path: "/publications/:id/edit",
         element: <PublicationEdit />,

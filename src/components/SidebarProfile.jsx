@@ -26,7 +26,7 @@ const SidebarProfile = ({
 
         <h5 className="my-2 font-bold">{profile?.name}</h5>
         <h5 className="mb-2 text-gray-600">{follower} followers</h5>
-        <p className="text-xs text-gray-600">{profile?.bio}</p>
+        <p className="whitespace-pre-line break-words break-all  text-xs text-gray-600">{profile?.bio}</p>
 
         {userAccount ? (
           <button

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { FiPlus, FiEdit, FiTrash2 } from "react-icons/fi";
 import axios from "axios";
 
@@ -11,6 +11,10 @@ export default function AdminManageTopic() {
   const [name, setName] = useState("");
   const [editingTopic, setEditingTopic] = useState(null);
 
+  const [page, setPage] = useState(1);
+  const limit = 9;
+  const [hasNext, setHasNext] = useState(false);
+
   const fetchTopics = async () => {
     try {
       setLoading(true);
@@ -20,7 +24,6 @@ export default function AdminManageTopic() {
         },
       });
 
-      console.log("TOPICS DATA:", res.data);
       setTopics(res.data);
     } catch (err) {
       console.error("Error fetching topics:", err);
@@ -31,7 +34,17 @@ export default function AdminManageTopic() {
 
   useEffect(() => {
     fetchTopics();
+  }, []);
+
+  useEffect(() => {
+    setPage(1);
   }, [search]);
+
+  const filteredTopics = useMemo(() => {
+    return topics.filter((t) =>
+      t.name.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [topics, search]);
 
   const handleCreate = async (e) => {
     e.preventDefault();
@@ -94,6 +107,16 @@ export default function AdminManageTopic() {
     }
   };
 
+  const paginatedTopics = useMemo(() => {
+    const start = (page - 1) * limit;
+    const end = start + limit;
+    return filteredTopics.slice(start, end);
+  }, [filteredTopics, page]);
+
+  useEffect(() => {
+    setHasNext(page * limit < filteredTopics.length);
+  }, [filteredTopics, page]);
+
   return (
     <div className="p-6 w-full">
       <h1 className="text-2xl font-bold mb-6">Manage Topics</h1>
@@ -138,11 +161,9 @@ export default function AdminManageTopic() {
 
           <button
             type="submit"
-            className="px-4 py-2 border border-emerald-300 text-emerald-400 rounded whitespace-nowrap cursor-pointer
-             flex items-center gap-2"
+            className="px-4 py-2 border border-emerald-300 text-emerald-400 rounded whitespace-nowrap cursor-pointer flex items-center gap-2"
           >
             {editingTopic ? <FiEdit size={18} /> : <FiPlus size={18} />}
-
             {editingTopic ? "Update" : "Create"}
           </button>
 
@@ -166,52 +187,83 @@ export default function AdminManageTopic() {
       ) : topics.length === 0 ? (
         <p>No topics found.</p>
       ) : (
-        <table className="w-full border border-gray-300 rounded-xl overflow-hidden">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="p-2 font-semibold border-b border-gray-300 w-20 text-left rounded-tl-xl">
-                ID
-              </th>
-              <th className="p-2 font-semibold border-b border-gray-300 text-left">
-                Name
-              </th>
-              <th className="p-2 font-semibold border-b border-gray-300 w-[180px] text-left rounded-tr-xl">
-                Actions
-              </th>
-            </tr>
-          </thead>
+        <>
+          <div className="border border-gray-300 rounded-xl overflow-hidden">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="p-2 font-semibold border border-gray-300 w-20 text-center">
+                    ID
+                  </th>
+                  <th className="p-2 font-semibold border border-gray-300 text-left">
+                    Name
+                  </th>
+                  <th className="p-2 font-semibold border border-gray-300 w-[180px] text-center">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
 
-          <tbody>
-            {topics.map((topic) => (
-              <tr key={topic.id} className="hover:bg-gray-50">
-                <td className="p-2 border-b border-gray-300">{topic.id}</td>
+              <tbody>
+                {paginatedTopics.map((topic) => (
+                  <tr key={topic.id} className="hover:bg-gray-50">
+                    <td className="p-2 border border-gray-300 text-center">
+                      {topic.id}
+                    </td>
+                    <td className="p-2 border border-gray-300">{topic.name}</td>
+                    <td className="p-2 border border-gray-300">
+                      <div className="flex gap-2 justify-center">
+                        <button
+                          className="px-3 py-1 border border-indigo-300 text-indigo-400 rounded cursor-pointer"
+                          onClick={() => {
+                            setEditingTopic(topic);
+                            setName(topic.name);
+                          }}
+                        >
+                          <FiEdit size={16} />
+                        </button>
 
-                <td className="p-2 border-b border-gray-300">{topic.name}</td>
+                        <button
+                          className="px-3 py-1 border border-red-300 text-red-400 rounded cursor-pointer"
+                          onClick={() => handleDelete(topic.id)}
+                        >
+                          <FiTrash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-                <td className="p-2 border-b border-gray-300">
-                  <div className="flex gap-2">
-                    <button
-                      className="px-3 py-1 border border-indigo-300 text-indigo-400 rounded cursor-pointer"
-                      onClick={() => {
-                        setEditingTopic(topic);
-                        setName(topic.name);
-                      }}
-                    >
-                      <FiEdit size={16} />
-                    </button>
+          {/* Pagination (StatStories style) */}
+          <div className="flex justify-center mt-6 gap-3">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              className={`px-3 py-1 rounded-full bg-white transition ${
+                page === 1
+                  ? "invisible"
+                  : "cursor-pointer opacity-40 hover:opacity-60"
+              }`}
+            >
+              Prev
+            </button>
 
-                    <button
-                      className="px-3 py-1 border border-red-300 text-red-400 rounded cursor-pointer"
-                      onClick={() => handleDelete(topic.id)}
-                    >
-                      <FiTrash2 size={16} />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+            <span className="px-3 py-1 opacity-70">{page}</span>
+
+            <button
+              onClick={() => setPage((p) => p + 1)}
+              className={`px-3 py-1 rounded-full bg-white transition ${
+                !hasNext
+                  ? "invisible"
+                  : "cursor-pointer opacity-40 hover:opacity-60"
+              }`}
+            >
+              Next
+            </button>
+          </div>
+        </>
       )}
     </div>
   );

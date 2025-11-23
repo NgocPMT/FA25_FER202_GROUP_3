@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { RxAvatar } from "react-icons/rx";
 import { toast } from "react-toastify";
+import { BsSortAlphaDown, BsSortAlphaUp } from "react-icons/bs";
+
 
 export default function PublicationList() {
   const location = useLocation();
@@ -88,22 +90,47 @@ export default function PublicationList() {
     <div className="flex gap-8 p-6 max-w-6xl mx-auto">
       <aside className="w-48 shrink-0">
         <h3 className="text-lg font-semibold mb-4">Sort by</h3>
-        <ul className="space-y-2 text-sm">
-          {[
-            { label: "A → Z", value: "name_asc" },
-            { label: "Z → A", value: "name_desc" },
-          ].map((option) => (
-            <li
-              key={option.value}
-              className={`cursor-pointer px-2 py-1 rounded ${sort === option.value ? "bg-black text-white" : "hover:bg-gray-100"
-                }`}
-              onClick={() => updateQuery({ sort: option.value, page: 1 })}
-            >
-              {option.label}
-            </li>
-          ))}
-        </ul>
+
+        <div className="space-y-2">
+          <button
+            onClick={() =>
+              updateQuery({
+                sort: sort === "name_asc" ? "createdAt_desc" : "name_asc",
+                page: 1,
+              })
+            }
+            className={`w-full flex items-center gap-2 px-3 py-2 rounded-full border 
+    transition cursor-pointer text-sm
+    ${sort === "name_asc"
+                ? "bg-black text-white border-black"
+                : "bg-gray-100 hover:bg-gray-200 border-gray-300 text-gray-700"
+              }`}
+          >
+            <BsSortAlphaDown className="text-lg" />
+            A → Z
+          </button>
+
+          <button
+            onClick={() =>
+              updateQuery({
+                sort: sort === "name_desc" ? "createdAt_desc" : "name_desc",
+                page: 1,
+              })
+            }
+            className={`w-full flex items-center gap-2 px-3 py-2 rounded-full border 
+    transition cursor-pointer text-sm
+    ${sort === "name_desc"
+                ? "bg-black text-white border-black"
+                : "bg-gray-100 hover:bg-gray-200 border-gray-300 text-gray-700"
+              }`}
+          >
+            <BsSortAlphaUp className="text-lg" />
+            Z → A
+          </button>
+
+        </div>
       </aside>
+
 
       <div className="flex-1">
         <div className="flex justify-between items-center mb-6">

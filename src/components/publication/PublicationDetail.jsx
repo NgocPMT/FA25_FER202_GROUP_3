@@ -119,11 +119,13 @@ export default function PublicationDetail() {
                 Delete
               </button>
             </div>
-          ) : (
+          ) 
+          : (
             <button className="px-5 py-2 bg-black text-white rounded-full">
               Follow
             </button>
-          )}
+          )
+          }
         </div>
       </div>
 

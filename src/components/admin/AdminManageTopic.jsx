@@ -11,8 +11,12 @@ export default function AdminManageTopic() {
   const [name, setName] = useState("");
   const [editingTopic, setEditingTopic] = useState(null);
 
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [targetId, setTargetId] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+
   const [page, setPage] = useState(1);
-  const limit = 9;
+  const limit = 7;
   const [hasNext, setHasNext] = useState(false);
 
   const fetchTopics = async () => {
@@ -23,7 +27,7 @@ export default function AdminManageTopic() {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
-
+      console.log("Topics fetched:", res.data);
       setTopics(res.data);
     } catch (err) {
       console.error("Error fetching topics:", err);
@@ -92,9 +96,9 @@ export default function AdminManageTopic() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm("Are you sure you want to delete this topic?")) return;
-
     try {
+      setDeleting(true);
+
       await axios.delete(`${API_URL}/topics/${id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -104,6 +108,8 @@ export default function AdminManageTopic() {
       fetchTopics();
     } catch (err) {
       console.error("Error deleting topic:", err);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -198,6 +204,9 @@ export default function AdminManageTopic() {
                   <th className="p-2 font-semibold border border-gray-300 text-left">
                     Name
                   </th>
+                  <th className="p-2 font-semibold border border-gray-300 text-center w-20">
+                    Posts
+                  </th>
                   <th className="p-2 font-semibold border border-gray-300 w-[180px] text-center">
                     Actions
                   </th>
@@ -211,21 +220,27 @@ export default function AdminManageTopic() {
                       {topic.id}
                     </td>
                     <td className="p-2 border border-gray-300">{topic.name}</td>
+                    <td className="p-2 border border-gray-300 text-center w-20">
+                      {topic._count?.postTopics ?? 0}
+                    </td>
                     <td className="p-2 border border-gray-300">
                       <div className="flex gap-2 justify-center">
                         <button
-                          className="px-3 py-1 border border-indigo-300 text-indigo-400 rounded cursor-pointer"
+                          className="px-3 py-1 border border-indigo-300 text-indigo-400 rounded cursor-pointer flex items-center justify-center gap-2"
                           onClick={() => {
                             setEditingTopic(topic);
                             setName(topic.name);
                           }}
                         >
-                          <FiEdit size={16} />
+                          <FiEdit size={16} /> Edit
                         </button>
 
                         <button
                           className="px-3 py-1 border border-red-300 text-red-400 rounded cursor-pointer"
-                          onClick={() => handleDelete(topic.id)}
+                          onClick={() => {
+                            setTargetId(topic.id);
+                            setShowDeleteModal(true);
+                          }}
                         >
                           <FiTrash2 size={16} />
                         </button>
@@ -263,6 +278,46 @@ export default function AdminManageTopic() {
               Next
             </button>
           </div>
+          {showDeleteModal && (
+            <div className="fixed inset-0 z-[999] bg-black/40 flex items-center justify-center">
+              <div className="bg-white rounded-xl shadow-2xl p-6 w-[320px] text-center">
+                <h2 className="text-lg font-semibold text-gray-900 mb-2">
+                  Delete this topic?
+                </h2>
+
+                <p className="text-sm text-gray-500 mb-6">
+                  This action cannot be undone.
+                </p>
+
+                <div className="flex justify-center gap-4">
+                  <button
+                    onClick={() => {
+                      setShowDeleteModal(false);
+                      setTargetId(null);
+                    }}
+                    className="px-4 py-2 text-sm rounded-lg bg-gray-100 hover:bg-gray-200 transition cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    onClick={async () => {
+                      await handleDelete(targetId);
+                      setShowDeleteModal(false);
+                      setTargetId(null);
+                    }}
+                    disabled={deleting}
+                    className={`px-4 py-2 text-sm rounded-lg text-white cursor-pointer transition
+                     ${
+                       deleting ? "bg-red-400" : "bg-red-600 hover:bg-red-700"
+                     }`}
+                  >
+                    {deleting ? "Deleting..." : "Delete"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>

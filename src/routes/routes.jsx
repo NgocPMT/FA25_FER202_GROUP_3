@@ -30,6 +30,9 @@ import PublicationDetail from "@/components/publication/PublicationDetail";
 import PublicationCreate from "@/components/publication/PublicationCreate";
 import PublicationEdit from "@/components/publication/PublicationEdit";
 import AdminManageTopic from "../components/admin/AdminManageTopic";
+import MyInvitations from "@/components/publication/MyInvitations";
+
+
 
 const routes = [
   {
@@ -206,6 +209,13 @@ const routes = [
         path: "/publications/:id/edit",
         element: <PublicationEdit />,
       },
+      {
+        path: "/my-invitations",
+        element:
+          <MyInvitations />
+      },
+
+
     ],
   },
 ];

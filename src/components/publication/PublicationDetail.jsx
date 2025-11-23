@@ -3,10 +3,13 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import PublicationMembers from "./PublicationMembers";
 import PublicationInvite from "./PublicationInvite";
+import PublicationPendingPosts from "./PublicationPendingPosts";
+import PublicationPosts from "./PublicationPosts";
 
 export default function PublicationDetail() {
   const { id, publicationId: pId } = useParams();
   const publicationId = pId || id;
+  const [isMember, setIsMember] = useState(false);
 
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
@@ -23,6 +26,7 @@ export default function PublicationDetail() {
     if (!publicationId) return;
     loadPublication();
     checkOwner();
+    checkMember(); 
   }, [publicationId]);
 
   useEffect(() => {
@@ -55,6 +59,32 @@ export default function PublicationDetail() {
       setIsOwner(false);
     }
   }
+
+
+async function checkMember() {
+  try {
+    const me = JSON.parse(localStorage.getItem("user"));
+    const myId = me?.id;
+    if (!token || !myId) return setIsMember(false);
+
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/publications/${publicationId}/members`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    if (!res.ok) return setIsMember(false);
+
+    const list = await res.json();  // ← Không text + không parse thủ công
+
+    const found = list.some((m) => m.id === myId);
+    setIsMember(found);
+  } catch (err) {
+    console.error(err);
+    setIsMember(false);
+  }
+}
+
+
 
   async function loadPosts() {
     const res = await fetch(`${import.meta.env.VITE_API_URL}/publications/${publicationId}/posts`);
@@ -93,12 +123,20 @@ export default function PublicationDetail() {
   if (!pub) return <p className="p-10 text-center">Loading...</p>;
 
   return (
-    <div className="max-w-4xl mx-auto p-8">
+     <div className="w-full max-w-7xl mx-auto p-8">
       <div className="flex items-center gap-5 mb-10">
         <img
           src={pub.avatarUrl}
           className="w-24 h-24 rounded-xl object-cover border shadow"
         />
+                     {(isOwner || isMember) && (
+            <button
+              onClick={() => navigate(`/publications/${publicationId}/write`)}
+              className="px-4 py-2 bg-black text-white rounded-full"
+            >
+              Write Post
+            </button>
+          )}
         <div>
           <h1 className="text-4xl font-bold">{pub.name}</h1>
           <p className="text-gray-600 mt-1">{pub.bio}</p>
@@ -158,28 +196,19 @@ export default function PublicationDetail() {
 
       {/* Tab Content */}
       {activeTab === "posts" && (
-        <div className="space-y-6">
-          {posts.length === 0 && <p className="text-gray-500">No posts yet.</p>}
-          {posts.map((p) => (
-            <div key={p.id} className="border p-5 rounded-xl hover:shadow">
-              <h2 className="text-xl font-semibold">{p.title}</h2>
-            </div>
-          ))}
-        </div>
+        <PublicationPosts publicationId={publicationId} />
       )}
 
-      {activeTab === "members" && <PublicationMembers />}
-      {activeTab === "pending" && (
-        <div className="space-y-5">
-          {pending.length === 0 && <p className="text-gray-500">No pending posts.</p>}
-          {pending.map((p) => (
-            <div key={p.id} className="border p-5 rounded-xl">
-              <h2 className="font-semibold">{p.title}</h2>
-            </div>
-          ))}
-        </div>
+      {activeTab === "members" && (
+        <PublicationMembers publicationId={publicationId} />
       )}
-      {activeTab === "invite" && <PublicationInvite />}
+      {activeTab === "invite" && (
+        <PublicationInvite publicationId={publicationId} />
+      )}
+      {activeTab === "pending" && (
+        <PublicationPendingPosts publicationId={publicationId} />
+      )}
+      {/* {activeTab === "invite" && <PublicationInvite />} */}
 
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">

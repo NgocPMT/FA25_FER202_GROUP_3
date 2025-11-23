@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
 export default function PublicationInvite() {
-  const { id: publicationId } = useParams();
+  const { publicationId } = useParams();
   const token = localStorage.getItem("token");
 
   const [search, setSearch] = useState("");

@@ -29,8 +29,12 @@ import PublicationList from "@/components/publication/PublicationList";
 import PublicationDetail from "@/components/publication/PublicationDetail";
 import PublicationCreate from "@/components/publication/PublicationCreate";
 import PublicationEdit from "@/components/publication/PublicationEdit";
+import PublicationPosts from "@/components/publication/PublicationPosts";
+import PublicationPendingPosts from "@/components/publication/PublicationPendingPosts";
+import WritePublication from "@/components/Publication/WritePublication";
 import MyInvitations from "@/components/publication/MyInvitations";
-
+import PublicationMembers from "@/components/publication/PublicationMembers";
+import PublicationInvitations from "@/components/publication/PublicationInvitations";
 
 
 const routes = [
@@ -192,16 +196,63 @@ const routes = [
         ],
       },
       {
+        path: "/publications/:publicationId",
+        element: (
+          <ProtectedRoute>
+            <PublicationDetail />
+          </ProtectedRoute>
+        ),   // Trang CHA chứa <Outlet />
+        children: [
+          {
+            index: true,                  // Default tab = Posts
+            element: <PublicationPosts />,
+          },
+          {
+            path: "posts",
+            element: <PublicationPosts />,
+          },
+          {
+            path: "pending",
+            element: (
+              <ProtectedRoute>
+                <PublicationPendingPosts />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "members",
+            element: (
+              <ProtectedRoute>
+                <PublicationMembers />
+              </ProtectedRoute>
+            ),
+          },
+          {
+            path: "invitations",
+            element: (
+              <ProtectedRoute>
+                <PublicationInvitations />
+              </ProtectedRoute>
+            ),
+          },
+
+        ],
+      },
+      {
+        path: "/publications/:publicationId/write",
+        element: (
+          <ProtectedRoute>
+            <WritePublication />
+          </ProtectedRoute>
+        ),
+      },
+      {
         path: "/publications",
         element: <PublicationList />,
       },
       {
         path: "/publications/create",
         element: <PublicationCreate />,
-      },
-      {
-        path: "/publications/:id",
-        element: <PublicationDetail />,
       },
       {
         path: "/publications/:id/edit",

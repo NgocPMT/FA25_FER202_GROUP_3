@@ -10,7 +10,7 @@ import { Link } from "react-router-dom";
 import ModalPortal from "./ModalPortal";
 import { toast } from "react-toastify";
 
-export default function Article({ data, isSaved, onSave, onDelete }) {
+export default function Article({ data, isSaved, onSave, onDelete, mode, onApprove, onReject }) {
   const currentUserId = JSON.parse(localStorage.getItem("userId"));
 
   const {
@@ -201,15 +201,38 @@ export default function Article({ data, isSaved, onSave, onDelete }) {
             {getPreviewText(content)}
           </p>
 
-          <div className="flex items-center gap-4 text-sm text-gray-500">
-            <span>{new Date(createdAt).toLocaleDateString("vi-VN")}</span>
-            <span className="flex items-center gap-1">
-              <BsStarFill className="text-yellow-500" /> {postReactions}
-            </span>
-            <span className="flex items-center gap-1">
-              <BsChat /> {postComments}
-            </span>
-          </div>
+          {/* A — Reaction + Comment (ẩn nếu pending) */}
+          {mode !== "publication-pending" && (
+            <div className="flex items-center gap-4 text-sm text-gray-500">
+              <span>{new Date(createdAt).toLocaleDateString("vi-VN")}</span>
+              <span className="flex items-center gap-1">
+                <BsStarFill className="text-yellow-500" /> {postReactions}
+              </span>
+              <span className="flex items-center gap-1">
+                <BsChat /> {postComments}
+              </span>
+            </div>
+          )}
+
+          {/* B — Nút Approve / Reject nếu pending */}
+          {mode === "publication-pending" && (
+            <div className="flex gap-3 mt-4">
+              <button
+                className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                onClick={() => onApprove(id, slug)}
+              >
+                Approve
+              </button>
+
+              <button
+                className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+                onClick={() => onReject(id)}
+              >
+                Reject
+              </button>
+            </div>
+          )}
+
         </div>
 
         {/* RIGHT */}
@@ -230,120 +253,67 @@ export default function Article({ data, isSaved, onSave, onDelete }) {
               <div className="w-full h-full rounded-sm -ml-3 bg-transparent cursor-pointer" />
             )}
           </Link>
-          <div className="hidden xl:flex absolute top-25 right-60 gap-3 text-gray-500">
-            {isSaved ? (
-              <BsBookmarkFill
-                className="cursor-pointer"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  onSave(data.id, isSaved);
-                }}
-              />
-            ) : (
-              <BsBookmark
-                className="cursor-pointer"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  onSave(data.id, isSaved);
-                }}
-              />
-            )}
-            <div className="relative">
-              <BsThreeDots
-                className="cursor-pointer hover:text-black"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  setShowMenu((prev) => !prev);
-                }}
-              />
+          {mode !== "publication-pending" && (
+            <div className="hidden xl:flex absolute top-25 right-60 gap-3 text-gray-500">
+              {/* bookmark + 3-dots menu giữ nguyên */}
+              {isSaved ? (
+                <BsBookmarkFill
+                  className="cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    onSave(data.id, isSaved);
+                  }}
+                />
+              ) : (
+                <BsBookmark
+                  className="cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    onSave(data.id, isSaved);
+                  }}
+                />
+              )}
 
-              {showMenu && (
-                <div className="absolute right-0 mt-2 ring ring-gray-300 rounded-sm shadow-lg bg-white p-2 z-20 flex flex-col gap-3">
-                  {currentUserId === user?.id && (
+              {/* menu cũ */}
+              <div className="relative">
+                <BsThreeDots
+                  className="cursor-pointer hover:text-black"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    setShowMenu((prev) => !prev);
+                  }}
+                />
+                {/* menu content giữ nguyên */}
+                {showMenu && (
+                  <div className="absolute right-0 mt-2 ring ring-gray-300 rounded-sm shadow-lg bg-white p-2 z-20 flex flex-col gap-3">
+                    {currentUserId === user?.id && (
+                      <button
+                        className="w-full text-start text-nowrap cursor-pointer text-gray-600 hover:text-black"
+                        onClick={() => {
+                          setPostToDelete(id);
+                          setShowModal(true);
+                        }}
+                      >
+                        Delete
+                      </button>
+                    )}
                     <button
-                      className="w-full text-start text-nowrap cursor-pointer text-gray-600 hover:text-black"
+                      className="w-full text-start text-nowrap text-red-600 hover:text-red-700 cursor-pointer"
                       onClick={() => {
-                        setPostToDelete(id);
-                        setShowModal(true);
+                        setPostToReport(data.id);
+                        setShowReportModal(true);
                       }}
                     >
-                      Delete
+                      Report
                     </button>
-                  )}
-                  <button
-                    className="w-full text-start text-nowrap text-red-600 hover:text-red-700 cursor-pointer"
-                    onClick={() => {
-                      setPostToReport(data.id);
-                      setShowReportModal(true);
-                    }}
-                  >
-                    Report
-                  </button>
-                </div>
-              )}
-
-              {/* show modal confirm */}
-              {showModal && (
-                <ModalPortal>
-                  <div className="fixed inset-0 flex items-center justify-center bg-black/30 z-50">
-                    <div className="bg-white rounded-lg shadow-lg p-6 w-80">
-                      <h3 className="text-lg font-semibold mb-3 text-gray-800">
-                        Delete Confirm
-                      </h3>
-                      <p className="text-sm text-gray-600 mb-5">
-                        Are you sure to delete this post?
-                      </p>
-                      <div className="flex justify-end gap-3">
-                        <button
-                          onClick={() => setShowModal(false)}
-                          className="px-4 py-2 text-gray-600 hover:text-black"
-                        >
-                          Back
-                        </button>
-                        <button
-                          onClick={() => deletePost()}
-                          className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
                   </div>
-                </ModalPortal>
-              )}
-              {showReportModal && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black/30 z-[9999]">
-                  <div className="bg-white rounded-lg shadow-lg p-6 w-80">
-                    <h3 className="text-lg font-semibold mb-3 text-gray-800">
-                      Report Post
-                    </h3>
-                    <p className="text-sm text-gray-600 mb-5">
-                      Are you sure you want to report this post?
-                    </p>
-
-                    <div className="flex justify-end gap-3">
-                      <button
-                        onClick={() => setShowReportModal(false)}
-                        className="px-4 py-2 text-gray-600 hover:text-black"
-                      >
-                        Cancel
-                      </button>
-
-                      <button
-                        onClick={reportPost}
-                        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                      >
-                        Report
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

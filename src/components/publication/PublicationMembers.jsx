@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 export default function PublicationMembers() {
-  const { id: publicationId } = useParams();
+  const { publicationId } = useParams();
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
 

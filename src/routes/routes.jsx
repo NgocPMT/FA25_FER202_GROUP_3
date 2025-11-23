@@ -32,6 +32,7 @@ import PublicationEdit from "@/components/publication/PublicationEdit";
 import PublicationPosts from "@/components/publication/PublicationPosts";
 import PublicationPendingPosts from "@/components/publication/PublicationPendingPosts";
 import WritePublication from "@/components/Publication/WritePublication";
+import AdminManageTopic from "../components/admin/AdminManageTopic";
 import MyInvitations from "@/components/publication/MyInvitations";
 import PublicationMembers from "@/components/publication/PublicationMembers";
 import PublicationInvitations from "@/components/publication/PublicationInvitations";
@@ -48,6 +49,7 @@ const routes = [
     children: [
       { path: "reports", element: <AdminReportedPosts /> },
       { path: "users", element: <AdminUsers /> },
+      { path: "topics", element: <AdminManageTopic /> },
     ],
   },
   {

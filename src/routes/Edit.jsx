@@ -19,8 +19,15 @@ const Edit = () => {
   const navigate = useNavigate();
   const { showLoader, hideLoader } = useLoader();
   const [draftId, setDraftId] = useState(null);
+  const [selectedTopics, setSelectedTopics] = useState([]);
 
   const { slug } = useParams();
+
+  useEffect(() => {
+    if (post?.postTopics) {
+      setSelectedTopics(post.postTopics.map((pt) => pt.topicId));
+    }
+  }, [post]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -117,6 +124,7 @@ const Edit = () => {
             content: JSON.stringify(content),
             coverImageUrl,
             status: "published",
+            topicIds: selectedTopics,
           }),
         }
       );
@@ -246,6 +254,8 @@ const Edit = () => {
             toggleAvatarDropdownShow={toggleAvatarDropdownShow}
             logOut={logOut}
             content={post.content}
+            selectedTopics={selectedTopics}
+            setSelectedTopics={setSelectedTopics}
           />
         </div>
       )}

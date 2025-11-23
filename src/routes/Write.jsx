@@ -19,6 +19,8 @@ const Write = () => {
   const { showLoader, hideLoader } = useLoader();
   const [draftId, setDraftId] = useState(null);
 
+  const [selectedTopics, setSelectedTopics] = useState([]);
+
   const toggleAvatarDropdownShow = () => {
     setIsAvatarDropdownShow(!isAvatarDropdownShow);
   };
@@ -78,6 +80,7 @@ const Write = () => {
           title,
           content: JSON.stringify(content),
           coverImageUrl,
+          topics: selectedTopics,
         }),
       });
 
@@ -208,6 +211,8 @@ const Write = () => {
           isAvatarDropdownShow={isAvatarDropdownShow}
           toggleAvatarDropdownShow={toggleAvatarDropdownShow}
           logOut={logOut}
+          selectedTopics={selectedTopics}
+          setSelectedTopics={setSelectedTopics}
         />
       </div>
       <Modal open={isModalShow} onClose={closeModal}>

@@ -74,6 +74,7 @@ import { Input } from "@/components/tiptap-ui-primitive/input";
 import { RxAvatar } from "react-icons/rx";
 import { MdOutlineMoreHoriz } from "react-icons/md";
 import { Link, useLocation } from "react-router";
+import TopicSelector from "@/components/TopicSelector";
 
 const MainToolbarContent = ({ onHighlighterClick, onLinkClick, isMobile }) => {
   return (
@@ -163,6 +164,8 @@ export const SimpleEditor = React.forwardRef(
       toggleAvatarDropdownShow,
       logOut,
       content,
+      selectedTopics,
+      setSelectedTopics,
     },
     ref
   ) => {
@@ -345,6 +348,12 @@ export const SimpleEditor = React.forwardRef(
               />
             )}
           </Toolbar>
+          <div className="px-4 max-w-5xl mx-auto my-4">
+            <TopicSelector
+              selectedTopics={selectedTopics}
+              setSelectedTopics={setSelectedTopics}
+            />
+          </div>
           <div className="simple-editor-title-wrapper">
             <Input
               type="text"

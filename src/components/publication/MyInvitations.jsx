@@ -22,26 +22,31 @@ export default function MyInvitations() {
       const data = await res.json();
       const safeData = Array.isArray(data) ? data : [];
 
-      const normalized = safeData
-        .filter((inv) => inv.status === "PENDING")
-        .map((inv) => ({
-          ...inv,
-          publication: inv.publication ?? {
-            name: inv.publication_name || "Unknown publication",
-            avatarUrl: inv.publication_avatar || "/default-avatar.png",
-            id: inv.publication_id || inv.publicationId,
-          },
-          inviter: inv.inviter ?? {
-            username: inv.inviter_username || "Unknown",
-          },
-        }));
+      const normalized = safeData.map((inv) => ({
+        ...inv,
+        publication: inv.publication ?? {
+          name: inv.publication_name || "Unknown publication",
+          avatarUrl: inv.publication_avatar || "/default-avatar.png",
+          id: inv.publication_id || inv.publicationId,
+        },
+        inviter: inv.inviter ?? {
+          username: inv.inviter_username || "Unknown",
+        },
+      }));
 
-      setInvitations(normalized);
+      // ⭐ SORT theo status: PENDING → ACCEPTED → DECLINED
+      const sorted = normalized.sort((a, b) => {
+        const weight = { PENDING: 0, ACCEPTED: 1, DECLINED: 2 };
+        return weight[a.status] - weight[b.status];
+      });
+
+      setInvitations(sorted);
     } catch (err) {
       toast.error("Failed to load invitations.");
       console.error(err);
     }
   };
+
 
   const handleDelete = async (id) => {
     try {
@@ -104,28 +109,47 @@ export default function MyInvitations() {
                 {inv.publication.name}
               </p>
               <p className="text-sm text-gray-500">Invited by: {inv.inviter.username}</p>
+              <p className="text-sm">
+                Status:{" "}
+                <span className={
+                  inv.status === "PENDING" ? "text-yellow-600 font-medium" :
+                    inv.status === "ACCEPTED" ? "text-green-600 font-medium" :
+                      "text-red-600 font-medium"
+                }>
+                  {inv.status}
+                </span>
+              </p>
+
             </div>
           </div>
           <div className="flex gap-2">
-            <button
-              onClick={() => respond(inv.id, "accept")}
-              className="px-4 py-1 bg-green-500 hover:bg-green-600 text-white rounded"
-            >
-              Accept
-            </button>
-            <button
-              onClick={() => setConfirmDeclineId(inv.id)}
-              className="px-4 py-1 bg-yellow-400 hover:bg-yellow-500 text-black rounded"
-            >
-              Decline
-            </button>
-            <button
-              onClick={() => setConfirmDeleteId(inv.id)}
-              className="px-4 py-1 bg-red-500 hover:bg-red-600 text-white rounded"
-            >
-              Delete
-            </button>
-          </div>
+  {inv.status === "PENDING" && (
+    <>
+      <button
+        onClick={() => respond(inv.id, "accept")}
+        className="px-4 py-1 bg-green-500 hover:bg-green-600 text-white rounded"
+      >
+        Accept
+      </button>
+
+      <button
+        onClick={() => setConfirmDeclineId(inv.id)}
+        className="px-4 py-1 bg-yellow-400 hover:bg-yellow-500 text-black rounded"
+      >
+        Decline
+      </button>
+    </>
+  )}
+
+  {/* Delete luôn hiển thị */}
+  <button
+    onClick={() => setConfirmDeleteId(inv.id)}
+    className="px-4 py-1 bg-red-500 hover:bg-red-600 text-white rounded"
+  >
+    Delete
+  </button>
+</div>
+
         </div>
       ))}
 

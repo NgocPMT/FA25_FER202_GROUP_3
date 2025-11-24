@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { FiSearch } from "react-icons/fi";
+
 
 export default function PublicationInvite() {
   const { publicationId } = useParams();
@@ -75,7 +77,7 @@ export default function PublicationInvite() {
         }
       );
       const data = await res.json();
-      console.log("Loaded invitations:", data); 
+      console.log("Loaded invitations:", data);
       setInvitations(data);
     } catch {
       toast.error("Failed to load invitations.");
@@ -101,10 +103,13 @@ export default function PublicationInvite() {
           />
           <button
             onClick={searchUsers}
-            className="px-4 py-2 bg-blue-600 text-white rounded"
+            className="w-12 h-12 flex items-center justify-center rounded-xl 
+             border border-gray-300 bg-white hover:bg-gray-100 
+             transition cursor-pointer"
           >
-            Search
+            <FiSearch size={20} className="text-gray-700" />
           </button>
+
         </div>
 
         <div className="mt-3 space-y-2">

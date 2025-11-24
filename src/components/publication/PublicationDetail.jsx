@@ -5,12 +5,15 @@ import PublicationMembers from "./PublicationMembers";
 import PublicationInvite from "./PublicationInvite";
 import PublicationPendingPosts from "./PublicationPendingPosts";
 import PublicationPosts from "./PublicationPosts";
+import PublicationEdit from "./PublicationEdit";
+
 import { BsPencil, BsTrash, BsPersonPlus, BsPencilSquare } from "react-icons/bs";
 
 export default function PublicationDetail() {
   const { id, publicationId: pId } = useParams();
   const publicationId = pId || id;
   const [isMember, setIsMember] = useState(false);
+const [showEditPopup, setShowEditPopup] = useState(false);
 
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
@@ -139,12 +142,13 @@ export default function PublicationDetail() {
   <div className="ml-auto flex items-start gap-3">
     {isOwner ? (
       <>
-        <Link
-          to={`/publications/${publicationId}/edit`}
-          className="cursor-pointer w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-200 transition"
-        >
-          <BsPencil className="text-xl text-gray-700" />
-        </Link>
+       <button
+  onClick={() => setShowEditPopup(true)}
+  className="cursor-pointer w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-200 transition"
+>
+  <BsPencil className="text-xl text-gray-700" />
+</button>
+
 
         <button
           onClick={() => setShowDeleteConfirm(true)}
@@ -234,6 +238,25 @@ export default function PublicationDetail() {
           </div>
         </div>
       )}
+      {showEditPopup && (
+  <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+
+    <div className="bg-white w-full max-w-3xl rounded-2xl shadow-xl p-8 relative">
+      
+      {/* nút đóng popup */}
+      <button
+        onClick={() => setShowEditPopup(false)}
+        className="absolute right-4 top-4 text-gray-500 hover:text-black text-2xl"
+      >
+        ✕
+      </button>
+
+      {/* NHÚNG COMPONENT EDIT Ở ĐÂY */}
+      <PublicationEdit publicationId={publicationId} onClose={() => setShowEditPopup(false)} />
+    </div>
+  </div>
+)}
+
     </div>
   );
 }

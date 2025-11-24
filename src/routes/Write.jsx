@@ -36,7 +36,7 @@ const Write = () => {
     setTitle(e.target.value);
   };
 
-  // 🔥 FETCH DANH SÁCH PUBLICATION USER THAM GIA
+  // FETCH DANH SÁCH PUBLICATION USER 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -49,9 +49,7 @@ const Write = () => {
       .catch(() => { });
   }, []);
 
-  // ----------------------------------------------------------------
-  // 🔥 HANDLE PUBLISH — MỞ MODAL CHỌN PUBLICATION TRƯỚC
-  // ----------------------------------------------------------------
+  // HANDLE PUBLISH 
   const handlePublish = async (isEmpty) => {
     const token = localStorage.getItem("token");
     const content = editorRef.current?.getContent();
@@ -81,18 +79,15 @@ const Write = () => {
       return;
     }
 
-    // 👉 Nếu user thuộc publication → để user chọn
     if (myPublications.length > 0) {
       setPubModal(true); // mở popup chọn publication
     } else {
-      // 👉 Không có publication → đăng cá nhân
       submitToPersonal(content, coverImageUrl);
     }
   };
 
-  // ----------------------------------------------------------------
-  // 🔥 FUNCTION: SUBMIT BÀI VIẾT CÁ NHÂN
-  // ----------------------------------------------------------------
+  
+  // FUNCTION: SUBMIT 
   const submitToPersonal = async (content, coverImageUrl) => {
     try {
       showLoader();
@@ -127,9 +122,8 @@ const Write = () => {
     }
   };
 
-  // ----------------------------------------------------------------
-  // 🔥 FUNCTION: SUBMIT VÀO PUBLICATION (PENDING)
-  // ----------------------------------------------------------------
+  
+  // FUNCTION: SUBMIT PUBLICATION (PENDING)
   const submitToPublication = async (publicationId) => {
     try {
       showLoader();
@@ -168,9 +162,8 @@ const Write = () => {
     }
   };
 
-  // ----------------------------------------------------------------
-  // 🔥 AUTO SAVE FUNCTION (KHÔNG THAY ĐỔI)
-  // ----------------------------------------------------------------
+ 
+  // AUTO SAVE FUNCTION
   const handleAutoSave = async (isEmpty, signal) => {
     try {
       const token = localStorage.getItem("token");
@@ -263,9 +256,8 @@ const Write = () => {
     return null;
   };
 
-  // ----------------------------------------------------------------
-  // 🔥 UI
-  // ----------------------------------------------------------------
+  // UI
+ 
   return (
     <>
       <div>
@@ -283,7 +275,7 @@ const Write = () => {
         />
       </div>
 
-      {/* ❗ MODAL HIỂN THỊ LỖI */}
+      {/* MODAL HIỂN THỊ LỖI */}
       <Modal open={isModalShow} onClose={closeModal}>
         <div className="p-8 min-h-24 flex flex-col items-center">
           <IoWarning className="text-red-800 size-12 mb-4" />
@@ -294,8 +286,7 @@ const Write = () => {
         </div>
       </Modal>
 
-      {/* ⭐ MODAL CHỌN PUBLICATION ⭐ */}
-      {/* ⭐ MODAL CHỌN PUBLICATION ⭐ */}
+      {/* MODAL CHỌN PUBLICATION */}
       {pubModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white w-96 p-6 rounded-xl shadow-xl">
@@ -304,7 +295,7 @@ const Write = () => {
               Submit to a Publication
             </h2>
 
-            {/* ⭐ LIST WITH SCROLL ⭐ */}
+            {/* LIST WITH SCROLL*/}
             <div
               className="
           max-h-64
@@ -344,7 +335,7 @@ const Write = () => {
               )}
             </div>
 
-            {/* ⭐ BUTTON: POST AS PERSONAL */}
+
             <button
               onClick={() => {
                 setPubModal(false);
@@ -355,7 +346,7 @@ const Write = () => {
               }}
               className="
           w-full p-3 mt-4 bg-black text-white rounded-lg 
-          cursor-pointer         /* ⭐ THÊM */
+          cursor-pointer         
         "
             >
               Publish as Personal Post
@@ -365,7 +356,7 @@ const Write = () => {
               onClick={() => setPubModal(false)}
               className="
           w-full mt-3 text-gray-500 hover:underline
-          cursor-pointer         /* ⭐ THÊM */
+          cursor-pointer        
         "
             >
               Cancel

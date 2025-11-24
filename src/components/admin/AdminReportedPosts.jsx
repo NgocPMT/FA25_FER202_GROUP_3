@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { IoSearchOutline } from "react-icons/io5";
 import { X } from "lucide-react";
 import { toast } from "react-toastify";
+import { FiTrash2, FiCheckCircle } from "react-icons/fi";
+
 
 export default function AdminReportedPosts() {
   const [reports, setReports] = useState([]);
@@ -35,9 +37,8 @@ export default function AdminReportedPosts() {
   // Fetch reports from API with search params
   const fetchReports = async () => {
     try {
-      let url = `${
-        import.meta.env.VITE_API_URL
-      }/admin/reported-posts?page=${page}&limit=${limit}`;
+      let url = `${import.meta.env.VITE_API_URL
+        }/admin/reported-posts?page=${page}&limit=${limit}`;
 
       if (titleSearch) {
         url += `&titleSearch=${encodeURIComponent(titleSearch)}`;
@@ -462,22 +463,19 @@ export default function AdminReportedPosts() {
                   <td className="p-3 border text-center">
                     <div className="flex flex-col gap-2">
                       <button
-                        onClick={() =>
-                          handleDeletePost(item.postId, item.user.id)
-                        }
-                        className="text-red-500 hover:text-red-700 cursor-pointer text-sm"
+                        onClick={() => handleDeletePost(item.postId, item.user.id)}
+                        className="text-red-500 hover:text-red-700 cursor-pointer text-sm flex items-center gap-1"
                         title="Delete post and report"
                       >
-                        Delete Post
+                        <FiTrash2 size={15} /> Delete
                       </button>
+
                       <button
-                        onClick={() =>
-                          handleClearReport(item.postId, item.user.id)
-                        }
-                        className="text-green-500 hover:text-green-700 cursor-pointer text-sm"
+                        onClick={() => handleClearReport(item.postId, item.user.id)}
+                        className="text-green-500 hover:text-green-700 cursor-pointer text-sm flex items-center gap-1"
                         title="Clear report only"
                       >
-                        Clear Report
+                        <FiCheckCircle size={15} /> Clear
                       </button>
                     </div>
                   </td>

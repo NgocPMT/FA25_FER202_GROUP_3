@@ -40,7 +40,7 @@ const ReadOnlyContent = ({ slug }) => {
   const userId =
     localStorage.getItem("userId") && parseInt(localStorage.getItem("userId"));
   const [reactedType, setReactedType] = useState(null);
-  const [isFollowing, setIsFollowing] = useState(false); // ✅ trạng thái follow
+  const [isFollowing, setIsFollowing] = useState(false);
   const [loadingFollow, setLoadingFollow] = useState(false);
   const navigate = useNavigate();
   const { savedIds, toggleSave } = useSavedPosts();
@@ -94,20 +94,18 @@ const ReadOnlyContent = ({ slug }) => {
     };
   }, []);
 
+  const fetchReactions = async () => {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/reactions`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await res.json();
+    setReactions(data);
+  };
+
   useEffect(() => {
     if (!token) return;
-    const fetchReactions = async () => {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/reactions`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await res.json();
-
-      setReactions(data.reactions);
-      console.log(data.reactions);
-    };
-
     fetchReactions();
   }, []);
 
@@ -134,6 +132,7 @@ const ReadOnlyContent = ({ slug }) => {
       PostReaction: [...prev.PostReaction, reacted.reacted],
     }));
     toast.success(reacted.message);
+    fetchReactions();
   };
 
   const handleRemoveReaction = async () => {
@@ -160,8 +159,8 @@ const ReadOnlyContent = ({ slug }) => {
         (reaction) => reaction.id !== data.unreacted.id
       ),
     }));
-
     setReactedType(null);
+    fetchReactions();
   };
 
   const ReactionCount = ({ keyword }) => {

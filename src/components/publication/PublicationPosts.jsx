@@ -105,27 +105,7 @@ const PublicationPosts = () => {
           Result for <span className="text-black">{keyword}</span>
         </h1>
       )}
-
-      <div className="flex items-center justify-between mb-6 pl-5 lg:pl-10">
-        <div className="flex items-center gap-2 text-sm">
-          <span>
-            <b>Display</b>
-          </span>
-          <select
-            className="border rounded px-2 py-1"
-            value={limit}
-            onChange={handleLimitChange}
-          >
-            {[5, 10, 20, 50].map((n) => (
-              <option key={n} value={n}>
-                {n}/Page
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      <div className="space-y-8 px-4 sm:px-0 lg:px-0 w-full">
+      <div className="space-y-8 px-0 w-full">
         {articles.length === 0 ? (
           <p className="text-gray-500 italic px-4 lg:px-10">
             {isSearching
@@ -142,6 +122,7 @@ const PublicationPosts = () => {
                 isSaved={saved}
                 onSave={() => toggleSave(post.id, saved)}
                 onDelete={handleDeletePost}
+                mode="publication-post"
               />
             );
           })

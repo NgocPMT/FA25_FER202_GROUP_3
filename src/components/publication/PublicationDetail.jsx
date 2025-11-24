@@ -134,16 +134,6 @@ export default function PublicationDetail() {
       <h1 className="text-4xl font-bold">{pub.name}</h1>
       <p className="text-gray-600">{pub.bio}</p>
     </div>
-
-    {(isOwner || isMember) && (
-      <button
-        onClick={() => navigate(`/publications/${publicationId}/write`)}
-        className="mt-3 px-4 py-2 bg-black text-white rounded-full flex items-center gap-2 cursor-pointer w-fit"
-      >
-        <BsPencilSquare className="text-lg" />
-        Write Post
-      </button>
-    )}
   </div>
 
   <div className="ml-auto flex items-start gap-3">

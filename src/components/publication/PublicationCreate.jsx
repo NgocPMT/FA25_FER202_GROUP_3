@@ -148,7 +148,6 @@ export default function PublicationCreate() {
             </div>
           </div>
 
-
           <button
             onClick={handleCreate}
             className="px-5 py-3 bg-black text-white rounded-full"
@@ -158,24 +157,41 @@ export default function PublicationCreate() {
         </div>
       </div>
 
-      <aside className="w-64 border rounded-lg p-4 max-h-[350px] overflow-y-auto mt-8">
-        <h3 className="text-lg font-semibold mb-4">Recent Publications</h3>
-        <div className="space-y-4 text-sm">
-          {recentPublications.map((pub) => (
+      <aside className="w-64 border rounded-lg p-4 shadow-sm bg-white 
+                   h-[420px] flex flex-col mt-8">
+
+        <h3 className="text-lg font-bold mb-4">Recent Publications</h3>
+
+        <div className="space-y-3 overflow-y-auto pr-1 custom-scroll flex-1">
+          {recentPublications.map((item) => (
             <div
-              key={pub.id}
-              onClick={() => navigate(`/publications/${pub.id}`)}
-              className="cursor-pointer border p-2 rounded hover:bg-gray-50 transition"
+              key={item.id}
+              onClick={() => navigate(`/publications/${item.id}`)}
+              className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition border-b last:border-b-0"
             >
-              <p className="font-medium">{pub.name}</p>
-              <p className="text-gray-500 text-xs line-clamp-1">
-                {pub.bio || "No description"}
-              </p>
+              {/* Avatar */}
+              {item.avatarUrl ? (
+                <img
+                  src={item.avatarUrl}
+                  className="w-10 h-10 rounded-lg object-cover shadow-sm"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400">
+                  <RxAvatar size={28} />
+                </div>
+              )}
+              <div className="flex-1">
+                <div className="font-semibold text-sm text-gray-900 truncate">
+                  {item.name}
+                </div>
+                <div className="text-xs text-gray-500 line-clamp-1">
+                  {item.bio || "No description"}
+                </div>
+              </div>
             </div>
           ))}
         </div>
       </aside>
-
     </div>
   );
 }

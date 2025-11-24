@@ -31,7 +31,6 @@ import PublicationCreate from "@/components/publication/PublicationCreate";
 import PublicationEdit from "@/components/publication/PublicationEdit";
 import PublicationPosts from "@/components/publication/PublicationPosts";
 import PublicationPendingPosts from "@/components/publication/PublicationPendingPosts";
-import WritePublication from "@/components/Publication/WritePublication";
 import AdminManageTopic from "../components/admin/AdminManageTopic";
 import MyInvitations from "@/components/publication/MyInvitations";
 import PublicationMembers from "@/components/publication/PublicationMembers";
@@ -239,14 +238,6 @@ const routes = [
           },
 
         ],
-      },
-      {
-        path: "/publications/:publicationId/write",
-        element: (
-          <ProtectedRoute>
-            <WritePublication />
-          </ProtectedRoute>
-        ),
       },
       {
         path: "/publications",

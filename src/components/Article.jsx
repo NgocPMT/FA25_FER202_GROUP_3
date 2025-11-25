@@ -22,7 +22,7 @@ export default function Article({
   onApprove,
   onReject,
 }) {
-  console.log("ARTICLE DATA RECEIVED:", data);
+
   const currentUserId = JSON.parse(localStorage.getItem("userId"));
 
 
@@ -53,6 +53,43 @@ export default function Article({
   // For save post
   const [showSaveModal, setShowSaveModal] = useState(false);
   const isReadingListMode = mode === "reading-list";
+  // NEW: check if current user is publication owner
+  const [isPublicationOwner, setIsPublicationOwner] = useState(false);
+
+  useEffect(() => {
+    async function checkOwner() {
+      if (!data.publication) return setIsPublicationOwner(false);
+      const token = localStorage.getItem("token");
+      if (!token) return setIsPublicationOwner(false);
+
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_API_URL}/validate-owner/${data.publication.id}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+
+        if (!res.ok) return setIsPublicationOwner(false);
+
+        const dt = await res.json();
+        setIsPublicationOwner(dt?.isOwner === true);
+      } catch {
+        setIsPublicationOwner(false);
+      }
+    }
+
+    checkOwner();
+  }, [data.publication]);
+
+
+
+  // CONFIRM APPROVE / REJECT
+  const [confirmAction, setConfirmAction] = useState({
+    show: false,
+    action: null, // "approve" | "reject"
+    postId: null,
+    slug: null,
+  });
 
   const extractTextRecursively = (node) => {
     if (!node) return "";
@@ -101,32 +138,39 @@ export default function Article({
     const token = localStorage.getItem("token");
 
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/posts/${postToDelete}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      let deleteUrl;
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        toast.error("Delete failed!");
-        throw new Error(errorData.message || "Delete failed");
+      // Nếu là publication owner → dùng API delete trong publication
+      if (isPublicationOwner && data.publication) {
+        deleteUrl = `${import.meta.env.VITE_API_URL}/publications/${data.publication.id}/posts/${postToDelete}`;
       }
+      else {
+        // ngược lại → xóa bài cá nhân
+        deleteUrl = `${import.meta.env.VITE_API_URL}/posts/${postToDelete}`;
+      }
+
+      const res = await fetch(deleteUrl, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const json = await res.json();
+
+      if (!res.ok) throw new Error(json.message);
 
       onDelete(postToDelete);
       toast.success("Deleted successfully!");
     } catch (err) {
-      toast.error("Delete failed!");
+      toast.error(err.message || "Delete failed!");
     } finally {
       setShowModal(false);
       setPostToDelete(null);
     }
   }
+
 
   // REPORT POST
   async function reportPost() {
@@ -165,6 +209,11 @@ export default function Article({
     return () => document.removeEventListener("click", closeMenu);
   }, []);
 
+  const canDelete =
+    currentUserId === user?.id ||
+    isPublicationOwner;
+
+
   return (
     <>
       <div
@@ -175,57 +224,62 @@ export default function Article({
             : "lg:mx-10")
         }
       >
-
         {/* AUTHOR / PUBLICATION HEADER */}
         <div className="flex items-center gap-2 mb-2">
 
           {data.publication ? (
-            // ---------- BÀI THUỘC PUBLICATION ----------
-            <Link
-              to={`/publications/${data.publication.id}`}
-              className="flex items-center gap-2 hover:underline"
-            >
-              {/* Avatar publication */}
-              <img
-                src={
-                  data.publication.avatarUrl ||
-                  "https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-icon.webp"
-                }
-                alt="publication"
-                className="w-5 h-5 object-cover rounded-full"
-              />
+            <>
+              {/* Avatar Publication (clickable) */}
+              <Link to={`/publications/${data.publication.id}`}>
+                <img
+                  src={
+                    data.publication.avatarUrl ||
+                    "https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-icon.webp"
+                  }
+                  alt="publication"
+                  className="w-5 h-5 object-cover"
+                />
+              </Link>
 
-              <div className="flex flex-col leading-tight">
-                {/* In Publication Name */}
-                <span className="text-sm text-gray-800 font-medium">
-                  In {data.publication.name}
-                </span>
-
-                {/* by Author Name */}
-                <span className="text-xs text-gray-500">
-                  by {user?.Profile?.name ?? "Unknown"}
-                </span>
-              </div>
-            </Link>
-          ) : (
-            // ---------- BÀI ĐĂNG CÁ NHÂN ----------
-            <Link
-              to={`/profile/${user?.username ?? "unknown"}`}
-              className="flex items-center gap-2 hover:underline"
-            >
-              <img
-                src={
-                  user?.Profile?.avatarUrl ||
-                  "https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-icon.webp"
-                }
-                alt="author"
-                className="w-5 h-5 object-cover rounded-full"
-              />
-
-              <span className="text-sm text-gray-600 font-medium">
-                {user?.Profile?.name ?? "Unknown Author"}
+              <span className="text-sm text-gray-800">
+                In{" "}
+                <Link
+                  to={`/publications/${data.publication.id}`}
+                  className="hover:underline font-medium"
+                >
+                  {data.publication.name}
+                </Link>
+                {" "}by{" "}
+                <Link
+                  to={`/profile/${user?.username ?? "unknown"}`}
+                  className="hover:underline font-medium"
+                >
+                  {user?.Profile?.name ?? "Unknown Author"}
+                </Link>
               </span>
-            </Link>
+            </>
+          ) : (
+            <>
+              <Link to={`/profile/${user?.username ?? "unknown"}`}>
+                <img
+                  src={
+                    user?.Profile?.avatarUrl ||
+                    "https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-icon.webp"
+                  }
+                  alt="author"
+                  className="w-5 h-5 object-cover rounded-full"
+                />
+              </Link>
+
+              <span className="text-sm text-gray-600">
+                <Link
+                  to={`/profile/${user?.username ?? "unknown"}`}
+                  className="hover:underline font-medium"
+                >
+                  {user?.Profile?.name ?? "Unknown Author"}
+                </Link>
+              </span>
+            </>
           )}
 
         </div>
@@ -262,7 +316,14 @@ export default function Article({
               <div className="flex gap-3 mt-4">
                 <button
                   className="flex items-center gap-2 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
-                  onClick={() => onApprove(id, slug)}
+                  onClick={() =>
+                    setConfirmAction({
+                      show: true,
+                      action: "approve",
+                      postId: id,
+                      slug,
+                    })
+                  }
                 >
                   <BsCheckCircle size={18} />
                   Approve
@@ -270,7 +331,13 @@ export default function Article({
 
                 <button
                   className="flex items-center gap-2 px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
-                  onClick={() => onReject(id)}
+                  onClick={() =>
+                    setConfirmAction({
+                      show: true,
+                      action: "reject",
+                      postId: id,
+                    })
+                  }
                 >
                   <BsXCircle size={18} />
                   Reject
@@ -331,7 +398,7 @@ export default function Article({
                       className="absolute right-0 mt-2 ring ring-gray-300 rounded-sm shadow-lg bg-white p-2 z-20 flex flex-col gap-3"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      {currentUserId === user?.id && (
+                      {canDelete && (
                         <button
                           className="w-full text-start text-nowrap cursor-pointer text-gray-600 hover:text-black"
                           onClick={() => {
@@ -343,15 +410,17 @@ export default function Article({
                         </button>
                       )}
 
-                      <button
-                        className="w-full text-start text-nowrap text-red-600 hover:text-red-700 cursor-pointer"
-                        onClick={() => {
-                          setPostToReport(data.id);
-                          setShowReportModal(true);
-                        }}
-                      >
-                        Report
-                      </button>
+                      {currentUserId !== user?.id && (
+                        <button
+                          className="w-full text-start text-nowrap text-red-600 hover:text-red-700 cursor-pointer"
+                          onClick={() => {
+                            setPostToReport(data.id);
+                            setShowReportModal(true);
+                          }}
+                        >
+                          Report
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -421,6 +490,54 @@ export default function Article({
             </div>
           </div>
         </div>
+      )}
+      {/* ======================= APPROVE / REJECT MODAL ======================= */}
+      {confirmAction.show && (
+        <ModalPortal>
+          <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-[9999]">
+            <div className="bg-white p-6 w-80 rounded-lg shadow-lg">
+              <h3 className="text-lg font-semibold mb-3">
+                {confirmAction.action === "approve"
+                  ? "Approve this post?"
+                  : "Reject this post?"}
+              </h3>
+
+              <p className="text-sm text-gray-600 mb-5">
+                {confirmAction.action === "approve"
+                  ? "This post will be published inside the publication."
+                  : "This post will be rejected and removed from the pending list."}
+              </p>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() =>
+                    setConfirmAction({ show: false, action: null, postId: null, slug: null })
+                  }
+                  className="px-4 py-2 text-gray-600 hover:text-black"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  onClick={() => {
+                    if (confirmAction.action === "approve") {
+                      onApprove(confirmAction.postId, confirmAction.slug);
+                    } else {
+                      onReject(confirmAction.postId);
+                    }
+                    setConfirmAction({ show: false, action: null, postId: null, slug: null });
+                  }}
+                  className={`px-4 py-2 text-white rounded ${confirmAction.action === "approve"
+                    ? "bg-green-600 hover:bg-green-700"
+                    : "bg-red-600 hover:bg-red-700"
+                    }`}
+                >
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+        </ModalPortal>
       )}
     </>
   );

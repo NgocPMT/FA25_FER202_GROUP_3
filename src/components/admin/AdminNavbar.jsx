@@ -35,10 +35,7 @@ export default function AdminNavbar() {
     <nav className="sticky top-0 z-50 bg-white border-b shadow-sm">
       <div className="flex items-center justify-between px-4 py-3 w-full">
         {/* --- LOGO --- */}
-        <Link
-          to="/admin/home"
-          className="font-lora font-bold text-2xl text-gray-900"
-        >
+        <Link to="/home" className="font-lora font-bold text-2xl text-gray-900">
           Easium Admin
         </Link>
 

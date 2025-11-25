@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { FiPlus, FiEdit, FiTrash2 } from "react-icons/fi";
+import { toast } from "react-toastify";
 import axios from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -52,29 +53,54 @@ export default function AdminManageTopic() {
 
   const handleCreate = async (e) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim()) {
+      toast.error("Topic name cannot be empty");
+      return;
+    }
+
+    const isDuplicate = topics.some(
+      (t) => t.name.toLowerCase() === name.toLowerCase()
+    );
+
+    if (isDuplicate) {
+      toast.error("Topic name already exists!");
+      return;
+    }
 
     try {
       await axios.post(
         `${API_URL}/topics`,
         { name },
         {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
 
+      toast.success("Topic created successfully");
       setName("");
       fetchTopics();
     } catch (err) {
+      toast.error("Failed to create topic");
       console.error("Error creating topic:", err);
     }
   };
 
   const handleUpdate = async (e) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim()) {
+      toast.error("Topic name cannot be empty");
+      return;
+    }
+
+    const isDuplicate = topics.some(
+      (t) =>
+        t.id !== editingTopic.id && t.name.toLowerCase() === name.toLowerCase()
+    );
+
+    if (isDuplicate) {
+      toast.error("Topic name already exists!");
+      return;
+    }
 
     try {
       await axios.put(
@@ -87,10 +113,12 @@ export default function AdminManageTopic() {
         }
       );
 
+      toast.success("Topic updated successfully");
       setEditingTopic(null);
       setName("");
       fetchTopics();
     } catch (err) {
+      toast.error("Failed to update topic");
       console.error("Error updating topic:", err);
     }
   };
@@ -104,6 +132,8 @@ export default function AdminManageTopic() {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
+
+      toast.success("Topic deleted successfully!");
 
       fetchTopics();
     } catch (err) {

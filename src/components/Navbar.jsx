@@ -14,6 +14,9 @@ const Navbar = ({ onToggleSideNav }) => {
   const [isValidToken, setIsValidToken] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [profile, setProfile] = useState(null);
+  const [usernameConfirm, setUsernameConfirm] = useState("");
+  const [deleteStep, setDeleteStep] = useState(0);
+
 
   const { showLoader, hideLoader } = useLoader();
   const token = localStorage.getItem("token");
@@ -184,6 +187,32 @@ const Navbar = ({ onToggleSideNav }) => {
       navigate(`/home?query=${encodeURIComponent(searchQuery)}&page=1&limit=5`);
     }
   };
+
+  async function handleDeleteAccount() {
+    console.log("reached here 1");
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/me`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log("reached here 2");
+
+      if (!res.ok) {
+        toast.error("Failed to delete account");
+        return;
+      } else {
+        toast.success("Account deleted successfully");
+        localStorage.removeItem("token");
+
+        setTimeout(() => {
+          navigate("/sign-in");
+        }, 1200);
+      }
+    } catch (err) {
+      toast.error("Error deleting account");
+      console.log(err.message);
+    }
+  }
 
   return (
     <nav className="sticky top-0 z-50 bg-white border-b shadow-sm">
@@ -398,6 +427,122 @@ const Navbar = ({ onToggleSideNav }) => {
                   >
                     Log out
                   </button>
+                  <button
+                    onClick={() => setDeleteStep(1)}
+                    className="cursor-pointer hover:bg-gray-400 p-1 whitespace-nowrap text-red-600"
+                  >
+                    Delete Account
+                  </button>
+                  {deleteStep === 1 && (
+                    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[999]">
+                      <div className="bg-white p-6 rounded-lg w-97 shadow-lg">
+                        <h2 className="text-xl font-bold mb-3">Account Information</h2>
+
+                        <div className="flex items-center gap-3 mb-4">
+                          <img
+                            src={profile?.avatarUrl}
+                            className="w-16 h-16 rounded-full object-cover"
+                          />
+                          <div>
+                            <p className="font-semibold">{profile?.name}</p>
+                          </div>
+                        </div>
+
+                        <p className="text-gray-700 mb-6">
+                          You are about to delete this account. This action is sensitive.
+                        </p>
+
+                        <div className="flex justify-end gap-3">
+                          <button
+                            onClick={() => setDeleteStep(0)}
+                            className="px-4 py-2 text-gray-600 hover:text-black"
+                          >
+                            Cancel
+                          </button>
+
+                          <button
+                            onClick={() => setDeleteStep(2)}
+                            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                          >
+                            I want to delete this account
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {deleteStep === 2 && (
+                    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[999]">
+                      <div className="bg-white p-6 rounded-lg w-96 shadow-lg">
+                        <h2 className="text-xl font-bold mb-3 text-red-600">Warning</h2>
+
+                        <p className="text-gray-700 mb-6 leading-relaxed">
+                          Deleting this account is <strong>PERMANENT</strong>.<br />
+                          All posts, comments, reading lists, and data will be removed.<br />
+                          You will <strong>NOT</strong> be able to recover the account later.
+                        </p>
+
+                        <div className="flex justify-end gap-3">
+                          <button
+                            onClick={() => setDeleteStep(1)}
+                            className="px-4 py-2 text-gray-600 hover:text-black"
+                          >
+                            Back
+                          </button>
+
+                          <button
+                            onClick={() => setDeleteStep(3)}
+                            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                          >
+                            I understand it
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {deleteStep === 3 && (
+                    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[999]">
+                      <div className="bg-white p-6 rounded-lg w-96 shadow-lg">
+                        <h2 className="text-xl font-bold mb-3 text-red-600">Final Confirmation</h2>
+
+                        <p className="text-gray-700 mb-4">
+                          To permanently delete this account, please type your username:
+                          <br />
+                          <strong>{profile?.name}</strong>
+                        </p>
+
+                        <input
+                          type="text"
+                          value={usernameConfirm}
+                          onChange={(e) => setUsernameConfirm(e.target.value)}
+                          className="w-full border px-3 py-2 rounded mb-5"
+                          placeholder="Confirm your username"
+                        />
+
+                        <div className="flex justify-end gap-3">
+                          <button
+                            onClick={() => setDeleteStep(2)}
+                            className="px-4 py-2 text-gray-600 hover:text-black"
+                          >
+                            Back
+                          </button>
+
+                          <button
+                            disabled={usernameConfirm !== profile?.name}
+                            onClick={handleDeleteAccount}
+                            className={`px-4 py-2 rounded text-white ${usernameConfirm === profile?.name
+                              ? "bg-red-600 hover:bg-red-700"
+                              : "bg-red-300 cursor-not-allowed"
+                              }`}
+                          >
+                            Delete this account
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                 </div>
               )}
             </div>

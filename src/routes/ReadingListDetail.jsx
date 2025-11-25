@@ -44,7 +44,6 @@ const ReadingListDetail = () => {
         } catch (err) {
             console.log(err.message);
         }
-
         setLoading(false);
     }
 

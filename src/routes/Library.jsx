@@ -32,7 +32,6 @@ const Library = () => {
 
   async function getReadlist() {
     setLoading(true);
-
     try {
       const res = await fetch(
         `${import.meta.env.VITE_API_URL}/me/reading-lists`,

@@ -176,7 +176,7 @@ const routes = [
       },
       {
         path: "/library/:id",
-        element: (
+        element: ( 
           <ProtectedRoute>
             <ReadingListDetail />
           </ProtectedRoute>

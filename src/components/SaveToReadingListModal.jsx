@@ -20,7 +20,6 @@ export default function SaveToReadingListModal({ postId, onClose }) {
 
     async function handleCreateList() {
         if (!newListName.trim()) return toast.error("Name required!");
-
         const res = await fetch(`${import.meta.env.VITE_API_URL}/me/reading-lists`, {
             method: "POST",
             headers: {

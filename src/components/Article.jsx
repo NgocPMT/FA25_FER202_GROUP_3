@@ -50,6 +50,7 @@ export default function Article({
   const [showReportModal, setShowReportModal] = useState(false);
   const [postToReport, setPostToReport] = useState(null);
 
+  // For save post
   const [showSaveModal, setShowSaveModal] = useState(false);
   const isReadingListMode = mode === "reading-list";
 

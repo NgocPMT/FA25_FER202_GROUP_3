@@ -71,7 +71,6 @@ import { handleImageUpload, MAX_FILE_SIZE } from "lib/tiptap-utils";
 import "@/components/tiptap-templates/simple/simple-editor.scss";
 
 import { Input } from "@/components/tiptap-ui-primitive/input";
-import { RxAvatar } from "react-icons/rx";
 import { MdOutlineMoreHoriz } from "react-icons/md";
 import { Link, useLocation } from "react-router";
 import TopicSelector from "@/components/TopicSelector";

@@ -130,7 +130,7 @@ export default function Stories() {
 
   return (
     <div className="max-w-5xl mx-auto relative">
-      <h1 className="text-3xl font-semibold mb-6">Stories</h1>
+      <h1 className="text-3xl font-semibold mb-6">My Posts</h1>
 
       <div className="flex space-x-6 border-b mb-6">
         {["Drafts", "Published"].map((t) => (

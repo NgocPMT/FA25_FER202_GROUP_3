@@ -14,10 +14,9 @@ import {
   BsPeople,
   BsFillPeopleFill,
   BsEnvelope,
-  BsEnvelopeFill
+  BsEnvelopeFill,
 } from "react-icons/bs";
-import { HiUserGroup } from "react-icons/hi";
-import { FiPlus } from "react-icons/fi";
+import { HiUserGroup, HiOutlineUserGroup } from "react-icons/hi";
 import { useLocation } from "react-router";
 
 const SideNavbar = () => {
@@ -51,7 +50,7 @@ const SideNavbar = () => {
         <MenuItem
           icon={<BsFileText />}
           activeIcon={<BsFileTextFill />}
-          label="Stories"
+          label="My Posts"
           href="/stories"
           active={path === "/stories"}
         />
@@ -75,7 +74,7 @@ const SideNavbar = () => {
           active={path === "/following"}
         />
         <MenuItem
-          icon={<HiUserGroup />}
+          icon={<HiOutlineUserGroup />}
           activeIcon={<HiUserGroup />}
           label="Publication"
           href="/publications"
@@ -89,7 +88,6 @@ const SideNavbar = () => {
           active={path === "/my-invitations"}
         />
       </ul>
-
     </div>
   );
 };

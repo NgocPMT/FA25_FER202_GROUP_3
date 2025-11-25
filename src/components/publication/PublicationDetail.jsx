@@ -161,7 +161,7 @@ const [showEditPopup, setShowEditPopup] = useState(false);
       <button
         className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-300 hover:bg-gray-100 transition"
       >
-        <BsPersonPlus className="text-xl text-gray-700" />
+      
       </button>
     )}
   </div>

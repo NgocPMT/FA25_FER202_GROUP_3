@@ -27,6 +27,8 @@ import { Link, useNavigate } from "react-router";
 import { useOutletContext } from "react-router";
 import { toast } from "react-toastify";
 import useSavedPosts from "@/hooks/useSavedPosts";
+import ModalPortal from "./ModalPortal";
+import SaveToReadingListModal from "./SaveToReadingListModal";
 
 const ReadOnlyContent = ({ slug }) => {
   const { setIsCommentOpen, isCommentOpen } = useOutletContext();
@@ -43,7 +45,7 @@ const ReadOnlyContent = ({ slug }) => {
   const [isFollowing, setIsFollowing] = useState(false);
   const [loadingFollow, setLoadingFollow] = useState(false);
   const navigate = useNavigate();
-  const { savedIds, toggleSave } = useSavedPosts();
+  const [showSaveModal, setShowSaveModal] = useState(false);
   const [topicMap, setTopicMap] = useState({});
 
   const filteredReactions = reactionSearch
@@ -255,11 +257,10 @@ const ReadOnlyContent = ({ slug }) => {
               className="size-5"
             />
             <span
-              className={`text-sm ${
-                userReaction?.reactionTypeId === reaction.id
+              className={`text-sm ${userReaction?.reactionTypeId === reaction.id
                   ? "font-bold text-green-600"
                   : "text-gray-600"
-              }`}
+                }`}
             >
               {count}
             </span>
@@ -312,11 +313,10 @@ const ReadOnlyContent = ({ slug }) => {
                       <span className="font-medium">{reaction.name}</span>
                     </div>
                     <span
-                      className={`text-lg font-semibold ${
-                        userReaction?.reactionTypeId === reaction.id
+                      className={`text-lg font-semibold ${userReaction?.reactionTypeId === reaction.id
                           ? "text-green-600"
                           : "text-gray-600"
-                      }`}
+                        }`}
                     >
                       {count}
                     </span>
@@ -416,8 +416,8 @@ const ReadOnlyContent = ({ slug }) => {
             const list = Array.isArray(followData)
               ? followData.map((item) => item.following)
               : Array.isArray(followData.data)
-              ? followData.data.map((item) => item.following)
-              : [];
+                ? followData.data.map((item) => item.following)
+                : [];
 
             setIsFollowing(
               list.some((u) => Number(u.id) === Number(data.userId))
@@ -549,22 +549,22 @@ const ReadOnlyContent = ({ slug }) => {
                 </Link>
 
                 {/* Follow/Unfollow Button */}
+                {post.userId !== userId && (
                 <button
                   onClick={handleFollowToggle}
                   disabled={loadingFollow}
-                  className={`ring rounded-full py-1.5 px-3 cursor-pointer transition ${
-                    isFollowing
+                  className={`ring rounded-full py-1.5 px-3 cursor-pointer transition ${isFollowing
                       ? "bg-gray-100 text-gray-700 border hover:bg-gray-200"
                       : "bg-black text-white hover:opacity-80"
-                  }`}
+                    }`}
                 >
                   {loadingFollow
                     ? "Loading..."
                     : isFollowing
-                    ? "Unfollow"
-                    : "Follow"}
+                      ? "Unfollow"
+                      : "Follow"}
                 </button>
-
+                )}
                 <p>&middot;</p>
                 <p>{new Date(post.createdAt).toLocaleDateString("vi-VN")}</p>
               </div>
@@ -608,7 +608,7 @@ const ReadOnlyContent = ({ slug }) => {
                             {/* Reactions Grid */}
                             <div className="grid grid-cols-6 gap-2 max-h-64 overflow-y-auto">
                               {reactions.length > 0 ||
-                              reactionSearch.trim().length > 0 ? (
+                                reactionSearch.trim().length > 0 ? (
                                 filteredReactions.map((reaction) => (
                                   <button
                                     key={reaction.id}
@@ -666,29 +666,23 @@ const ReadOnlyContent = ({ slug }) => {
                     <span>{post.comments.length}</span>
                   </button>
 
-                  {/* Bookmark Button */}
-                  {savedIds.has(post.id) ? (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        toggleSave(post.id, savedIds.has(post.id));
-                      }}
-                      className="hover:text-black transition cursor-pointer"
-                    >
-                      <BsBookmarkFill className="size-5" />
-                    </button>
-                  ) : (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        toggleSave(post.id, savedIds.has(post.id));
-                      }}
-                      className="hover:text-black transition cursor-pointer"
-                    >
-                      <BsBookmark className="size-5" />
-                    </button>
+                  <BsBookmark
+                    className="cursor-pointer size-5"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      setShowSaveModal(true);
+                    }}
+                  />
+
+                  {/* Save post button */}
+                  {showSaveModal && (
+                    <ModalPortal>
+                      <SaveToReadingListModal
+                        postId={post.id}
+                        onClose={() => setShowSaveModal(false)}
+                      />
+                    </ModalPortal>
                   )}
 
                   {/* More Options */}

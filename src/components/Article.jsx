@@ -6,11 +6,12 @@ import {
   BsThreeDots,
   BsBookmarkFill,
   BsCheckCircle,
-  BsXCircle 
+  BsXCircle
 } from "react-icons/bs";
 import { Link } from "react-router-dom";
 import ModalPortal from "./ModalPortal";
 import { toast } from "react-toastify";
+import SaveToReadingListModal from "./SaveToReadingListModal";
 
 export default function Article({
   data,
@@ -48,6 +49,9 @@ export default function Article({
 
   const [showReportModal, setShowReportModal] = useState(false);
   const [postToReport, setPostToReport] = useState(null);
+
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const isReadingListMode = mode === "reading-list";
 
   const extractTextRecursively = (node) => {
     if (!node) return "";
@@ -291,26 +295,23 @@ export default function Article({
               )}
             </Link>
 
-            {mode !== "publication-pending" && (
+            {!isReadingListMode && mode !== "publication-pending" && (
               <div className="hidden xl:flex absolute top-25 right-60 gap-3 text-gray-500">
-                {isSaved ? (
-                  <BsBookmarkFill
-                    className="cursor-pointer"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      onSave(data.id, isSaved);
-                    }}
-                  />
-                ) : (
-                  <BsBookmark
-                    className="cursor-pointer"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      onSave(data.id, isSaved);
-                    }}
-                  />
+                <BsBookmark
+                  className="cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    setShowSaveModal(true);
+                  }}
+                />
+                {showSaveModal && (
+                  <ModalPortal>
+                    <SaveToReadingListModal
+                      postId={data.id}
+                      onClose={() => setShowSaveModal(false)}
+                    />
+                  </ModalPortal>
                 )}
 
                 {/* THREE DOTS */}

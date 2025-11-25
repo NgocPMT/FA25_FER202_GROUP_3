@@ -20,6 +20,7 @@ export default function AdminManageTopic() {
   const limit = 8;
   const [hasNext, setHasNext] = useState(false);
 
+  //fetch topics
   const fetchTopics = async () => {
     try {
       setLoading(true);
@@ -45,6 +46,7 @@ export default function AdminManageTopic() {
     setPage(1);
   }, [search]);
 
+  // search topics
   const filteredTopics = useMemo(() => {
     return topics.filter((t) =>
       t.name.toLowerCase().includes(search.toLowerCase())

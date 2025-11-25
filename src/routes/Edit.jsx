@@ -23,6 +23,18 @@ const Edit = () => {
 
   const { slug } = useParams();
 
+  const [topics, setTopics] = useState([]);
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    fetch(`${import.meta.env.VITE_API_URL}/topics`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => setTopics(data));
+  }, []);
+
   useEffect(() => {
     if (post?.postTopics) {
       setSelectedTopics(post.postTopics.map((pt) => pt.topicId));
@@ -124,7 +136,7 @@ const Edit = () => {
             content: JSON.stringify(content),
             coverImageUrl,
             status: "published",
-            topicIds: selectedTopics,
+            topics: selectedTopics,
           }),
         }
       );
@@ -137,6 +149,7 @@ const Edit = () => {
       }
 
       const data = await response.json();
+      console.log("📥 BACKEND RESPONSE FOR UPDATE POST:", data);
       toast.success(data.message);
       navigate("/home");
     } finally {
@@ -254,6 +267,7 @@ const Edit = () => {
             toggleAvatarDropdownShow={toggleAvatarDropdownShow}
             logOut={logOut}
             content={post.content}
+            topics={topics}
             selectedTopics={selectedTopics}
             setSelectedTopics={setSelectedTopics}
           />

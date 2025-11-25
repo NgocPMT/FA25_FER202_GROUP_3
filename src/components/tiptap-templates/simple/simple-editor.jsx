@@ -75,7 +75,7 @@ import { RxAvatar } from "react-icons/rx";
 import { MdOutlineMoreHoriz } from "react-icons/md";
 import { Link, useLocation } from "react-router";
 import TopicSelector from "@/components/TopicSelector";
-import AIWritingAssistant from "@/components/AIWritingAssistant";
+import AIWritingAssistant from "@/components/AIWritingAssistant.jsx";
 
 const MainToolbarContent = ({ onHighlighterClick, onLinkClick, isMobile }) => {
   return (

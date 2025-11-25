@@ -1,7 +1,6 @@
 import { RxAvatar } from "react-icons/rx";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom"
-import axios from 'axios'
+import { useParams, useNavigate } from "react-router-dom"
 
 const EditProfile = () => {
   const { username } = useParams();
@@ -13,7 +12,7 @@ const EditProfile = () => {
   });
   const [isSaving, setIsSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
-
+  const navigate = useNavigate();
 
   useEffect(() => {
     getProfile();
@@ -111,7 +110,12 @@ const EditProfile = () => {
       setIsSaving(false);
     }
   }
-  
+
+  function handleBack() {
+    navigate(-1);
+  }
+
+
   return (
     <div className="px-16 py-8 container mx-auto">
       <h1 className="text-3xl font-bold mb-6 text-gray-800 pb-2">
@@ -169,43 +173,26 @@ const EditProfile = () => {
           </div>
         </div>
       </div>
-      <button
-        onClick={handleSave}
-        disabled={isSaving}
-        className={`w-full font-semibold tracking-wide px-4 py-3 rounded-lg shadow-md transition duration-200
-    ${isSaving
-            ? "bg-gray-400 cursor-not-allowed"
-            : "bg-blue-600 hover:bg-blue-700 text-white"
-          }`}
-      >
-        {isSaving ? (
-          <div className="flex items-center justify-center">
-            <svg
-              className="animate-spin h-5 w-5 mr-2 text-white"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-              ></path>
-            </svg>
-            Saving...
-          </div>
-        ) : (
-          "Save Changes"
-        )}
-      </button>
+      <div className="flex gap-4 mt-6">
+        <button
+          onClick={handleBack}
+          className="w-1/2 bg-gray-300 hover:bg-gray-400 text-gray-800 
+               font-semibold px-4 py-3 rounded-lg shadow"
+        >
+          Back
+        </button>
+
+        <button
+          onClick={handleSave}
+          disabled={isSaving}
+          className={`w-1/2 font-semibold tracking-wide px-4 py-3 rounded-lg shadow-md
+      ${isSaving ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700 text-white"}
+    `}
+        >
+          {isSaving ? "Saving..." : "Save Changes"}
+        </button>
+      </div>
+
 
       {successMessage && (
         <p className="text-green-600 text-center mt-3 transition-opacity duration-500">

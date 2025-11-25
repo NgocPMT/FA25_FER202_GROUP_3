@@ -674,6 +674,8 @@ const ReadOnlyContent = ({ slug }) => {
                       setShowSaveModal(true);
                     }}
                   />
+
+                  {/* Save post button */}
                   {showSaveModal && (
                     <ModalPortal>
                       <SaveToReadingListModal

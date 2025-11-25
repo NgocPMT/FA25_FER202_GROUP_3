@@ -58,6 +58,7 @@ export default function Notification() {
     toast.success(data.message);
     const updated = notifications.map((n) => ({ ...n, isRead: true }));
     setNotifications(updated);
+    window.dispatchEvent(new CustomEvent("notifications-read"));
   };
 
   return (

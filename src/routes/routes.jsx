@@ -35,7 +35,7 @@ import AdminManageTopic from "../components/admin/AdminManageTopic";
 import MyInvitations from "@/components/publication/MyInvitations";
 import PublicationMembers from "@/components/publication/PublicationMembers";
 import PublicationInvitations from "@/components/publication/PublicationInvitations";
-
+import ReadingListDetail from "./ReadingListDetail";
 
 const routes = [
   {
@@ -171,6 +171,14 @@ const routes = [
         element: (
           <ProtectedRoute>
             <Library />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "/library/:id",
+        element: ( 
+          <ProtectedRoute>
+            <ReadingListDetail />
           </ProtectedRoute>
         ),
       },

@@ -17,6 +17,7 @@ const Navbar = ({ onToggleSideNav }) => {
   const [usernameConfirm, setUsernameConfirm] = useState("");
   const [deleteStep, setDeleteStep] = useState(0);
 
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const { showLoader, hideLoader } = useLoader();
   const token = localStorage.getItem("token");
@@ -52,6 +53,31 @@ const Navbar = ({ onToggleSideNav }) => {
     setSearchHistory([]);
     localStorage.removeItem("searchHistory");
   };
+
+  useEffect(() => {
+    if (!token) return;
+
+    const fetchUnread = async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/me/notifications`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (!res.ok) return;
+
+        const data = await res.json();
+
+        const unread = data.filter(n => !n.isRead).length;
+
+        setUnreadCount(unread);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    fetchUnread();
+  }, [token]);
+
 
   useEffect(() => {
     const controller = new AbortController(); // Create an AbortController
@@ -175,6 +201,14 @@ const Navbar = ({ onToggleSideNav }) => {
       controller.abort();
     };
   }, [token]);
+
+useEffect(() => {
+  const handleRead = () => setUnreadCount(0);
+
+  window.addEventListener("notifications-read", handleRead);
+  return () => window.removeEventListener("notifications-read", handleRead);
+}, []);
+
 
   const toggleAvatarDropdownShow = () => {
     setIsAvatarDropdownShow(!isAvatarDropdownShow);
@@ -380,12 +414,26 @@ const Navbar = ({ onToggleSideNav }) => {
 
             <Link
               to="/notifications"
-              className="hidden md:block p-2 rounded-full hover:bg-gray-100"
+              className="hidden md:block p-2 rounded-full hover:bg-gray-100 relative"
             >
               <Bell
                 className={`w-5 h-5 ${bellActive ? "text-amber-500" : ""}`}
               />
+
+              {unreadCount > 0 && (
+                <span
+                  className="
+        absolute -top-1 -right-1 
+        bg-red-500 text-white text-xs 
+        w-4 h-4 flex items-center justify-center 
+        rounded-full
+      "
+                >
+                  {unreadCount}
+                </span>
+              )}
             </Link>
+
 
             <button
               className="md:hidden p-2 rounded-full hover:bg-gray-100"

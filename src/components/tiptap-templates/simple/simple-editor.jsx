@@ -71,10 +71,10 @@ import { handleImageUpload, MAX_FILE_SIZE } from "lib/tiptap-utils";
 import "@/components/tiptap-templates/simple/simple-editor.scss";
 
 import { Input } from "@/components/tiptap-ui-primitive/input";
-import { RxAvatar } from "react-icons/rx";
 import { MdOutlineMoreHoriz } from "react-icons/md";
 import { Link, useLocation } from "react-router";
 import TopicSelector from "@/components/TopicSelector";
+import AIWritingAssistant from "@/components/AIWritingAssistant.jsx";
 
 const MainToolbarContent = ({ onHighlighterClick, onLinkClick, isMobile }) => {
   return (
@@ -222,6 +222,11 @@ export const SimpleEditor = React.forwardRef(
       getContent: () => editor?.getJSON(),
     }));
 
+    // Function to get editor content for AI Assistant
+    const getEditorContent = React.useCallback(() => {
+      return editor?.getJSON();
+    }, [editor]);
+
     React.useEffect(() => {
       if (!handleAutoSave || !editor) return;
 
@@ -367,6 +372,12 @@ export const SimpleEditor = React.forwardRef(
             editor={editor}
             role="presentation"
             className="simple-editor-content"
+          />
+
+          {/* AI Writing Assistant */}
+          <AIWritingAssistant
+            title={title}
+            getEditorContent={getEditorContent}
           />
         </EditorContext.Provider>
       </div>

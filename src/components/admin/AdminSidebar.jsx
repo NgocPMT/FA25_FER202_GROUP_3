@@ -33,6 +33,15 @@ export default function AdminSidebar() {
       >
         Manage Topics
       </Link>
+
+      <Link
+        to="/admin/reactions"
+        className={`p-2 rounded ${
+          pathname.includes("users") ? "bg-gray-200 font-semibold" : ""
+        }`}
+      >
+        Manage Reactions
+      </Link>
     </div>
   );
 }

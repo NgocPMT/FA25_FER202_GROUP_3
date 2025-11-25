@@ -58,6 +58,7 @@ export default function Notification() {
     toast.success(data.message);
     const updated = notifications.map((n) => ({ ...n, isRead: true }));
     setNotifications(updated);
+    window.dispatchEvent(new CustomEvent("notifications-read"));
   };
 
   return (
@@ -81,15 +82,17 @@ export default function Notification() {
         <div className="overflow-y-auto flex-1">
           {notifications.length > 0 ? (
             notifications.map((n, index) => (
-              <NotificationItem
-                key={n.id}
-                avatar={n.avatarUrl}
-                message={n.message}
-                time={n.time}
-                isLast={index === notifications.length - 1}
-                read={n.isRead}
-              />
-            ))
+  <NotificationItem
+    key={n.id}
+    avatar={n.actor?.Profile?.avatarUrl}
+    message={n.message}
+    time={n.createdAt}
+    isLast={index === notifications.length - 1}
+    read={n.isRead}
+  />
+))
+
+
           ) : (
             <p className="text-center text-gray-500 mt-6">No notifications</p>
           )}

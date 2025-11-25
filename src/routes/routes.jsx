@@ -32,6 +32,7 @@ import PublicationEdit from "@/components/publication/PublicationEdit";
 import PublicationPosts from "@/components/publication/PublicationPosts";
 import PublicationPendingPosts from "@/components/publication/PublicationPendingPosts";
 import AdminManageTopic from "../components/admin/AdminManageTopic";
+import AdminManageReactions from "@/components/admin/AdminManageReactions";
 import MyInvitations from "@/components/publication/MyInvitations";
 import PublicationMembers from "@/components/publication/PublicationMembers";
 import PublicationInvitations from "@/components/publication/PublicationInvitations";
@@ -49,6 +50,7 @@ const routes = [
       { path: "reports", element: <AdminReportedPosts /> },
       { path: "users", element: <AdminUsers /> },
       { path: "topics", element: <AdminManageTopic /> },
+      { path: "reactions", element: <AdminManageReactions /> },
     ],
   },
   {
@@ -176,7 +178,7 @@ const routes = [
       },
       {
         path: "/library/:id",
-        element: ( 
+        element: (
           <ProtectedRoute>
             <ReadingListDetail />
           </ProtectedRoute>
@@ -210,10 +212,10 @@ const routes = [
           <ProtectedRoute>
             <PublicationDetail />
           </ProtectedRoute>
-        ),   // Trang CHA chứa <Outlet />
+        ), // Trang CHA chứa <Outlet />
         children: [
           {
-            index: true,                  // Default tab = Posts
+            index: true, // Default tab = Posts
             element: <PublicationPosts />,
           },
           {
@@ -244,7 +246,6 @@ const routes = [
               </ProtectedRoute>
             ),
           },
-
         ],
       },
       {
@@ -261,11 +262,8 @@ const routes = [
       },
       {
         path: "/my-invitations",
-        element:
-          <MyInvitations />
+        element: <MyInvitations />,
       },
-
-
     ],
   },
 ];

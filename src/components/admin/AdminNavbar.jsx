@@ -32,7 +32,7 @@ export default function AdminNavbar() {
   }, [token]);
 
   return (
-    <nav className="sticky top-0 z-50 bg-white border-b shadow-sm">
+    <nav className="sticky top-0 z-50 bg-white border-b border-gray-300">
       <div className="flex items-center justify-between px-4 py-3 w-full">
         {/* --- LOGO --- */}
         <Link to="/home" className="font-lora font-bold text-2xl text-gray-900">

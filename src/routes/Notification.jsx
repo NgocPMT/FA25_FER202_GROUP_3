@@ -83,13 +83,14 @@ export default function Notification() {
             notifications.map((n, index) => (
               <NotificationItem
                 key={n.id}
-                avatar={n.avatarUrl}
+                avatar={n.user?.Profile?.avatarUrl}
                 message={n.message}
-                time={n.time}
+                time={n.createdAt}
                 isLast={index === notifications.length - 1}
                 read={n.isRead}
               />
             ))
+
           ) : (
             <p className="text-center text-gray-500 mt-6">No notifications</p>
           )}

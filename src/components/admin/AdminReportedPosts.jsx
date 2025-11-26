@@ -5,7 +5,6 @@ import { X } from "lucide-react";
 import { toast } from "react-toastify";
 import { FiTrash2, FiCheckCircle } from "react-icons/fi";
 
-
 export default function AdminReportedPosts() {
   const [reports, setReports] = useState([]);
 
@@ -31,14 +30,15 @@ export default function AdminReportedPosts() {
 
   // Pagination
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(5);
+  const limit = 7;
   const [hasNext, setHasNext] = useState(false);
 
   // Fetch reports from API with search params
   const fetchReports = async () => {
     try {
-      let url = `${import.meta.env.VITE_API_URL
-        }/admin/reported-posts?page=${page}&limit=${limit}`;
+      let url = `${
+        import.meta.env.VITE_API_URL
+      }/admin/reported-posts?page=${page}&limit=${limit}`;
 
       if (titleSearch) {
         url += `&titleSearch=${encodeURIComponent(titleSearch)}`;
@@ -223,37 +223,15 @@ export default function AdminReportedPosts() {
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-6">Reported Posts</h1>
 
-      {/* LIMIT SELECT */}
-      <select
-        value={limit}
-        onChange={(e) => {
-          setPage(1);
-          setLimit(Number(e.target.value));
-        }}
-        className="border rounded px-3 py-1 mb-4"
-      >
-        <option value="5">5 / page</option>
-        <option value="10">10 / page</option>
-        <option value="20">20 / page</option>
-        <option value="50">50 / page</option>
-      </select>
-
       {/* FILTER BAR */}
-      <div className="bg-white p-4 rounded-xl shadow mb-6 border flex flex-wrap items-center gap-3">
+      <div className="bg-white p-4 rounded-xl border border-gray-300 mb-6 border flex flex-wrap items-center gap-3">
         {/* AUTHOR SEARCH */}
-        <div className="relative">
+        <div className="relative flex-1 min-w-[200px]">
           <input
             type="text"
             placeholder="Author Username"
             className="
-              px-4 py-2 
-              border border-gray-300 
-              rounded-lg 
-              bg-gray-50 
-              focus:outline-none 
-              focus:ring-0 
-              focus:border-gray-400 
-              focus:no-underline
+              border border-gray-300 px-4 py-2 rounded-full  w-full pr-10 focus:outline-none focus:ring-2 focus:ring-cyan-100
             "
             value={authorInput}
             onChange={(e) => setAuthorInput(e.target.value)}
@@ -265,7 +243,7 @@ export default function AdminReportedPosts() {
           {/* SEARCH BUTTON */}
           <button
             onClick={applyAuthorSearch}
-            className="absolute right-1 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black"
+            className="absolute right-1 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black cursor-pointer px-2"
           >
             <IoSearchOutline size={18} />
           </button>
@@ -315,12 +293,11 @@ export default function AdminReportedPosts() {
         </div>
 
         {/* TITLE SEARCH */}
-        <div className="relative flex-1 max-w-xs ml-auto">
+        <div className="relative flex-1 min-w-[200px]">
           <input
             type="text"
             placeholder="Post Title"
-            className="w-full border bg-gray-50 rounded-full pl-10 pr-8 py-2 text-sm
-             focus:outline-none focus:ring-0 focus:border-gray-300"
+            className="border border-gray-300 px-3 py-2 rounded-full  w-full pr-10 focus:outline-none focus:ring-2 focus:ring-cyan-100"
             value={searchKeyword}
             onChange={(e) => setSearchKeyword(e.target.value)}
             onFocus={() => setShowTitleDropdown(true)}
@@ -331,7 +308,7 @@ export default function AdminReportedPosts() {
           {/* SEARCH BUTTON */}
           <button
             onClick={applyTitleSearch}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black cursor-pointer"
           >
             <IoSearchOutline size={18} />
           </button>
@@ -383,41 +360,65 @@ export default function AdminReportedPosts() {
         {/* CLEAR FILTER */}
         <button
           onClick={clearFilters}
-          className="px-4 py-2 rounded-lg border border-red-300 text-red-500 hover:bg-red-50"
+          className="px-4 py-2 rounded-lg border border-green-300 text-green-500 hover:bg-green-50 cursor-pointer"
         >
           Clear
         </button>
       </div>
 
       {/* TABLE */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white border rounded shadow">
+      <div className="border border-gray-300 rounded-xl overflow-hidden">
+        <table className="w-full border-collapse">
           <thead>
             <tr className="bg-gray-100">
-              <th className="p-3 border">Post ID</th>
-              <th className="p-3 border">Author</th>
-              <th className="p-3 border">Title</th>
-              <th className="p-3 border">Image</th>
-              <th className="p-3 border">Reporter ID</th>
-              <th className="p-3 border">Reporter</th>
-              <th className="p-3 border">Reported At</th>
-              <th className="p-3 border">Action</th>
+              <th className="p-2 font-semibold border border-gray-300 w-20 text-center">
+                Post ID
+              </th>
+              <th className="p-2 font-semibold border border-gray-300 text-center">
+                Author
+              </th>
+              <th className="p-2 font-semibold border border-gray-300 text-left">
+                Title
+              </th>
+              <th className="p-2 font-semibold border border-gray-300 text-center w-32">
+                Image
+              </th>
+              <th className="p-2 font-semibold border border-gray-300 text-center w-20">
+                Reporter ID
+              </th>
+              <th className="p-2 font-semibold border border-gray-300 text-center">
+                Reporter
+              </th>
+              <th className="p-2 font-semibold border border-gray-300 text-center w-32">
+                Reported At
+              </th>
+              <th className="p-2 font-semibold border border-gray-300 text-center w-[180px]">
+                Actions
+              </th>
             </tr>
           </thead>
 
-          <tbody className="text-sm">
+          <tbody>
             {reports.length === 0 ? (
               <tr>
-                <td colSpan="8" className="text-center p-4 text-gray-500">
+                <td
+                  colSpan="8"
+                  className="text-center p-4 text-gray-500 border border-gray-300"
+                >
                   No reported posts found.
                 </td>
               </tr>
             ) : (
               reports.map((item) => (
-                <tr key={`${item.postId}-${item.user.id}`} className="border">
-                  <td className="p-3 border text-center">{item.postId}</td>
+                <tr
+                  key={`${item.postId}-${item.user.id}`}
+                  className="hover:bg-gray-50"
+                >
+                  <td className="p-2 border border-gray-300 text-center">
+                    {item.postId}
+                  </td>
 
-                  <td className="p-3 border text-center">
+                  <td className="p-2 border border-gray-300 text-center">
                     <Link
                       to={`/profile/${item.post.user?.username}`}
                       className="hover:underline"
@@ -426,28 +427,28 @@ export default function AdminReportedPosts() {
                     </Link>
                   </td>
 
-                  <td className="p-3 border">
+                  <td className="p-2 border border-gray-300 text-left">
                     <Link
                       to={`/posts/${item.post.slug}`}
-                      className="text-base md:text-[17px] lg:text-lg text-center font-semibold mb-1 
-        hover:underline cursor-pointer leading-snug 
-        whitespace-pre-line break-words line-clamp-2"
+                      className="font-semibold hover:underline text-[15px] leading-snug line-clamp-2 block"
                     >
                       {formatTitle(item.post.title)}
                     </Link>
                   </td>
 
-                  <td className="p-3 border w-32 text-center">
+                  <td className="p-2 border border-gray-300 text-center">
                     <img
                       src={item.post.coverImageUrl}
-                      className="w-20 h-16 object-cover rounded"
+                      className="w-20 h-16 object-cover rounded inline-block"
                       alt="Post cover"
                     />
                   </td>
 
-                  <td className="p-3 border text-center">{item.userId}</td>
+                  <td className="p-2 border border-gray-300 text-center">
+                    {item.userId}
+                  </td>
 
-                  <td className="p-3 border text-center">
+                  <td className="p-2 border border-gray-300 text-center">
                     <Link
                       to={`/profile/${item.user?.username}`}
                       className="hover:underline"
@@ -456,26 +457,27 @@ export default function AdminReportedPosts() {
                     </Link>
                   </td>
 
-                  <td className="p-3 border text-center">
+                  <td className="p-2 border border-gray-300 text-center">
                     {new Date(item.createdAt).toLocaleString("vi-VN")}
                   </td>
 
-                  <td className="p-3 border text-center">
-                    <div className="flex flex-col gap-2">
+                  <td className="p-2 border border-gray-300 text-center">
+                    <div className="flex gap-2 justify-center">
                       <button
-                        onClick={() => handleDeletePost(item.postId, item.user.id)}
-                        className="text-red-500 hover:text-red-700 cursor-pointer text-sm flex items-center gap-1"
-                        title="Delete post and report"
+                        onClick={() =>
+                          handleClearReport(item.postId, item.user.id)
+                        }
+                        className="px-3 py-1 border border-indigo-300 text-indigo-500 hover:bg-indigo-50 rounded cursor-pointer flex items-center justify-center gap-2"
                       >
-                        <FiTrash2 size={15} /> Delete
+                        <FiCheckCircle size={16} /> Clear
                       </button>
-
                       <button
-                        onClick={() => handleClearReport(item.postId, item.user.id)}
-                        className="text-green-500 hover:text-green-700 cursor-pointer text-sm flex items-center gap-1"
-                        title="Clear report only"
+                        onClick={() =>
+                          handleDeletePost(item.postId, item.user.id)
+                        }
+                        className="px-3 py-1 border border-red-300 text-red-400 hover:bg-red-50 rounded cursor-pointer flex items-center justify-center gap-2"
                       >
-                        <FiCheckCircle size={15} /> Clear
+                        <FiTrash2 size={16} />
                       </button>
                     </div>
                   </td>
@@ -487,26 +489,30 @@ export default function AdminReportedPosts() {
       </div>
 
       {/* PAGINATION */}
-      <div className="flex items-center justify-center mt-4">
-        <div className="flex items-center gap-2">
-          <button
-            disabled={page === 1}
-            onClick={() => setPage(page - 1)}
-            className="px-3 py-1 border rounded disabled:opacity-50"
-          >
-            Prev
-          </button>
+      <div className="flex justify-center mt-6 gap-3">
+        <button
+          onClick={() => setPage((p) => Math.max(1, p - 1))}
+          className={`px-3 py-1 rounded-full bg-white transition ${
+            page === 1
+              ? "invisible"
+              : "cursor-pointer opacity-40 hover:opacity-60"
+          }`}
+        >
+          Prev
+        </button>
 
-          <span className="px-3 py-1 opacity-70">{page}</span>
+        <span className="px-3 py-1 opacity-70">{page}</span>
 
-          <button
-            disabled={!hasNext}
-            onClick={() => setPage(page + 1)}
-            className="px-3 py-1 border rounded disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
+        <button
+          onClick={() => setPage((p) => p + 1)}
+          className={`px-3 py-1 rounded-full bg-white transition ${
+            !hasNext
+              ? "invisible"
+              : "cursor-pointer opacity-40 hover:opacity-60"
+          }`}
+        >
+          Next
+        </button>
       </div>
     </div>
   );

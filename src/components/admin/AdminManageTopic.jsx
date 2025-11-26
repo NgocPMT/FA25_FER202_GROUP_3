@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { FiPlus, FiEdit, FiTrash2 } from "react-icons/fi";
+import { toast } from "react-toastify";
 import axios from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -16,9 +17,10 @@ export default function AdminManageTopic() {
   const [deleting, setDeleting] = useState(false);
 
   const [page, setPage] = useState(1);
-  const limit = 7;
+  const limit = 8;
   const [hasNext, setHasNext] = useState(false);
 
+  //fetch topics
   const fetchTopics = async () => {
     try {
       setLoading(true);
@@ -44,6 +46,7 @@ export default function AdminManageTopic() {
     setPage(1);
   }, [search]);
 
+  // search topics
   const filteredTopics = useMemo(() => {
     return topics.filter((t) =>
       t.name.toLowerCase().includes(search.toLowerCase())
@@ -52,29 +55,54 @@ export default function AdminManageTopic() {
 
   const handleCreate = async (e) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim()) {
+      toast.error("Topic name cannot be empty");
+      return;
+    }
+
+    const isDuplicate = topics.some(
+      (t) => t.name.toLowerCase() === name.toLowerCase()
+    );
+
+    if (isDuplicate) {
+      toast.error("Topic name already exists!");
+      return;
+    }
 
     try {
       await axios.post(
         `${API_URL}/topics`,
         { name },
         {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
 
+      toast.success("Topic created successfully");
       setName("");
       fetchTopics();
     } catch (err) {
+      toast.error("Failed to create topic");
       console.error("Error creating topic:", err);
     }
   };
 
   const handleUpdate = async (e) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim()) {
+      toast.error("Topic name cannot be empty");
+      return;
+    }
+
+    const isDuplicate = topics.some(
+      (t) =>
+        t.id !== editingTopic.id && t.name.toLowerCase() === name.toLowerCase()
+    );
+
+    if (isDuplicate) {
+      toast.error("Topic name already exists!");
+      return;
+    }
 
     try {
       await axios.put(
@@ -87,10 +115,12 @@ export default function AdminManageTopic() {
         }
       );
 
+      toast.success("Topic updated successfully");
       setEditingTopic(null);
       setName("");
       fetchTopics();
     } catch (err) {
+      toast.error("Failed to update topic");
       console.error("Error updating topic:", err);
     }
   };
@@ -104,6 +134,8 @@ export default function AdminManageTopic() {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
+
+      toast.success("Topic deleted successfully!");
 
       fetchTopics();
     } catch (err) {
@@ -133,7 +165,7 @@ export default function AdminManageTopic() {
           <input
             type="text"
             placeholder="Search topics..."
-            className="border border-gray-300 px-3 py-2 rounded-lg w-full pr-10 focus:outline-none focus:ring-2 focus:ring-cyan-100"
+            className="border border-gray-300 px-3 py-2 rounded-full w-full pr-10 focus:outline-none focus:ring-2 focus:ring-cyan-100"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -143,7 +175,7 @@ export default function AdminManageTopic() {
             viewBox="0 0 24 24"
             strokeWidth="2"
             stroke="currentColor"
-            className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 cursor-pointer"
+            className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-800 cursor-pointer"
           >
             <path
               strokeLinecap="round"
@@ -160,14 +192,17 @@ export default function AdminManageTopic() {
           <input
             type="text"
             placeholder="Topic name..."
-            className="border border-gray-300 px-3 py-2 rounded-lg flex-1 focus:outline-none focus:ring-2 focus:ring-cyan-100"
+            className="border border-gray-300 px-3 py-2 rounded-full flex-1 focus:outline-none focus:ring-2 focus:ring-cyan-100"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
 
           <button
             type="submit"
-            className="px-4 py-2 border border-emerald-300 text-emerald-400 rounded whitespace-nowrap cursor-pointer flex items-center gap-2"
+            className="
+              px-4 py-2 rounded whitespace-nowrap cursor-pointer flex items-center gap-2 border transition
+              border-emerald-300 text-emerald-500 hover:bg-emerald-50
+            "
           >
             {editingTopic ? <FiEdit size={18} /> : <FiPlus size={18} />}
             {editingTopic ? "Update" : "Create"}
@@ -180,7 +215,7 @@ export default function AdminManageTopic() {
                 setEditingTopic(null);
                 setName("");
               }}
-              className="px-4 py-2 border border-gray-400 text-gray-500 rounded whitespace-nowrap cursor-pointer"
+              className="px-4 py-2 border border-gray-400 text-gray-500 hover:bg-gray-200 rounded whitespace-nowrap cursor-pointer"
             >
               Cancel
             </button>
@@ -226,7 +261,7 @@ export default function AdminManageTopic() {
                     <td className="p-2 border border-gray-300">
                       <div className="flex gap-2 justify-center">
                         <button
-                          className="px-3 py-1 border border-indigo-300 text-indigo-400 rounded cursor-pointer flex items-center justify-center gap-2"
+                          className="px-3 py-1 border border-indigo-300 text-indigo-500 hover:bg-indigo-50 rounded cursor-pointer flex items-center justify-center gap-2"
                           onClick={() => {
                             setEditingTopic(topic);
                             setName(topic.name);
@@ -236,7 +271,7 @@ export default function AdminManageTopic() {
                         </button>
 
                         <button
-                          className="px-3 py-1 border border-red-300 text-red-400 rounded cursor-pointer"
+                          className="px-3 py-1 border border-red-300 text-red-400 hover:bg-red-50 rounded cursor-pointer"
                           onClick={() => {
                             setTargetId(topic.id);
                             setShowDeleteModal(true);
@@ -252,7 +287,7 @@ export default function AdminManageTopic() {
             </table>
           </div>
 
-          {/* Pagination (StatStories style) */}
+          {/* Pagination */}
           <div className="flex justify-center mt-6 gap-3">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}

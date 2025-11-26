@@ -16,7 +16,7 @@ export default function AdminManageReactions() {
 
   // Pagination
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
+  const [limit, setLimit] = useState(6);
 
   const fetchReactions = async () => {
     try {
@@ -212,7 +212,7 @@ export default function AdminManageReactions() {
         <h1 className="text-2xl font-bold">Reaction Management</h1>
         <button
           onClick={openCreateModal}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          className="flex items-center gap-2 px-4 py-2 border boder-emerald-300 text-emerald-400 rounded-lg hover:bg-emerald-50 cursor-pointer"
         >
           <FiPlus size={18} />
           Add Reaction
@@ -221,96 +221,123 @@ export default function AdminManageReactions() {
 
       {/* TABLE */}
       <div className="overflow-x-auto">
-        <table className="min-w-full bg-white border rounded shadow">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="p-3 border">ID</th>
-              <th className="p-3 border">Name</th>
-              <th className="p-3 border">Image</th>
-              <th className="p-3 border">Usages</th>
-              <th className="p-3 border">Actions</th>
-            </tr>
-          </thead>
-
-          <tbody className="text-sm">
-            {paginatedReactions.length === 0 ? (
-              <tr>
-                <td colSpan="5" className="text-center p-4 text-gray-500">
-                  No reactions found.
-                </td>
+        <div className="border border-gray-300 rounded-xl overflow-hidden">
+          <table className="min-w-full bg-white border-collapse text-sm table-fixed">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="w-1/9 p-3 border border-gray-300 text-center">
+                  ID
+                </th>
+                <th className="w-1/9 p-3 border border-gray-300 text-left">
+                  Name
+                </th>
+                <th className="w-4/9 p-3 border border-gray-300 text-center">
+                  Image
+                </th>
+                <th className="w-1/9 p-3 border border-gray-300 text-center">
+                  Usages
+                </th>
+                <th className="w-2/9 p-3 border border-gray-300 text-center">
+                  Actions
+                </th>
               </tr>
-            ) : (
-              paginatedReactions.map((reaction) => (
-                <tr key={reaction.id} className="border hover:bg-gray-50">
-                  <td className="p-3 border text-center">{reaction.id}</td>
-                  <td className="p-3 border text-center font-medium">
-                    {reaction.name}
-                  </td>
-                  <td className="p-3 border text-center">
-                    <div className="flex justify-center">
-                      <img
-                        src={reaction.reactionImageUrl}
-                        alt={reaction.name}
-                        className="w-12 h-12 object-contain"
-                      />
-                    </div>
-                  </td>
-                  <td className="p-3 border text-center">
-                    {reaction._count.PostReaction}
-                  </td>
-                  <td className="p-3 border text-center">
-                    <div className="flex justify-center gap-3">
-                      <button
-                        onClick={() => openEditModal(reaction)}
-                        className="text-blue-500 hover:text-blue-700 flex items-center gap-1"
-                        title="Edit reaction"
-                      >
-                        <FiEdit2 size={16} />
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(reaction.id)}
-                        className="text-red-500 hover:text-red-700 flex items-center gap-1"
-                        title="Delete reaction"
-                      >
-                        <FiTrash2 size={16} />
-                        Delete
-                      </button>
-                    </div>
+            </thead>
+
+            <tbody>
+              {paginatedReactions.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan="5"
+                    className="text-center p-4 text-gray-500 border border-gray-300"
+                  >
+                    No reactions found.
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                paginatedReactions.map((reaction) => (
+                  <tr key={reaction.id} className="border-b border-gray-300">
+                    {/* ID */}
+                    <td className="p-3 border border-gray-300 text-center">
+                      {reaction.id}
+                    </td>
+
+                    {/* Name */}
+                    <td className="p-3 border border-gray-300 font-medium truncate">
+                      {reaction.name}
+                    </td>
+
+                    {/* Image */}
+                    <td className="p-3 border border-gray-300">
+                      <div className="flex justify-center">
+                        <img
+                          src={reaction.reactionImageUrl}
+                          alt={reaction.name}
+                          className="w-12 h-12 object-contain"
+                        />
+                      </div>
+                    </td>
+
+                    {/* Usages */}
+                    <td className="p-3 border border-gray-300 text-center">
+                      {reaction._count?.PostReaction ?? 0}
+                    </td>
+
+                    {/* Actions */}
+                    <td className="p-3 border border-gray-300">
+                      <div className="flex justify-center gap-3">
+                        <button
+                          onClick={() => openEditModal(reaction)}
+                          className="px-3 py-1 border border-indigo-300 text-indigo-500 hover:bg-indigo-50 rounded flex items-center gap-1 cursor-pointer"
+                        >
+                          <FiEdit2 size={16} /> Edit
+                        </button>
+
+                        <button
+                          onClick={() => handleDelete(reaction.id)}
+                          className="px-3 py-1 border border-red-300 text-red-500 rounded hover:bg-red-50 cursor-pointer"
+                        >
+                          <FiTrash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* PAGINATION */}
-      <div className="flex items-center justify-center mt-4">
-        <div className="flex items-center gap-2">
-          <button
-            disabled={page === 1}
-            onClick={() => setPage(page - 1)}
-            className="px-3 py-1 border rounded disabled:opacity-50"
-          >
-            Prev
-          </button>
+      <div className="flex justify-center mt-6 gap-3">
+        <button
+          onClick={() => setPage((p) => Math.max(1, p - 1))}
+          className={`px-3 py-1 rounded-full bg-white transition ${
+            page === 1
+              ? "invisible"
+              : "cursor-pointer opacity-40 hover:opacity-60"
+          }`}
+        >
+          Prev
+        </button>
 
-          <span className="px-3 py-1 opacity-70">{page}</span>
+        <span className="px-3 py-1 opacity-70">{page}</span>
 
-          <button
-            disabled={!hasNext}
-            onClick={() => setPage(page + 1)}
-            className="px-3 py-1 border rounded disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
+        <button
+          onClick={() => setPage((p) => p + 1)}
+          className={`px-3 py-1 rounded-full bg-white transition ${
+            !hasNext
+              ? "invisible"
+              : "cursor-pointer opacity-40 hover:opacity-60"
+          }`}
+        >
+          Next
+        </button>
       </div>
 
       {/* MODAL */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">
@@ -318,7 +345,7 @@ export default function AdminManageReactions() {
               </h2>
               <button
                 onClick={closeModal}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 cursor-pointer"
               >
                 <FiX size={24} />
               </button>
@@ -369,14 +396,14 @@ export default function AdminManageReactions() {
               <div className="flex gap-3">
                 <button
                   onClick={closeModal}
-                  className="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-100"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-500 cursor-pointer"
                   disabled={isUploading}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSubmit}
-                  className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
+                  className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 cursor-pointer"
                   disabled={isUploading}
                 >
                   {isUploading

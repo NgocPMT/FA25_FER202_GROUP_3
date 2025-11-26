@@ -36,7 +36,18 @@ const Write = () => {
     setTitle(e.target.value);
   };
 
-  // FETCH DANH SÁCH PUBLICATION USER 
+  const [topics, setTopics] = useState([]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    fetch(`${import.meta.env.VITE_API_URL}/topics`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.json())
+      .then((data) => setTopics(data));
+  }, []);
+
+  // FETCH DANH SÁCH PUBLICATION USER
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -46,10 +57,10 @@ const Write = () => {
     })
       .then((res) => res.json())
       .then((data) => setMyPublications(data || []))
-      .catch(() => { });
+      .catch(() => {});
   }, []);
 
-  // HANDLE PUBLISH 
+  // HANDLE PUBLISH
   const handlePublish = async (isEmpty) => {
     const token = localStorage.getItem("token");
     const content = editorRef.current?.getContent();
@@ -86,8 +97,7 @@ const Write = () => {
     }
   };
 
-  
-  // FUNCTION: SUBMIT 
+  // FUNCTION: SUBMIT
   const submitToPersonal = async (content, coverImageUrl) => {
     try {
       showLoader();
@@ -122,7 +132,6 @@ const Write = () => {
     }
   };
 
-  
   // FUNCTION: SUBMIT PUBLICATION (PENDING)
   const submitToPublication = async (publicationId) => {
     try {
@@ -162,7 +171,6 @@ const Write = () => {
     }
   };
 
- 
   // AUTO SAVE FUNCTION
   const handleAutoSave = async (isEmpty, signal) => {
     try {
@@ -209,16 +217,16 @@ const Write = () => {
 
       const body = draftId
         ? JSON.stringify({
-          id: draftId,
-          title,
-          content: JSON.stringify(content),
-          coverImageUrl,
-        })
+            id: draftId,
+            title,
+            content: JSON.stringify(content),
+            coverImageUrl,
+          })
         : JSON.stringify({
-          title,
-          content: JSON.stringify(content),
-          coverImageUrl,
-        });
+            title,
+            content: JSON.stringify(content),
+            coverImageUrl,
+          });
 
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/posts/drafts`,
@@ -257,7 +265,7 @@ const Write = () => {
   };
 
   // UI
- 
+
   return (
     <>
       <div>
@@ -270,6 +278,7 @@ const Write = () => {
           isAvatarDropdownShow={isAvatarDropdownShow}
           toggleAvatarDropdownShow={toggleAvatarDropdownShow}
           logOut={logOut}
+          topics={topics}
           selectedTopics={selectedTopics}
           setSelectedTopics={setSelectedTopics}
         />
@@ -290,7 +299,6 @@ const Write = () => {
       {pubModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white w-96 p-6 rounded-xl shadow-xl">
-
             <h2 className="text-xl font-semibold mb-4 text-center">
               Submit to a Publication
             </h2>
@@ -325,7 +333,7 @@ const Write = () => {
                     <img
                       src={
                         p.avatarUrl ||
-                        'https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-icon.webp'
+                        "https://rugdjovtsielndwerjst.supabase.co/storage/v1/object/public/avatars/user-icon.webp"
                       }
                       className="w-8 h-8 rounded-md object-cover border"
                     />
@@ -334,7 +342,6 @@ const Write = () => {
                 ))
               )}
             </div>
-
 
             <button
               onClick={() => {
@@ -361,7 +368,6 @@ const Write = () => {
             >
               Cancel
             </button>
-
           </div>
         </div>
       )}

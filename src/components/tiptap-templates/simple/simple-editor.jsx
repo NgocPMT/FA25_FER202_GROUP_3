@@ -164,6 +164,7 @@ export const SimpleEditor = React.forwardRef(
       toggleAvatarDropdownShow,
       logOut,
       content,
+      topics,
       selectedTopics,
       setSelectedTopics,
     },
@@ -180,7 +181,8 @@ export const SimpleEditor = React.forwardRef(
     const editor = useEditor({
       immediatelyRender: false,
       shouldRerenderOnTransaction: false,
-      content: content ? content : "",
+      content:
+        typeof content === "string" ? JSON.parse(content) : content || "",
       editorProps: {
         attributes: {
           autocomplete: "off",
@@ -240,7 +242,7 @@ export const SimpleEditor = React.forwardRef(
 
         if (currentContent !== prevContent) {
           prevContent = currentContent;
-          await handleAutoSave(editor.isEmpty, signal);
+          await handleAutoSave(editor.isEmpty(), signal);
         }
       };
 
@@ -355,6 +357,7 @@ export const SimpleEditor = React.forwardRef(
           </Toolbar>
           <div className="px-4 max-w-5xl mx-auto my-4">
             <TopicSelector
+              topics={topics}
               selectedTopics={selectedTopics}
               setSelectedTopics={setSelectedTopics}
             />

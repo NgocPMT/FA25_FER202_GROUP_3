@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { BsPencil, BsTrash } from "react-icons/bs";
 import { Link } from "react-router-dom";
+import { toast } from "react-toastify";
+import ModalPortal from "@/components/ModalPortal";
 
 const Library = () => {
   const token = localStorage.getItem("token");
@@ -81,11 +83,13 @@ const Library = () => {
       }
 
       await getReadlist();
+      toast.success("Create new reading list successfully")
 
       setCreateModal(false);
       setNewListName("");
     } catch (err) {
       console.log("error create reading list: ", err.message);
+      toast.error("Create new reading list failed")
     }
   }
 
@@ -110,10 +114,12 @@ const Library = () => {
       }
 
       await getReadlist();
+      toast.success("Edit reading list successfully")
 
       setEditModal(false);
     } catch (err) {
       console.log("error edit reading list: ", err.message);
+      toast.error("Edit reading list failed")
     }
   }
 
@@ -135,9 +141,11 @@ const Library = () => {
       }
 
       await getReadlist();
+      toast.success("Delete reading list successfully")
 
     } catch (err) {
       console.log("error delete reading list: ", err.message);
+      toast.error("Delete reading list fail")
     }
   }
 
@@ -151,34 +159,37 @@ const Library = () => {
           className="bg-black text-white px-4 py-2 rounded-lg">New Reading List
         </button>
         {createModal && (
-          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-lg">
-              <h2 className="text-xl font-bold mb-4">Create New Reading List</h2>
-              <input
-                type="text"
-                className="border w-full p-2 rounded mb-4"
-                placeholder="Enter list name..."
-                value={newListName}
-                onChange={(e) => setNewListName(e.target.value)}
-              />
+          <ModalPortal>
+            <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999]">
+              <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-lg">
+                <h2 className="text-xl font-bold mb-4">Create New Reading List</h2>
+                <input
+                  type="text"
+                  className="border w-full p-2 rounded mb-4"
+                  placeholder="Enter list name..."
+                  value={newListName}
+                  onChange={(e) => setNewListName(e.target.value)}
+                />
 
-              <div className="flex justify-end gap-2">
-                <button
-                  onClick={() => setCreateModal(false)}
-                  className="px-4 py-2 rounded bg-gray-200"
-                >
-                  Cancel
-                </button>
+                <div className="flex justify-end gap-2">
+                  <button
+                    onClick={() => setCreateModal(false)}
+                    className="px-4 py-2 rounded bg-gray-200"
+                  >
+                    Cancel
+                  </button>
 
-                <button
-                  onClick={createReadingList}
-                  className="px-4 py-2 rounded bg-black text-white"
-                >
-                  Create
-                </button>
+                  <button
+                    onClick={createReadingList}
+                    className="px-4 py-2 rounded bg-black text-white"
+                  >
+                    Create
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          </ModalPortal>
+
         )}
       </div>
 
@@ -259,63 +270,67 @@ const Library = () => {
       )}
 
       {editModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-lg">
-            <h2 className="text-xl font-bold mb-4">Edit Reading List</h2>
-            <input
-              type="text"
-              className="border w-full p-2 rounded mb-4"
-              value={editName}
-              onChange={(e) => setEditName(e.target.value)}
-            />
+        <ModalPortal>
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999]">
+            <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-lg">
+              <h2 className="text-xl font-bold mb-4">Edit Reading List</h2>
+              <input
+                type="text"
+                className="border w-full p-2 rounded mb-4"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+              />
 
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setEditModal(false)}
-                className="px-4 py-2 rounded bg-gray-200"
-              >
-                Cancel
-              </button>
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setEditModal(false)}
+                  className="px-4 py-2 rounded bg-gray-200"
+                >
+                  Cancel
+                </button>
 
-              <button
-                onClick={updateReadingList}
-                className="px-4 py-2 rounded bg-black text-white"
-              >
-                Save
-              </button>
+                <button
+                  onClick={updateReadingList}
+                  className="px-4 py-2 rounded bg-black text-white"
+                >
+                  Save
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
 
       {deleteModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-lg">
-            <h2 className="text-xl font-bold mb-2">Delete this reading list?</h2>
-            <p className="text-gray-700 mb-4 overflow-hidden text-ellipsis whitespace-nowrap max-w-full">
-              "{deletingList?.name}"
-            </p>
+        <ModalPortal>
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999]">
+            <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-lg">
+              <h2 className="text-xl font-bold mb-2">Delete this reading list?</h2>
+              <p className="text-gray-700 mb-4 overflow-hidden text-ellipsis whitespace-nowrap max-w-full">
+                "{deletingList?.name}"
+              </p>
 
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setDeleteModal(false)}
-                className="px-4 py-2 rounded bg-gray-200"
-              >
-                Cancel
-              </button>
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setDeleteModal(false)}
+                  className="px-4 py-2 rounded bg-gray-200"
+                >
+                  Cancel
+                </button>
 
-              <button
-                onClick={() => {
-                  deleteReadingList(deletingList.id);
-                  setDeleteModal(false);
-                }}
-                className="px-4 py-2 rounded bg-red-600 text-white"
-              >
-                Delete
-              </button>
+                <button
+                  onClick={() => {
+                    deleteReadingList(deletingList.id);
+                    setDeleteModal(false);
+                  }}
+                  className="px-4 py-2 rounded bg-red-600 text-white"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
     </div>
   );
